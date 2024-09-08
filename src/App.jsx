@@ -1,15 +1,14 @@
-import { useState } from 'react'
-import './App.css'
-import LandingPage from './Pages/LandingPage'
-import SignUpPage from './Pages/SignUpPage'
-import LoginPage from './Pages/LoginPage'
+import { Outlet, useNavigate } from 'react-router-dom'
+import { NextUIProvider } from '@nextui-org/react'
  
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+
+  const navigate = useNavigate()
 
   return (
-    <LandingPage></LandingPage>
+    <NextUIProvider navigate={navigate}> 
+      <Outlet/>
+    </NextUIProvider>
   )
 }
 
-export default App

@@ -1,11 +1,37 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import App from './App.jsx'
+import LandingPage from './Pages/LandingPage'
+import SignUpPage from './Pages/SignUpPage'
+import LoginPage from './Pages/LoginPage'
+import ArenaPage from './Pages/ArenaPage'
+import LearnTab from './Sections/LearnTab'
+import StudyPlans from './Sections/StudyPlans'
+import ProblemsTab from './Sections/ProblemsTab'
+import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider} from 'react-router-dom'
+import ErrorPage from './Pages/ErrorPage'
+import ProblemDetailsPage from './Pages/ProblemDetailsPage'
+import App from './App'
 import './index.css'
-import { NextUIProvider } from '@nextui-org/react'
+
+const router = createBrowserRouter(
+    createRoutesFromElements(
+      <Route path='/' element={<App/>}>
+        <Route index element={<LandingPage/>}/>
+        <Route path='signup' element={<SignUpPage/>}/>
+        <Route path='login' element={<LoginPage/>}/>
+        <Route path='arena' element={<ArenaPage/>}>
+          <Route path='learn' element={<LearnTab/>}/>
+          <Route path='study-plans' element={<StudyPlans/>}/>
+          <Route path='problemset'>
+            <Route index element={<ProblemsTab/>}/>
+            <Route path=':id' element={<ProblemDetailsPage/>}/>
+          </Route>
+        </Route>
+        <Route path='*' element={<ErrorPage/>}/>
+      </Route>
+    )
+)
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-    <NextUIProvider>
-      <App />
-    </NextUIProvider>
+    <RouterProvider router={router}/>
 )

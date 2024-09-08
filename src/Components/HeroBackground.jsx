@@ -15,7 +15,7 @@ const HeroBackground = () => {
           </div>
           {/* <div className="absolute rounded-full border h-[350px] w-[350px] border-[#8ea6c6]/[0.09]"></div> */}
           <div className='absolute rounded-full w-min h-min bg-gradient-to-b from-[#00E89B]/[0.03] from-10% to-transparent'>
-            <div className="rounded-full h-[450px] w-[450px] animate-spin" style={{animationDuration:'40s'}}>
+            <div className="rounded-full h-[450px] w-[450px] animate-spin" style={{animationDuration:'60s'}}>
                 <div className="absolute top-[47.7px] left-[47.48px] flex flex-col items-center">
                     <HeroBGLogoCard identifier="Google icon" iconLink={GoogleIcon}/>
                 </div>
@@ -33,7 +33,7 @@ const HeroBackground = () => {
               </div>
           </div> */}
           <div className='absolute rounded-full w-min h-min bg-gradient-to-b from-[#00E89B]/[0.03] from-10% to-transparent'>
-            <div className="rounded-full h-[650px] w-[650px] animate-spin" style={{animationDuration:'40s'}}>
+            <div className="rounded-full h-[650px] w-[650px] animate-spin" style={{animationDuration:'60s'}}>
                 <div className="absolute bottom-[76.6px] right-[76.9px] flex flex-col items-center">
                     <HeroBGLogoCard identifier="Atlasian Icon" iconLink={AtlasianIcon}/>
                 </div>

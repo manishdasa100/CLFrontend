@@ -10,9 +10,11 @@ export default {
   theme: {
     extend: {
       colors:{
-        'stroke-gray':'#B5B5B5',
-        'text-gray':'#aaaaaa',
-        'primary-green':'#00E89B'
+        'stroke-gray':'#555555',
+        'text-gray':'#AAAAAA',
+        'primary-green':'#00E89B',
+        'primary-blue': '#006FEE',
+        'app-background-color': '#05080E'
       },
       keyframes:{
         reverseSpin:{
