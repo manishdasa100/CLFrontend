@@ -109,7 +109,7 @@ const LearnLArr = [
 
 const LearnTab = () => {
 
-    return <div className="grid grid-cols-4 gap-5">
+    return <div className="w-[1008px] grid grid-cols-4 gap-5">
         {
             LearnLArr.map((item) => 
                 <Card isFooterBlurred key={item.id} className="h-[250px]">

@@ -35,7 +35,7 @@ function LandingPage() {
                     </div>
                     <div className='absolute w-[700px] text-center z-50'>
                         <p className='text-6xl font-bold text-white drop-shadow-lg'>Crack the <span className='text-[#1b88ff] drop-shadow-lg'>Code</span></p>
-                        <p className='mt-8 text-text-gray/70 text-large leading-relaxed drop-shadow-md'>Acecode helps you crack the code to your coding career by expanding your knowledge and preparing you for technical interviews. Solve challenging problems, and level up your programming skills to ace your next opportunity.</p>
+                        <p className='mt-8 text-text-gray/70 text-lg leading-relaxed drop-shadow-md'>Acecode helps you crack the code to your coding career by expanding your knowledge and preparing you for technical interviews. Solve challenging problems, and level up your programming skills to ace your next opportunity.</p>
                         <div className='flex justify-center mt-8'>
                             <Button as={Link} href={user.isLoggedIn?'/arena/problemset':'/signup'} color="primary" variant='shadow' size='lg' className='font-semibold'>{user.isLoggedIn?'Go to Arena': 'Create Account'}</Button>
                         </div>

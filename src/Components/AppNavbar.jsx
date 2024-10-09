@@ -12,7 +12,7 @@ export default function AppNavbar() {
         profilePic: 'https://i.pravatar.cc/150?u=a042581f4e29026704d'
     })
     return (
-        <Navbar isBordered className="py-1 bg-transparent border-stroke-gray/30">
+        <Navbar className="py-1 bg-transparent border-stroke-gray/30">
             <div className='w-full flex justify-center items-center'>
                 <NavbarContent className=""> 
                     <img src={Logo} className='flex-initial' alt='Logo'></img>
