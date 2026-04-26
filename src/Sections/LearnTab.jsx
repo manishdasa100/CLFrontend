@@ -1,137 +1,60 @@
-import { Card, CardHeader, CardBody, CardFooter, Image, Link, Button } from "@nextui-org/react"
+import { Link } from "react-router-dom";
+import Icon from "../Components/Icon";
 
-import Card11Bg from "../assets/LearnCard11-Bg.png"
+const TRACKS = [
+  { id: 1, t: "Arrays 101", d: "Warm up with the foundations of indexing, iteration, and basic patterns.", prog: 100, items: 17 },
+  { id: 2, t: "Two Pointers", d: "Master the sliding & converging pointer patterns on arrays and strings.", prog: 80, items: 12 },
+  { id: 3, t: "Binary Search", d: "From classic midpoint to answer-space search and monotonic predicates.", prog: 66, items: 14 },
+  { id: 4, t: "Linked List", d: "Reverse, detect, merge. The moves you reach for on every interview day.", prog: 40, items: 10 },
+  { id: 5, t: "Binary Tree", d: "Traversals, recursion, and tree DP — the whole picture in one track.", prog: 20, items: 16 },
+  { id: 6, t: "Heap & Priority Queue", d: "Top-K, K-way merge, median streams. Use the right tool faster.", prog: 0, items: 9 },
+  { id: 7, t: "Hash Table", d: "Count, index, deduplicate. The unsung hero of real-world engineering.", prog: 0, items: 8 },
+  { id: 8, t: "Sliding Window", d: "Longest / shortest substrings, subarray sums — the templatized family.", prog: 0, items: 11 },
+  { id: 9, t: "Dynamic Programming I", d: "Memoization, tabulation, 1-D state. Build intuition first, not formulas.", prog: 0, items: 15 },
+  { id: 10, t: "Graph Fundamentals", d: "BFS, DFS, connected components, topological sort — done right.", prog: 0, items: 13 },
+  { id: 11, t: "Recursion I", d: "The mental model, then the paradigms: divide, backtrack, conquer.", prog: 0, items: 10 },
+  { id: 12, t: "Bit Manipulation", d: "XOR tricks, subsets, packing — from party tricks to production code.", prog: 0, items: 9 },
+];
 
-const LearnLArr = [
-    {
-        id: 1,
-        title: "Array 101",
-        description: "Get introduced with Arrays and solve some cool problems with them.",
-        link: "https://leetcode.com/explore/learn/card/fun-with-arrays/",
-    },
-    {
-        id: 2,
-        title: "Dynamic Programming",
-        description: "Go over the basics of DP, framework of solving DP problems, common patterns and examples.",
-        link: "https://leetcode.com/explore/learn/card/dynamic-programming/",
-    },
-    {
-        id: 3,
-        title: "Graph",
-        description: "Get introduced with Arrays and solve some cool problems with them.",
-        link: "https://leetcode.com/explore/learn/card/graph/",
-    },
-    {
-        id: 4,
-        title: "Heap",
-        description: "Have a better understanding of Heap data structure and its application.",
-        link: "https://leetcode.com/explore/learn/card/heap/",
-    },
-    {
-        id: 5,
-        title: "Bit Manipulation",
-        description: "Get introduced with Arrays and solve some cool problems with them.",
-        link: "https://leetcode.com/explore/learn/card/bit-manipulation/",
-    },
-    {
-        id: 6,
-        title: "Sorting",
-        description: "Learn sorting from ground up and understand a variety of sorting algorithms.",
-        link: "https://leetcode.com/explore/learn/card/sorting/",
-    },
-    {
-        id: 7,
-        title: "Linked List",
-        description: "Get introduced to another data structure called Linked List.",
-        link: "https://leetcode.com/explore/learn/card/linked-list/",
-    },
-    {
-        id: 8,
-        title: "Binary Tree",
-        description: "Be familiar with the concept of tree and binary tree, different traversal methods and recurssion.",
-        link: "https://leetcode.com/explore/learn/card/data-structure-tree/",
-    },
-    {
-        id: 9,
-        title: "Recursion 1",
-        description: "Feel confident in solving problems recursively and analyzing the complexity on your own.",
-        link: "https://leetcode.com/explore/learn/card/recursion-i/",
-    },
-    {
-        id: 10,
-        title: "Recursion 2",
-        description: "Dive deeper into recursion by studying some paradigms that are often applied with recursion.",
-        link: "https://leetcode.com/explore/learn/card/recursion-ii/",
-    },
-    {
-        id: 11,
-        title: "Binary Search",
-        description: "Get into understanding the general concept of Binary Search.",
-        link: "https://leetcode.com/explore/learn/card/binary-search/",
-    },
-    {
-        id: 12,
-        title: "N-ary Tree",
-        description: "Extend the concepts you have learned in binary tree to n-ary tree.",
-        link: "https://leetcode.com/explore/learn/card/n-ary-tree/",
-    },
-    {
-        id: 13,
-        title: "Binary Search Tree",
-        description: "Understand properties and basic operations in a Binary Search Tree.",
-        link: "https://leetcode.com/explore/learn/card/introduction-to-data-structure-binary-search-tree/",
-    },
-    {
-        id: 14,
-        title: "Trie",
-        description: "Go deep into implementation of Trie and how to use this data structure.",
-        link: "https://leetcode.com/explore/learn/card/trie/",
-    },
-    {
-        id: 15,
-        title: "Hash Table",
-        description: "Understand the principle of a Hash Table and use of hash set and hash map.",
-        link: "https://leetcode.com/explore/learn/card/hash-table/",
-    },
-    {
-        id: 16,
-        title: "Array and String",
-        description: "Understand basic operations and techniques applied on arrays and strings.",
-        link: "https://leetcode.com/explore/learn/card/array-and-string/",
-    },
-    {
-        id: 17,
-        title: "Stack and Queue",
-        description: "Learn different processing orders corresponding to linear data structures Queue and Stack.",
-        link: "https://leetcode.com/explore/learn/card/queue-stack/",
-    }
-]
+const GRADIENTS = [
+  "#22D3EE 0%, #0891B2 100%",
+  "#FFE140 0%, #D9B800 100%",
+  "#6EE7B7 0%, #059669 100%",
+  "#A78BFA 0%, #6D28D9 100%",
+  "#FB7185 0%, #BE123C 100%",
+  "#FCD34D 0%, #B45309 100%",
+];
 
-const LearnTab = () => {
-
-    return <div className="w-[1008px] grid grid-cols-4 gap-5">
-        {
-            LearnLArr.map((item) => 
-                <Card isFooterBlurred key={item.id} className="h-[250px]">
-                    <CardHeader className="absolute z-10 top-1 flex-col items-start">
-                        <p className="text-white/80 text-sm drop-shadow-md">{item.description}</p>
-                    </CardHeader>
-                    <Image
-                        removeWrapper
-                        alt="Card example background"
-                        className="z-0 w-full h-full scale-125 -translate-y-6 object-cover"
-                        src={Card11Bg}
-                    />
-                    <CardFooter className="flex-col justify-between gap-3 before:bg-white/10 border-white/20 border-1 overflow-hidden py-1 absolute before:rounded-xl rounded-large bottom-1 w-[calc(100%_-_8px)] shadow-small ml-1 z-10">
-                        <p className="text-white font-medium text-2xl drop-shadow-lg">{item.title}</p>
-                        <Button isExternal href={item.link} as={Link} showAnchorIcon className="w-full text-tiny text-white bg-black/20" variant="flat" color="default" radius="lg" size="sm">
-                            Explore
-                        </Button>
-                    </CardFooter>
-                </Card>
-            )
-        } 
+export default function LearnTab() {
+  return (
+    <div className="cl-container" style={{ paddingBottom: 40 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+        {TRACKS.map((c, i) => <TrackCard key={c.id} c={c} grad={GRADIENTS[i % GRADIENTS.length]} />)}
+      </div>
     </div>
+  );
 }
 
-export default LearnTab
+const TrackCard = ({ c, grad }) => (
+  <Link to="#" className="cl-card cl-learn-card" style={{ padding: 0, overflow: "hidden", textDecoration: "none", color: "inherit" }}>
+    <div style={{ height: 90, background: `linear-gradient(135deg, ${grad})`, position: "relative" }}>
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent, rgba(7,8,12,.85))" }} />
+      <div className="cl-mono" style={{ position: "absolute", top: 12, left: 14, fontSize: 10, color: "rgba(255,255,255,.8)", letterSpacing: ".15em" }}>
+        TRACK · {String(c.id).padStart(2, "0")}
+      </div>
+      <div className="cl-mono" style={{ position: "absolute", top: 12, right: 14, fontSize: 10, color: "rgba(255,255,255,.8)" }}>
+        {c.items} problems
+      </div>
+    </div>
+    <div style={{ padding: "18px 20px" }}>
+      <div style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 600, letterSpacing: "-0.01em" }}>{c.t}</div>
+      <p className="cl-text-dim" style={{ fontSize: 12.5, lineHeight: 1.5, marginTop: 6, marginBottom: 14 }}>{c.d}</p>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div className="cl-bar" style={{ flex: 1 }}><div className="cl-bar-fill" style={{ width: `${c.prog}%` }} /></div>
+        <span className="cl-mono" style={{ fontSize: 10, color: c.prog === 100 ? "var(--easy)" : "var(--text-mute)" }}>
+          {c.prog === 100 ? "✓ complete" : `${c.prog}%`}
+        </span>
+      </div>
+    </div>
+  </Link>
+);

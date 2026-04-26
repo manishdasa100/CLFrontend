@@ -1,23 +1,2 @@
-.lang-value{
-    overflow: visible !important;
-}
-
-.custom-trigger{
-    gap: 8px !important;
-}
-
-.custom-trigger svg{
-    position: relative !important;
-    right: 0 !important;
-}
-
-.monaco-editor { position: absolute !important; }
-
-.e5 code, .constraint{
-    background-color: #ffffff12;
-    border-color: #f7faff1f;
-    color: #eff1f6bf;
-    padding: 0.125rem;
-    border-radius: 5px;
-    border-width: 1px;
-}
+/* per-page overrides for problem details */
+.problem-details-shell { height: calc(100vh - 72px); }

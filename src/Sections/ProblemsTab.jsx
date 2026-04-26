@@ -1,391 +1,161 @@
-import { useEffect, useState, useCallback, useRef, useMemo } from "react"
-import {Select, SelectItem, Button, Chip, Input, Table, TableHeader, TableBody, TableColumn, TableRow, TableCell, Progress, Pagination, Link, Spinner} from "@nextui-org/react"
-import pickOneIcon from "../assets/pickOneIcon.svg"
-import tagIcon from "../assets/tagIcon.svg"
-import difficultyIcon from "../assets/difficultyIcon.svg"
-import statusIcon from "../assets/statusIcon.svg"
-import globeIcon from "../assets/globeIcon.svg"
-import searchIcon from "../assets/searchIcon.svg"
-// import checkIcon from "../assets/checkIcon.svg"
-// import exclamationIcon from "../assets/exclamationIcon.svg"
-import useDebounce from "../hooks/useDebounce"
+import { useState, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { Spinner } from "@nextui-org/react";
+import Icon from "../Components/Icon";
+import ProblemOfTheDayCard from "../Components/ProblemOfTheDayCard";
+import useDebounce from "../hooks/useDebounce";
+import { useARandomProblemId, useProblemsData } from "../services/queries";
+import { formatFieldName, textMapForProblemStatus } from "../lib/utils";
 
-import {colorMap, startContentForProblemStatus} from "../themes/problemPropsDisplaySettings"
-import {formatFieldName, textMapForProblemStatus} from "../lib/utils"
-import { useProblems } from "../services/queries"
+const ProblemsTab = () => {
+  const navigate = useNavigate();
+  const [page, setPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [difficulty, setDifficulty] = useState("all");
+  const [status, setStatus] = useState("all");
+  const [searchInput, setSearchInput] = useState("");
+  const search = useDebounce(searchInput, 400);
 
-const columns = [
-    {
-        key:"problemId",
-        label:"Id"
-    },
-    {
-        key:"title",
-        label:"Title"
-    },
-    {
-        key:"acceptance",
-        label:"Acceptance"
-    },
-    {
-        key:"difficulty",
-        label:"Difficulty"
-    },
-    {
-        key:"status",
-        label:"Status"
-    },
-]
+  const difficultySet = useMemo(() => difficulty === "all" ? new Set() : new Set([difficulty.toUpperCase()]), [difficulty]);
+  const statusSet = useMemo(() => {
+    if (status === "all") return new Set();
+    const map = { solved: "ACC", attempted: "ATT", todo: "NATT" };
+    return new Set([map[status]]);
+  }, [status]);
 
-const ProblemsTab = ({className}) => {
+  const { isLoading, isFetching, data: problemsList, error } = useProblemsData(page, rowsPerPage, {
+    searchValue: search, difficulty: difficultySet, status: statusSet,
+  });
 
-    console.log("Problems Tab rerendered")
+  const { isLoading: loadingRand, isFetching: fetchingRand, refetch: pickRandom } = useARandomProblemId((id) => navigate(`${id}`));
 
-    const [page, setPage] = useState(1)
-    const [rowsPerPage, setRowsPerPage] = useState(10)
+  const totalPages = useMemo(() => Math.max(1, Math.ceil((problemsList?.total ?? 0) / rowsPerPage)), [problemsList?.total, rowsPerPage]);
+  const rowStatusClass = (s) => s === "ACC" ? "solved" : s === "ATT" ? "attempted" : "none";
 
-    
-    const [difficultyFilter, setDifficultyFilter] = useState(new Set([]))
-    const [statusFilter, setStatusFilter] = useState(new Set([]))
-    const [searchInputValue, setSearchInputValue] = useState("")
-    const searchValue = useDebounce(searchInputValue, 400)
+  if (error) {
+    return (
+      <div className="cl-container" style={{ paddingBottom: 40 }}>
+        <div className="cl-card" style={{ padding: 40, textAlign: "center", color: "var(--text-dim)" }}>Something went wrong.</div>
+      </div>
+    );
+  }
 
-    const {isLoading, isFetching, data, error} = useProblems(page, rowsPerPage, {
-        searchValue,
-        difficulty: difficultyFilter,
-        status: statusFilter
-    })
+  const rows = problemsList?.problems ?? [];
 
-    if (data) {
-        console.log("Problems from query")
-        console.log(data)
-    }
+  return (
+    <div className="cl-container" style={{ paddingBottom: 40 }}>
+      <div style={{ display: "flex", gap: 14, marginBottom: 20 }}>
+        <ProblemOfTheDayCard />
+      </div>
 
-    if (error){
-        console.error("Error fetching problems")
-        console.error(error)
-    }
+      <div className="cl-card">
+        <div className="cl-card-header">
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div className="cl-card-title">Problems</div>
+              <span className="cl-chip cl-chip-cyan">{problemsList?.total ?? 0} total</span>
+            </div>
+            <div className="cl-card-sub">Filter, pick, solve. Or try a random one.</div>
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button className="cl-btn cl-btn-subtle cl-btn-sm" onClick={() => { setSearchInput(""); setDifficulty("all"); setStatus("all"); setPage(1); }}>
+              <Icon name="reset" size={12} /> Reset
+            </button>
+            <button className="cl-btn cl-btn-cyan cl-btn-sm" disabled={loadingRand || fetchingRand} onClick={pickRandom}>
+              <Icon name="dice" size={13} /> {loadingRand || fetchingRand ? "…" : "Pick one"}
+            </button>
+          </div>
+        </div>
 
-    const handleRowsPerPageChange = (e) =>{
-        setRowsPerPage(parseInt(e.target.value))
-        if (page != 1) {
-            setPage(1)
-        }
-    }
+        <div style={{ padding: "14px 22px", display: "flex", gap: 10, borderBottom: "1px solid var(--stroke)", alignItems: "center", flexWrap: "wrap" }}>
+          <div className="cl-input-wrap" style={{ width: 280 }}>
+            <span className="cl-icon-l"><Icon name="search" size={14} /></span>
+            <input className="cl-input" placeholder="Search problems…" value={searchInput} onChange={(e) => { setSearchInput(e.target.value); setPage(1); }} />
+          </div>
+          <Picker label="Difficulty" value={difficulty} onChange={(v) => { setDifficulty(v); setPage(1); }} options={[
+            { v: "all", l: "All" }, { v: "easy", l: "Easy" }, { v: "medium", l: "Medium" }, { v: "hard", l: "Hard" },
+          ]} />
+          <Picker label="Status" value={status} onChange={(v) => { setStatus(v); setPage(1); }} options={[
+            { v: "all", l: "All" }, { v: "solved", l: "Solved" }, { v: "attempted", l: "Attempted" }, { v: "todo", l: "Todo" },
+          ]} />
+          <div style={{ marginLeft: "auto", fontSize: 11, color: "var(--text-mute)" }} className="cl-mono">
+            Page {page} / {totalPages}
+          </div>
+        </div>
 
-    console.log(difficultyFilter)
-    console.log(statusFilter)
+        <table className="cl-tbl">
+          <thead>
+            <tr>
+              <th style={{ width: 64 }}>Status</th>
+              <th style={{ width: 70 }}>#</th>
+              <th>Title</th>
+              <th style={{ width: 200 }}>Acceptance</th>
+              <th style={{ width: 110 }}>Difficulty</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(isLoading || isFetching) && (
+              <tr><td colSpan={5} style={{ textAlign: "center", padding: 48 }}><Spinner size="sm" color="primary" /></td></tr>
+            )}
+            {!(isLoading || isFetching) && rows.length === 0 && (
+              <tr><td colSpan={5} style={{ textAlign: "center", padding: 48, color: "var(--text-mute)" }}>No problems match. Try loosening a filter.</td></tr>
+            )}
+            {!(isLoading || isFetching) && rows.map((p) => {
+              const s = rowStatusClass(p.status);
+              const diff = String(p.difficulty || "").toLowerCase();
+              return (
+                <tr key={p.id} onClick={() => navigate(`${p.id}`)}>
+                  <td>
+                    {s === "solved" && <span style={{ display: "inline-flex", width: 22, height: 22, borderRadius: "50%", background: "rgba(110,231,183,.12)", color: "var(--easy)", alignItems: "center", justifyContent: "center" }}><Icon name="check" size={12} /></span>}
+                    {s === "attempted" && <span style={{ display: "inline-flex", width: 22, height: 22, borderRadius: "50%", background: "rgba(252,211,77,.1)", color: "var(--medium)", alignItems: "center", justifyContent: "center" }}><Icon name="dot" size={12} /></span>}
+                    {s === "none" && <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", border: "1px solid var(--stroke-2)", marginLeft: 7 }} />}
+                  </td>
+                  <td className="cl-mono cl-text-mute">{String(p.id).padStart(4, "0")}</td>
+                  <td style={{ color: "var(--text)", fontWeight: 500 }}>{p.title}</td>
+                  <td>
+                    <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                      <div className="cl-bar" style={{ width: 120 }}><div className="cl-bar-fill" style={{ width: `${p.acceptance}%` }} /></div>
+                      <span className="cl-mono" style={{ fontSize: 11, color: "var(--text-dim)" }}>{Number(p.acceptance).toFixed(1)}%</span>
+                    </div>
+                  </td>
+                  <td><span className={`cl-chip cl-chip-${diff} cl-chip-dot`}>{formatFieldName(p.difficulty)}</span></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
 
-    const handleFilterChange = (key, value) => {
-        if (key === "difficulty-filter") {
-            setDifficultyFilter(value)
-        }
-        else if (key === "status-filter") {
-            setStatusFilter(value)
-        }
-        
-        if (page != 1) {
-            setPage(1)
-        }
-    }
-
-    // useEffect(() => {
-    //     console.log("Setting page")
-    //     setPage(1)
-    // }, [rowsPerPage, searchValue, difficultyFilter, statusFilter])
-    
-    const totalPages = useMemo(() => {
-        return Math.ceil((data?.total ?? 0) / rowsPerPage);
-    }, [data?.total, rowsPerPage]);
-    
-
-    console.log(searchValue)
-
-    const renderCell = useCallback((problem, columnKey) => {
-        const cellValue = problem[columnKey];
-    
-        switch (columnKey) {
-            case "title":
-                return <Link href={`/arena/problemset/${problem.problemId}`} size="sm" className="text-text-gray hover:text-primary hover:opacity-100">{cellValue}</Link>   
-            case "acceptance":
-                return (
-                <Progress size="sm" value={cellValue} showValueLabel={true}
-                    classNames={{
-                        base:"w-[150px] flex flex-row items-center",
-                        labelWrapper:"w-max",
-                        value:"text-xs",
-                        track:"grow order-first bg-slate-300"
-                    }}
-                />
-                );
-            case "difficulty":
-                return (
-                    <Chip color={colorMap[cellValue]} variant="flat" size="sm">{formatFieldName(cellValue)}</Chip>
-                );
-            case "status":
-                return (
-                    <Chip startContent={<img src={startContentForProblemStatus[cellValue]}/>} color="text-text-gray" variant="light">
-                        {textMapForProblemStatus[cellValue]}
-                    </Chip>
-                );
-            default:
-                return cellValue;
-        }
-      }, []);
-
-    return <div id="problem-of-the-day-container" className="w-[1008px] flex justify-center pb-8">
-            {
-                error? <p className="text-text-gray text-large">Something went wrong !!</p>:
-                <div id="table-container" className="w-full rounded-2xl border-1 border-stroke-gray/30">
-                    <section id="title-section" className="flex justify-between items-center px-8 py-5 border-b-1 border-stroke-gray/30">
-                        <div>
-                            <span className="text-lg font-semibold text-white">Problems</span>
-                            <Chip 
-                                size="sm" 
-                                color="primary" 
-                                classNames={{
-                                    base: "bg-slate-600/30 ml-3 px-2 text-primary-blue",
-                                    content:"font-semibold"
-                                }}
-                            >
-                                {data?.total ?? 0} total
-                            </Chip>
-                            <p className="mt-2 text-sm text-text-gray">Get questions for practice here</p>
-                        </div>
-                        <div className="flex gap-4">
-                            <Button size="sm" color="primary" radius="md" startContent={<span><img src={pickOneIcon} className="w-5"/></span>} className="font-medium">Pick one</Button>
-                        </div>
-                    </section>
-                    <section className="px-8 py-5 flex gap-3 text-text-gray border-b-1 border-stroke-gray/30">
-                        <Input variant="bordered" placeholder="Search question..." 
-                            classNames={{
-                                base:"w-1/3 border-1 border-stroke-gray/30 rounded-xl",
-                                innerWrapper:"border-0",
-                                inputWrapper: [
-                                    "border-0",
-                                    "hover:border-0",
-                                    "group-data-[focus=true]:border-stroke-gray/30",
-                                ],
-                            }}
-                            endContent={<img src={searchIcon} className="w-[14px]"/>}
-                            onValueChange={setSearchInputValue}
-                        />
-                        <Select
-                            aria-label="difficulty-filter"
-                            variant="bordered"
-                            placeholder="Difficulty"
-                            selectionMode="multiple"
-                            selectedKeys={[...difficultyFilter]}
-                            onSelectionChange={(e) => handleFilterChange("difficulty-filter", e)}
-                            className="basis-1/5"
-                            startContent={<img src={difficultyIcon} className="w-3"/>}
-                            classNames={{
-                                mainWrapper:"border-1 border-stroke-gray/30 rounded-xl",
-                                trigger: [
-                                    "bg-transparent", 
-                                    "data-[hover=true]:bg-transparent border-0",
-                                ],
-                                popoverContent:"bg-zinc-950 border-1 border-stroke-gray/30",
-                            }}
-
-                            listboxProps={{
-                                itemClasses: {
-                                base: [
-                                    "text-text-gray",
-                                    "transition-opacity",
-                                    "data-[hover=true]:text-foreground",
-                                    "data-[selectable=true]:focus:bg-gray-400",
-                                    "data-[pressed=true]:opacity-70",
-                                ],
-                                },
-                            }}
-                        >
-                            <SelectItem key="EASY">Easy</SelectItem>
-                            <SelectItem key="MEDIUM">Medium</SelectItem>
-                            <SelectItem key="HARD">Hard</SelectItem>
-                        </Select>
-                        <Select
-                            aria-label="topics-filter"
-                            variant="bordered"
-                            placeholder="Topics"
-                            selectionMode="multiple"
-                            className="basis-1/5"
-                            startContent={<img src={tagIcon} className="w-3"/>}
-                            classNames={{
-                                mainWrapper:"border-1 border-stroke-gray/30 rounded-xl",
-                                trigger: [
-                                    "bg-transparent", 
-                                    "data-[hover=true]:bg-transparent border-0",
-                                ],
-                                popoverContent:"bg-zinc-950 border-1 border-stroke-gray/30",
-                            }}
-
-                            listboxProps={{
-                                itemClasses: {
-                                base: [
-                                    "text-text-gray",
-                                    "transition-opacity",
-                                    "data-[hover=true]:text-foreground",
-                                    "data-[selectable=true]:focus:bg-gray-400",
-                                    "data-[pressed=true]:opacity-70",
-                                ],
-                                },
-                            }}
-                        >
-                            <SelectItem >Topic 1</SelectItem>
-                            <SelectItem >Topic 2</SelectItem>
-                            <SelectItem >Topic 3</SelectItem>
-                        </Select>
-                        <Select
-                            aria-label="company-filter"
-                            variant="bordered"
-                            placeholder="Company"
-                            selectionMode="multiple"
-                            className="basis-1/5"
-                            startContent={<img src={globeIcon} className="w-3"/>}
-                            classNames={{
-                                mainWrapper:"border-1 border-stroke-gray/30 rounded-xl",
-                                trigger: [
-                                    "bg-transparent", 
-                                    "data-[hover=true]:bg-transparent border-0",
-                                ],
-                                popoverContent:"bg-zinc-950 border-1 border-stroke-gray/30",
-                            }}
-
-                            listboxProps={{
-                                itemClasses: {
-                                base: [
-                                    "text-text-gray",
-                                    "transition-opacity",
-                                    "data-[hover=true]:text-foreground",
-                                    "data-[selectable=true]:focus:bg-gray-400",
-                                    "data-[pressed=true]:opacity-70",
-                                ],
-                                },
-                            }}
-                        >
-                            <SelectItem >Company 1</SelectItem>
-                            <SelectItem >Company 2</SelectItem>
-                            <SelectItem >Company 3</SelectItem>
-                        </Select>
-                        <Select
-                            aria-label="status-filter"
-                            variant="bordered"
-                            placeholder="Status"
-                            selectionMode="multiple"
-                            selectedKeys={[...statusFilter]}
-                            onSelectionChange={(e) => handleFilterChange("status-filter", e)}
-                            className="basis-1/5"
-                            startContent={<img src={statusIcon} className="w-3"/>}
-                            classNames={{
-                                mainWrapper:"border-1 border-stroke-gray/30 rounded-xl",
-                                trigger: [
-                                    "bg-transparent", 
-                                    "data-[hover=true]:bg-transparent border-0",
-                                ],
-                                popoverContent:"bg-zinc-950 border-1 border-stroke-gray/30",
-                            }}
-
-                            listboxProps={{
-                                itemClasses: {
-                                base: [
-                                    "text-text-gray",
-                                    "transition-opacity",
-                                    "data-[hover=true]:text-foreground",
-                                    "data-[selectable=true]:focus:bg-gray-400",
-                                    "data-[pressed=true]:opacity-70",
-                                ],
-                                },
-                            }}
-                        >
-                            <SelectItem key="ACC">Solved</SelectItem>
-                            <SelectItem key="ATT">Attempted</SelectItem>
-                            <SelectItem key="NATT">Not attempted</SelectItem>
-                        </Select>
-                    </section>
-                    <section className="px-8 py-5">
-                        <Table 
-                            removeWrapper 
-                            aria-label="Problem list table"
-                            classNames={{
-                                th:"bg-slate-700/20 text-text-gray",
-                                tbody:"text-text-gray",
-                            }}
-                            bottomContent={
-                                <div className="flex w-full justify-between mt-5">
-                                    <Select
-                                        aria-label="rows-per-page"
-                                        disallowEmptySelection
-                                        defaultSelectedKeys={["10"]}
-                                        selectedKeys={[String(rowsPerPage)]}
-                                        variant="bordered"
-                                        labelPlacement="outside-left"
-                                        label="Rows: "
-                                        size="sm"
-                                        classNames={{
-                                            base:"w-min flex items-center",
-                                            mainWrapper:"border-1 border-stroke-gray/30 rounded-xl",
-                                            label:"text-text-gray text-sm",
-                                            trigger:"w-[60px] data-[hover=true]:bg-transparent border-0 bg-transparent",
-                                            value:"text-[12px]",
-                                            popoverContent:"bg-zinc-950 border-1 border-stroke-gray/30",
-                                        }}
-                                        listboxProps={{
-                                            itemClasses: {
-                                            base:[
-                                                "px-1",
-                                                "text-text-gray",
-                                                "transition-opacity",
-                                                "data-[hover=true]:text-foreground",
-                                                "data-[selectable=true]:focus:bg-gray-400",
-                                                "data-[pressed=true]:opacity-70",
-                                            ],
-                                            title: [
-                                                "text-[12px]"
-                                            ],
-                                            },
-                                        }}
-                                        onChange={handleRowsPerPageChange}
-                                    >
-                                        <SelectItem key="10">10</SelectItem>
-                                        <SelectItem key="20">20</SelectItem>
-                                        <SelectItem key="30">30</SelectItem>
-                                    </Select>
-                                    <Pagination
-                                        initialPage={1}
-                                        variant="bordered"
-                                        showControls
-                                        page={page}
-                                        total={totalPages}
-                                        onChange={(page) => setPage(page)}
-                                        classNames={{
-                                            item:"data-[hover=true]:bg-slate-700 text-small border-stroke-gray/30 text-text-gray",
-                                            prev:"bg-slate-700/20 text-text-gray data-[disabled=true]:text-text-gray/20",
-                                            next:"bg-slate-700/20 text-text-gray data-[disabled=true]:text-text-gray/20"
-                                        }}
-                                    />
-                                </div>
-                            }
-                        >
-                            <TableHeader columns={columns}>
-                                {(column) => <TableColumn key={column.key}>{column.label}</TableColumn>}
-                            </TableHeader>
-                            <TableBody 
-                                items={data?.problems ?? []} 
-                                isLoading={isLoading || isFetching}
-                                loadingContent={<Spinner/>}
-                                emptyContent={"No rows to display."}>
-                                {(item) => (
-                                    <TableRow key={item?.problemId}>
-                                        {(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </section>
-                </div>
-            }
+        <div style={{ padding: "14px 22px", display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--stroke)" }}>
+          <div className="cl-mono" style={{ fontSize: 11, color: "var(--text-mute)" }}>Rows per page: {rowsPerPage}</div>
+          <div style={{ display: "flex", gap: 4 }}>
+            <button className="cl-btn cl-btn-icon" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}><Icon name="chevronLeft" size={14} /></button>
+            {Array.from({ length: totalPages }).slice(0, 5).map((_, i) => {
+              const n = i + 1;
+              return (
+                <button key={n} className="cl-btn cl-btn-icon" onClick={() => setPage(n)}
+                  style={{ background: page === n ? "var(--bg-3)" : undefined, color: page === n ? "var(--text)" : undefined, borderColor: page === n ? "var(--stroke-2)" : "transparent" }}>{n}</button>
+              );
+            })}
+            <button className="cl-btn cl-btn-icon" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}><Icon name="chevronRight" size={14} /></button>
+          </div>
+        </div>
+      </div>
     </div>
-}
+  );
+};
 
-export default ProblemsTab
+const Picker = ({ label, value, onChange, options }) => (
+  <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "0 4px 0 10px", border: "1px solid var(--stroke-1)", borderRadius: 8, height: 38, background: "var(--bg-1)" }}>
+    <span style={{ fontSize: 11, color: "var(--text-mute)", textTransform: "uppercase", letterSpacing: ".1em" }}>{label}</span>
+    <div style={{ display: "flex", gap: 2 }}>
+      {options.map((o) => (
+        <button key={o.v} onClick={() => onChange(o.v)}
+          style={{ padding: "5px 10px", fontSize: 12, borderRadius: 6, color: value === o.v ? "var(--text)" : "var(--text-mute)", background: value === o.v ? "var(--bg-3)" : "transparent", border: "none", cursor: "pointer", fontFamily: "inherit" }}>
+          {o.l}
+        </button>
+      ))}
+    </div>
+  </div>
+);
+
+export default ProblemsTab;

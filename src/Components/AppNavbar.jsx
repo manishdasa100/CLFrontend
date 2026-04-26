@@ -1,54 +1,60 @@
-import { Navbar, NavbarContent, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Avatar, NavbarItem, Link, Button } from "@nextui-org/react";
-import Logo from '../assets/Logo.svg';
-
-import { useState } from'react';
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import BrandLogo from "./BrandLogo";
+import Icon from "./Icon";
+import { useState } from "react";
 
 export default function AppNavbar() {
-    const [user, setUser] = useState({
-        username:'user1',
-        email: 'user1@gmail.com',
-        role:'USER',
-        isLoggedIn: false,
-        profilePic: 'https://i.pravatar.cc/150?u=a042581f4e29026704d'
-    })
-    return (
-        <Navbar className="py-1 bg-transparent border-stroke-gray/30">
-            <div className='w-full flex justify-center items-center'>
-                <NavbarContent className=""> 
-                    <img src={Logo} className='flex-initial' alt='Logo'></img>
-                    <NavbarItem>
-                        <Link href="/arena/problemset" className="ml-4 font-medium text-primary-blue">Arena</Link>
-                    </NavbarItem>    
-                </NavbarContent>
+  const { pathname } = useLocation();
+  const [user] = useState({
+    username: "Manish Das",
+    isLoggedIn: false,
+    profilePic: "https://i.pravatar.cc/150?u=a042581f4e29026704d",
+  });
 
-                <NavbarContent as="div" justify="end">
-                    {
-                        user.isLoggedIn? 
-                        <Dropdown placement="bottom-end">
-                            <DropdownTrigger>
-                                <Avatar
-                                    isBordered
-                                    as="button"
-                                    className="transition-transform"
-                                    color="primary"
-                                    name="Manish Das"
-                                    size="sm"
-                                    src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
-                                />
-                            </DropdownTrigger>
-                            <DropdownMenu aria-label="Profile Actions" variant="flat">
-                                <DropdownItem key="signedIn" className="h-14 gap-2">
-                                    <p className="font-semibold">Signed in as</p>
-                                    <p className="font-semibold">zoey@example.com</p>
-                                </DropdownItem>
-                                <DropdownItem key="profile">Visit profile</DropdownItem>
-                                <DropdownItem key="logout">Log Out</DropdownItem>
-                            </DropdownMenu>
-                        </Dropdown>:
-                        <Button as={Link} href='/login' color='primary' variant='shadow' className='font-semibold'>Sign In</Button>
-                    }
-                </NavbarContent> 
+  const isActive = (match) => {
+    if (match === "landing") return pathname === "/";
+    if (match === "arena") return pathname.startsWith("/arena");
+    return false;
+  };
+
+  return (
+    <nav className="cl-nav">
+      <div className="cl-nav-inner">
+        <BrandLogo />
+        <div className="cl-nav-links">
+          <Link to="/arena/problemset" className={`cl-nav-link ${isActive("arena") ? "active" : ""}`}>Arena</Link>
+          <Link to="/arena/learn" className="cl-nav-link">Learn</Link>
+          <Link to="/arena/study-plans" className="cl-nav-link">Study Plans</Link>
+          <a href="#" className="cl-nav-link">Contest</a>
+          <a href="#" className="cl-nav-link">Discuss</a>
+        </div>
+        <div style={{ flex: 1 }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <button className="cl-btn cl-btn-icon" aria-label="search">
+            <Icon name="search" size={16} />
+          </button>
+          <span style={{ display: "inline-flex", gap: 4 }}>
+            <span className="cl-kbd">⌘</span>
+            <span className="cl-kbd">K</span>
+          </span>
+          {user.isLoggedIn ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: 6 }}>
+              <span className="cl-chip cl-chip-cyan"><Icon name="fire" size={12} /> 12d</span>
+              <div style={{
+                width: 30, height: 30, borderRadius: "50%",
+                background: "linear-gradient(135deg, #FFE140, #22D3EE)",
+                display: "grid", placeItems: "center", color: "#0A0B10",
+                fontWeight: 700, fontSize: 12, border: "1px solid rgba(255,255,255,.2)"
+              }}>MD</div>
             </div>
-        </Navbar>
-    )
+          ) : (
+            <>
+              <Link to="/login" className="cl-btn cl-btn-ghost cl-btn-sm">Sign in</Link>
+              <Link to="/signup" className="cl-btn cl-btn-primary cl-btn-sm">Create account</Link>
+            </>
+          )}
+        </div>
+      </div>
+    </nav>
+  );
 }
