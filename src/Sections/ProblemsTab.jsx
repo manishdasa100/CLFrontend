@@ -44,10 +44,6 @@ const ProblemsTab = () => {
 
   return (
     <div className="cl-container" style={{ paddingBottom: 40 }}>
-      <div style={{ display: "flex", gap: 14, marginBottom: 20 }}>
-        <ProblemOfTheDayCard />
-      </div>
-
       <div className="cl-card">
         <div className="cl-card-header">
           <div>
@@ -89,8 +85,9 @@ const ProblemsTab = () => {
               <th style={{ width: 64 }}>Status</th>
               <th style={{ width: 70 }}>#</th>
               <th>Title</th>
-              <th style={{ width: 200 }}>Acceptance</th>
-              <th style={{ width: 110 }}>Difficulty</th>
+              <th style={{ width: 220 }}>Acceptance</th>
+              <th style={{ width: 130 }}>Difficulty</th>
+              <th style={{ width: 160 }}>Topic</th>
             </tr>
           </thead>
           <tbody>
@@ -119,6 +116,7 @@ const ProblemsTab = () => {
                     </div>
                   </td>
                   <td><span className={`cl-chip cl-chip-${diff} cl-chip-dot`}>{formatFieldName(p.difficulty)}</span></td>
+                  <td>{p.topics?.[0] && <span className="cl-chip">{p.topics[0]}</span>}</td>
                 </tr>
               );
             })}

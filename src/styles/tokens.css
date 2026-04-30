@@ -163,6 +163,9 @@ a { color: inherit; text-decoration: none; }
 .cl-tbl tbody tr:hover td { background: rgba(34,211,238,0.03); color: var(--text); }
 .cl-tbl tbody tr:last-child td { border-bottom: none; }
 
+/* Monaco editor overrides */
+.monaco-editor .view-lines { padding-left: 12px; }
+
 /* Progress bar */
 .cl-bar { position: relative; width: 120px; height: 4px; background: var(--bg-3); border-radius: 99px; overflow: hidden; }
 .cl-bar-fill { height: 100%; background: linear-gradient(90deg, var(--cyan), #67E8F9); border-radius: 99px; transition: width .4s ease; }

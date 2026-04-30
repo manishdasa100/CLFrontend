@@ -23,7 +23,7 @@ export default function CodeEditor({ codeSnippets, toggleFullScreenEditor }) {
   const onSubmit = () => subMut.mutate({ code, language: languageCodes[language], problemId: id });
 
   return (
-    <div className="cl-card" style={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+    <div className="cl-card" style={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden", borderRadius: 0 }}>
       <div style={{ display: "flex", alignItems: "center", padding: "8px 14px", borderBottom: "1px solid var(--stroke)", gap: 10, background: "var(--bg-1)" }}>
         <select className="cl-input" value={language} onChange={(e) => setLanguage(e.target.value)} style={{ width: "auto", height: 30, fontSize: 12, padding: "0 28px 0 10px" }}>
           {codeSnippets?.map((s) => <option key={s.languageCode} value={s.languageCode.toLowerCase()}>{formatFieldName(s.languageCode)}</option>)}
@@ -38,8 +38,27 @@ export default function CodeEditor({ codeSnippets, toggleFullScreenEditor }) {
         <button className="cl-btn cl-btn-icon" onClick={toggleFullScreenEditor}><Icon name="expand" size={13} /></button>
       </div>
       <div style={{ flex: 1, minHeight: 0 }}>
-        <Editor language={language} theme="vs-dark" value={code} onChange={(v) => setCode(v || "")}
-          options={{ fontFamily: "JetBrains Mono, monospace", fontSize: 13, minimap: { enabled: false }, scrollBeyondLastLine: false, padding: { top: 12 } }} />
+        <Editor
+          language={language}
+          theme="ace-black"
+          value={code}
+          onChange={(v) => setCode(v || "")}
+          beforeMount={(monaco) => {
+            monaco.editor.defineTheme("ace-black", {
+              base: "vs-dark",
+              inherit: true,
+              rules: [],
+              colors: {
+                "editor.background": "#000000",
+                "editor.lineHighlightBackground": "#ffffff03",
+                "editor.lineHighlightBorder": "#ffffff06",
+                "editorGutter.background": "#0B0D14",
+                "editorGutter.border": "#ffffff12",
+              },
+            });
+          }}
+          options={{ fontFamily: "JetBrains Mono, monospace", fontSize: 13, minimap: { enabled: false }, scrollBeyondLastLine: false, padding: { top: 12 }, lineNumbersMinChars: 3, glyphMargin: false }}
+        />
       </div>
     </div>
   );
