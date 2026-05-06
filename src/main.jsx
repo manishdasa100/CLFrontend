@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import LandingPage from './Pages/LandingPage'
 import SignUpPage from './Pages/SignUpPage'
 import LoginPage from './Pages/LoginPage'
+import ProfilePage from './Pages/ProfilePage'
 import ArenaPage from './Pages/ArenaPage'
 import LearnTab from './Sections/LearnTab'
 import StudyPlans from './Sections/StudyPlans'
@@ -19,6 +20,8 @@ const router = createBrowserRouter(
         <Route index element={<LandingPage/>}/>
         <Route path='signup' element={<SignUpPage/>}/>
         <Route path='login' element={<LoginPage/>}/>
+        <Route path='profile' element={<ProfilePage/>}/>
+        <Route path='profile/:username' element={<ProfilePage/>}/>
         <Route path='arena' element={<ArenaPage/>}>
           <Route path='learn' element={<LearnTab/>}/>
           <Route path='study-plans' element={<StudyPlans/>}/>

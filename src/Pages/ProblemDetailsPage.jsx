@@ -7,7 +7,7 @@ import Icon from "../Components/Icon";
 import { formatFieldName } from "../lib/utils";
 import "./ProblemDetailsPage.css";
 
-const LEFT_TABS = ["Description", "Editorial", "Solutions", "Submissions"];
+const LEFT_TABS = ["Description","Submissions"];
 
 export default function ProblemDetailsPage() {
   const { id } = useParams();
@@ -177,6 +177,18 @@ export default function ProblemDetailsPage() {
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                         {data.topics.map((t) => (
                           <span key={t} className="cl-chip">{t}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Companies */}
+                  {data.companies?.length > 0 && (
+                    <div style={{ marginTop: 20 }}>
+                      <div style={{ color: "var(--text)", fontWeight: 600, marginBottom: 8 }}>Companies</div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                        {data.companies.map((c) => (
+                          <span key={c} className="cl-chip">{c}</span>
                         ))}
                       </div>
                     </div>

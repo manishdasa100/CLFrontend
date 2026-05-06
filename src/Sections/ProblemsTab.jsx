@@ -82,12 +82,12 @@ const ProblemsTab = () => {
         <table className="cl-tbl">
           <thead>
             <tr>
-              <th style={{ width: 64 }}>Status</th>
-              <th style={{ width: 70 }}>#</th>
+              <th style={{ width: 48 }}>#</th>
               <th>Title</th>
               <th style={{ width: 220 }}>Acceptance</th>
               <th style={{ width: 130 }}>Difficulty</th>
-              <th style={{ width: 160 }}>Topic</th>
+              <th style={{ width: 130 }}>Topic</th>
+              <th style={{ width: 110 }}>Status</th>
             </tr>
           </thead>
           <tbody>
@@ -98,25 +98,30 @@ const ProblemsTab = () => {
               <tr><td colSpan={5} style={{ textAlign: "center", padding: 48, color: "var(--text-mute)" }}>No problems match. Try loosening a filter.</td></tr>
             )}
             {!(isLoading || isFetching) && rows.map((p) => {
-              const s = rowStatusClass(p.status);
+              const s = rowStatusClass(p.userSubmissionStatus);
               const diff = String(p.difficulty || "").toLowerCase();
               return (
                 <tr key={p.id} onClick={() => navigate(`${p.id}`)}>
-                  <td>
-                    {s === "solved" && <span style={{ display: "inline-flex", width: 22, height: 22, borderRadius: "50%", background: "rgba(110,231,183,.12)", color: "var(--easy)", alignItems: "center", justifyContent: "center" }}><Icon name="check" size={12} /></span>}
-                    {s === "attempted" && <span style={{ display: "inline-flex", width: 22, height: 22, borderRadius: "50%", background: "rgba(252,211,77,.1)", color: "var(--medium)", alignItems: "center", justifyContent: "center" }}><Icon name="dot" size={12} /></span>}
-                    {s === "none" && <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", border: "1px solid var(--stroke-2)", marginLeft: 7 }} />}
-                  </td>
-                  <td className="cl-mono cl-text-mute">{String(p.id).padStart(4, "0")}</td>
+                  <td className="cl-mono cl-text-mute">{String(p.id)}</td>
                   <td style={{ color: "var(--text)", fontWeight: 500 }}>{p.title}</td>
                   <td>
-                    <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                      <div className="cl-bar" style={{ width: 120 }}><div className="cl-bar-fill" style={{ width: `${p.acceptance}%` }} /></div>
-                      <span className="cl-mono" style={{ fontSize: 11, color: "var(--text-dim)" }}>{Number(p.acceptance).toFixed(1)}%</span>
-                    </div>
+                    {(() => {
+                      const pct = p.submissionCount > 0 ? (p.acceptedCount / p.submissionCount) * 100 : 0;
+                      return (
+                        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                          <div className="cl-bar" style={{ width: 120 }}><div className="cl-bar-fill" style={{ width: `${pct}%` }} /></div>
+                          <span className="cl-mono" style={{ fontSize: 11, color: "var(--text-dim)" }}>{pct.toFixed(1)}%</span>
+                        </div>
+                      );
+                    })()}
                   </td>
-                  <td><span className={`cl-chip cl-chip-${diff} cl-chip-dot`}>{formatFieldName(p.difficulty)}</span></td>
+                  <td><span className={`cl-chip cl-chip-${diff}`}>{formatFieldName(p.difficulty)}</span></td>
                   <td>{p.topics?.[0] && <span className="cl-chip">{p.topics[0]}</span>}</td>
+                  <td>
+                    {s === "solved" && <span className="cl-chip" style={{ background: "rgba(110,231,183,.1)", color: "var(--easy)", borderColor: "rgba(110,231,183,.2)" }}><Icon name="check" size={11} />Solved</span>}
+                    {s === "attempted" && <span className="cl-chip cl-chip-dot" style={{ background: "rgba(252,211,77,.08)", color: "var(--medium)", borderColor: "rgba(252,211,77,.2)" }}>Tried</span>}
+                    {s === "none" && <span style={{ color: "var(--text-mute)", borderColor: "var(--stroke-1)" }}>-</span>}
+                  </td>
                 </tr>
               );
             })}
@@ -124,7 +129,17 @@ const ProblemsTab = () => {
         </table>
 
         <div style={{ padding: "14px 22px", display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--stroke)" }}>
-          <div className="cl-mono" style={{ fontSize: 11, color: "var(--text-mute)" }}>Rows per page: {rowsPerPage}</div>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "0 4px 0 10px", border: "1px solid var(--stroke-1)", borderRadius: 8, height: 38, background: "var(--bg-1)" }}>
+            <span style={{ fontSize: 11, color: "var(--text-mute)", textTransform: "uppercase", letterSpacing: ".1em" }}>Rows</span>
+            <select
+              className="cl-input"
+              value={rowsPerPage}
+              onChange={(e) => { setRowsPerPage(Number(e.target.value)); setPage(1); }}
+              style={{ width: "auto", height: 28, fontSize: 12, padding: "0 24px 0 6px", border: "none", background: "var(--bg-3)", borderRadius: 6 }}
+            >
+              {[5, 10, 20, 50].map((n) => <option key={n} value={n}>{n}</option>)}
+            </select>
+          </div>
           <div style={{ display: "flex", gap: 4 }}>
             <button className="cl-btn cl-btn-icon" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}><Icon name="chevronLeft" size={14} /></button>
             {Array.from({ length: totalPages }).slice(0, 5).map((_, i) => {

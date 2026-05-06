@@ -135,11 +135,11 @@ a { color: inherit; text-decoration: none; }
 .cl-chip-hard, .cl-chip-danger { background: rgba(251,113,133,0.09); color: var(--hard); border-color: rgba(251,113,133,0.22); }
 .cl-chip-cyan { background: rgba(34,211,238,0.10); color: var(--cyan); border-color: rgba(34,211,238,0.25); }
 .cl-chip-lemon { background: rgba(255,225,64,0.10); color: var(--lemon); border-color: rgba(255,225,64,0.25); }
-.cl-chip-dot::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.cl-chip-dot::before { content: ''; width: 3px; height: 3px; border-radius: 50%; background: currentColor; }
 
 /* Tabs */
 .cl-tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--stroke); padding: 0; }
-.cl-tab { position: relative; padding: 14px 20px; font-size: 13.5px; font-weight: 500; color: var(--text-mute); transition: color .15s; background: transparent; border: none; cursor: pointer; }
+.cl-tab { position: relative; padding: 14px 20px; font-size: 13.5px; font-weight: 500; color: var(--text-mute); transition: color .15s; background: transparent; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; }
 .cl-tab:hover { color: var(--text-dim); }
 .cl-tab.active { color: var(--text); }
 .cl-tab.active::after { content: ''; position: absolute; left: 16px; right: 16px; bottom: -1px; height: 2px; background: var(--cyan); box-shadow: 0 0 12px rgba(34,211,238,0.6); }

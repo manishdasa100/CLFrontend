@@ -21,17 +21,20 @@ const ArenaPage = () => {
       <AppNavbar />
       {!isProblemDetails ? (
         <>
-          <div className="cl-container" style={{ paddingTop: 32, width: "100%" }}>
+          <div className="cl-container" style={{ paddingTop: 32, width: "100%"}}>
             {/* Greeting */}
-            <div style={{ fontFamily: "var(--font-display)", fontSize: 30, fontWeight: 600, letterSpacing: "-0.02em", marginBottom: 24 }}>
-              Good to see you, <span style={{ color: "var(--cyan)" }}>Manish</span>.
+            <div style={{ display: "flex", flexDirection: "column", marginBottom: 18}}>
+              <span className="cl-eyebrow" style={{ marginBottom: 5 }}>Your Arena</span>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: 30, fontWeight: 600, letterSpacing: "-0.02em" }}>
+                Good to see you, <span style={{ color: "var(--cyan)" }}>Manish</span>.
+              </div>
             </div>
 
             {/* Navigation tabs — above the cards */}
             <div className="cl-tabs" style={{ marginBottom: 24 }}>
-              <Link to="/arena/problemset" className={`cl-tab ${key === "problemset" ? "active" : ""}`}>Problems</Link>
-              <Link to="/arena/learn" className={`cl-tab ${key === "learn" ? "active" : ""}`}>Learn</Link>
-              <Link to="/arena/study-plans" className={`cl-tab ${key === "study-plans" ? "active" : ""}`}>Study Plans</Link>
+              <Link to="/arena/problemset" className={`cl-tab ${key === "problemset" ? "active" : ""}`}><Icon name="code" size={13} />Problems</Link>
+              <Link to="/arena/learn" className={`cl-tab ${key === "learn" ? "active" : ""}`}><Icon name="book" size={13} />Learn</Link>
+              <Link to="/arena/study-plans" className={`cl-tab ${key === "study-plans" ? "active" : ""}`}><Icon name="grid" size={13} />Study Plans</Link>
             </div>
 
             {/* Arena header cards — below the tabs */}
