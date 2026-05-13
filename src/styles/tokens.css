@@ -175,6 +175,9 @@ a { color: inherit; text-decoration: none; }
 .cl-lemon-hero::after { content: ''; position: absolute; top: 15%; left: 18%; width: 28%; height: 22%; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.55), transparent 70%); filter: blur(1px); }
 .cl-lemon-leaf { position: absolute; top: -14px; right: -4px; width: 40px; height: 26px; background: linear-gradient(135deg, #86EFAC, #10B981); clip-path: polygon(0% 80%, 50% 0%, 100% 80%, 50% 100%); transform: rotate(32deg); box-shadow: 0 4px 12px -2px rgba(16,185,129,0.4); }
 
+/* Toast */
+@keyframes toast-slide-in { from { transform: translateX(calc(100% + 24px)); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
 /* Kbd */
 .cl-kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); background: var(--bg-2); border: 1px solid var(--stroke-1); border-radius: 4px; }
 

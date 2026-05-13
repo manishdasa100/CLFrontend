@@ -2,19 +2,58 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import BrandLogo from "../Components/BrandLogo";
 import Icon from "../Components/Icon";
+import Toast from "../Components/Toast";
+import { useLoginMutation, useRegisterMutation } from "../services/queries";
 
 function AuthShell({ mode }) {
   const [show, setShow] = useState(false);
   const [show2, setShow2] = useState(false);
+  const [fields, setFields] = useState({ firstName: "", lastName: "", username: "", email: "", password: "", confirmPassword: "" });
+  const [toast, setToast] = useState(null);
   const navigate = useNavigate();
+
+  const loginMut = useLoginMutation();
+  const registerMut = useRegisterMutation();
+  const isPending = loginMut.isLoading || registerMut.isLoading;
+
+  const set = (k) => (e) => setFields((f) => ({ ...f, [k]: e.target.value }));
 
   const submit = (e) => {
     e.preventDefault();
-    navigate("/arena/problemset");
+    if (mode === "signup") {
+      if (!fields.firstName.trim())       return setToast("First name is required.");
+      if (!fields.lastName.trim())        return setToast("Last name is required.");
+      if (!fields.username.trim())        return setToast("Username is required.");
+      if (!fields.email.trim())           return setToast("Email is required.");
+      if (!fields.password)               return setToast("Password is required.");
+      if (!fields.confirmPassword)        return setToast("Please confirm your password.");
+      if (fields.password !== fields.confirmPassword) return setToast("Passwords do not match.");
+
+      registerMut.mutate(
+        { username: fields.username, firstName: fields.firstName, lastName: fields.lastName, email: fields.email, password: fields.password },
+        {
+          onSuccess: (data) => { localStorage.setItem("jwtToken", data.jwtToken); navigate("/arena/problemset"); },
+          onError: (err) => setToast(err?.response?.data?.message || "Registration failed. Please try again."),
+        }
+      );
+    } else {
+      if (!fields.username.trim()) return setToast("Username is required.");
+      if (!fields.password)        return setToast("Password is required.");
+
+      loginMut.mutate(
+        { username: fields.username, password: fields.password },
+        {
+          onSuccess: (data) => { localStorage.setItem("jwtToken", data.jwtToken); navigate("/arena/problemset"); },
+          onError: (err) => setToast(err?.response?.data?.message || "Invalid username or password."),
+        }
+      );
+    }
   };
 
   return (
     <div className="cl-page" style={{ display: "flex", minHeight: "100vh" }}>
+      {toast && <Toast message={toast} state="failure" onClose={() => setToast(null)} />}
+
       <aside style={{
         flex: "1 1 45%",
         display: "flex", flexDirection: "column", justifyContent: "space-between",
@@ -66,27 +105,39 @@ function AuthShell({ mode }) {
 
           <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "0 0 24px" }}>
             <div style={{ flex: 1, height: 1, background: "var(--stroke)" }} />
-            <span className="cl-mono" style={{ fontSize: 10, color: "var(--text-mute)", letterSpacing: ".2em" }}>OR WITH EMAIL</span>
+            <span className="cl-mono" style={{ fontSize: 10, color: "var(--text-mute)", letterSpacing: ".2em" }}>OR CONTINUE WITH</span>
             <div style={{ flex: 1, height: 1, background: "var(--stroke)" }} />
           </div>
 
           <form style={{ display: "flex", flexDirection: "column", gap: 14 }} onSubmit={submit}>
             {mode === "signup" && (
-              <div className="cl-field">
-                <label className="cl-field-label">Full name</label>
-                <div className="cl-input-wrap">
-                  <span className="cl-icon-l"><Icon name="user" size={15} /></span>
-                  <input className="cl-input" placeholder="Manish Das" />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div className="cl-field">
+                  <label className="cl-field-label">First name</label>
+                  <input className="cl-input" placeholder="John" value={fields.firstName} onChange={set("firstName")} />
+                </div>
+                <div className="cl-field">
+                  <label className="cl-field-label">Last name</label>
+                  <input className="cl-input" placeholder="Doe" value={fields.lastName} onChange={set("lastName")} />
                 </div>
               </div>
             )}
             <div className="cl-field">
-              <label className="cl-field-label">Email</label>
+              <label className="cl-field-label">Username</label>
               <div className="cl-input-wrap">
-                <span className="cl-icon-l"><Icon name="mail" size={15} /></span>
-                <input className="cl-input" type="email" placeholder="you@domain.com" />
+                <span className="cl-icon-l"><Icon name="user" size={15} /></span>
+                <input className="cl-input" type="text" placeholder="john_doe" value={fields.username} onChange={set("username")} />
               </div>
             </div>
+            {mode === "signup" && (
+              <div className="cl-field">
+                <label className="cl-field-label">Email</label>
+                <div className="cl-input-wrap">
+                  <span className="cl-icon-l"><Icon name="mail" size={15} /></span>
+                  <input className="cl-input" type="email" placeholder="john@example.com" value={fields.email} onChange={set("email")} />
+                </div>
+              </div>
+            )}
             <div className="cl-field">
               <label className="cl-field-label" style={{ display: "flex", justifyContent: "space-between" }}>
                 Password
@@ -94,7 +145,7 @@ function AuthShell({ mode }) {
               </label>
               <div className="cl-input-wrap">
                 <span className="cl-icon-l"><Icon name="lock" size={15} /></span>
-                <input className="cl-input" type={show ? "text" : "password"} placeholder="••••••••" />
+                <input className="cl-input" type={show ? "text" : "password"} placeholder="••••••••" value={fields.password} onChange={set("password")} />
                 <span className="cl-icon-r" onClick={() => setShow((s) => !s)}>
                   <Icon name={show ? "eyeOff" : "eye"} size={15} />
                 </span>
@@ -105,7 +156,7 @@ function AuthShell({ mode }) {
                 <label className="cl-field-label">Confirm password</label>
                 <div className="cl-input-wrap">
                   <span className="cl-icon-l"><Icon name="lock" size={15} /></span>
-                  <input className="cl-input" type={show2 ? "text" : "password"} placeholder="••••••••" />
+                  <input className="cl-input" type={show2 ? "text" : "password"} placeholder="••••••••" value={fields.confirmPassword} onChange={set("confirmPassword")} />
                   <span className="cl-icon-r" onClick={() => setShow2((s) => !s)}>
                     <Icon name={show2 ? "eyeOff" : "eye"} size={15} />
                   </span>

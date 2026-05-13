@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:5000"
+const BASE_URL = "http://localhost:3000/api/v1"
 
 export const axiosInstance = axios.create({
     baseURL: BASE_URL,
@@ -9,69 +9,53 @@ export const axiosInstance = axios.create({
     }
 })
 
-export const getProblems = async(page, rows, filtersProps) => {
-    return axiosInstance.get(`problemList`).then((response) => {
-        const allProblems = response.data
-        const filteredProblems = allProblems.filter(problem => {
-            const matchSearch = problem.title.toLowerCase().includes(filtersProps.searchValue.toLowerCase())
-            const matchDifficulty = filtersProps.difficulty.size === 0 || filtersProps.difficulty.has(problem.difficulty)
-            const matchStatus = filtersProps.status.size === 0 || filtersProps.status.has(problem.status)
-            return matchSearch && matchDifficulty && matchStatus
-        })
-        const start = (page - 1) * rows
-        const end = start + rows
-        return {
-            total: filteredProblems.length,
-            problems: filteredProblems.slice(start, end)
+axiosInstance.interceptors.request.use((config) => {
+    const isAuthEndpoint = config.url?.startsWith("auth/")
+    if (!isAuthEndpoint) {
+        const token = localStorage.getItem("jwtToken")
+        if (token) config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+})
+
+axiosInstance.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        const isAuthEndpoint = error.config?.url?.startsWith("auth/")
+        if (error.response?.status === 401 && !isAuthEndpoint) {
+            localStorage.removeItem("jwtToken")
+            window.location.href = "/login"
         }
-    })
+        return Promise.reject(error)
+    }
+)
+
+export const login = async ({ username, password }) => {
+    return axiosInstance.post("auth/login", { username, password }).then((res) => res.data)
 }
 
-// export const getProblemById = async(id) => {
-//     return new Promise((resolve) => {
-//         const mockData = {
-//             "problemId": id,
-//             "title":"Storing Water",
-//             "description": "<p>Given an array of integers <code>nums</code> and an integer <code>target</code>, return indices of the two numbers such that they add up to target.</p><p>You may assume that each input would have exactly one solution, and you may not use the same element twice.</p><p>You can return the answer in any order.</p>",
-//             "constraints":[
-//                 "-10<sup>9</sup> <= target <= 10<sup>9</sup>",
-//                 "2 <= nums.length <= 10<sup>4</sup>",
-//                 "-10<sup>9</sup> <= nums[i] <= 10<sup>9</sup>"
-//             ],
-//             "examples":[
-//                 {
-//                     "input":"nums = [2,7,11,15],    target = 9",
-//                     "output": "[0,1]",
-//                     "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
-//                 },
-//                 {
-//                     "input":"nums = [3,3],    target = 6",
-//                     "output": "[0,1]"
-//                 },
-//                 {
-//                     "input":"nums = [3,2,4],    target = 6",
-//                     "output": "[1,2]"
-//                 }
-//             ],
-//             "difficulty": "HARD",
-//             "codeSnippets":{
-//                 "JAVA": "class Solution{\npublic int[] twoSum(int[] nums, int target){\n\n}\n}",
-//                 "CPP": "vector<int> twoSum(vector<int>& nums, int target) {\n\n}"
-//             },
-//             "nextProblemId": 3,
-//             "acceptedCount": 3,
-//             "submissionCount": 6,
-//             "status": "NATT"
-//         }
-//         setTimeout(() => {
-//             resolve(mockData)
-//         }, 2000)
-//     })
-// }
+export const register = async ({ username, firstName, lastName, email, password }) => {
+    return axiosInstance.post("auth/register", { username, firstName, lastName, email, password }).then((res) => res.data)
+}
+
+export const getProblems = async(page, rows, filtersProps) => {
+    const params = new URLSearchParams()
+    params.append("page", page - 1)
+    params.append("size", rows)
+
+    if (filtersProps.difficulty.size > 0)
+        params.append("difficulties", [...filtersProps.difficulty].join(","))
+    if (filtersProps.topics.size > 0)
+        params.append("topics", [...filtersProps.topics].join(","))
+    if (filtersProps.companies.size > 0)
+        params.append("companies", [...filtersProps.companies].join(","))
+
+    return axiosInstance.get(`problemset/all?${params.toString()}`).then((response) => response.data)
+}
 
 
 export const getProblemById = async(id) => {
-    return axiosInstance.get(`problemDetails/${id}`).then((response) => (response.data))
+    return axiosInstance.get(`problem/${id}`).then((response) => (response.data))
 }
 
 export const getARandomProblemId = async() => {
@@ -82,7 +66,15 @@ export const getARandomProblemId = async() => {
 }
 
 export const getProblemOfTheDay = async() => {
-    return axiosInstance.get(`problemOfTheDay`).then((response) => (response.data))
+    return axiosInstance.get(`problem/today`).then((response) => (response.data))
+}
+
+export const getAllTopics = async() => {
+    return axiosInstance.get(`allTopics`).then((response) => response.data)
+}
+
+export const getAllCompanies = async() => {
+    return axiosInstance.get(`allCompanies`).then((response) => response.data)
 }
 
 export const executePersonalRun = async({ code, language, problemId }) => {

@@ -37,17 +37,17 @@ export default function ProblemOfTheDayCard() {
           {data.difficulty && (
             <span className={`cl-chip cl-chip-${diff} cl-chip-dot`}>{formatFieldName(data.difficulty)}</span>
           )}
-          {data.topics?.[0] && (
-            <span className="cl-chip">{data.topics[0]}</span>
-          )}
+          {data.topics?.slice(0, 2).map((t) => (
+            <span key={t} className="cl-chip">{t}</span>
+          ))}
         </div>
       )}
 
-      {!loading && !isError && data?.id && (
+      {!loading && !isError && data?.problemId && (
         <Link
-          to={`${data.id}`}
+          to={`problemset/${data.problemId}`}
           className="cl-btn cl-btn-primary cl-btn-sm"
-          style={{ marginTop: 16, width: "fit-content" }}
+          style={{ marginTop: 26, width: "fit-content" }}
         >
           Try now <Icon name="arrowRight" size={12} />
         </Link>
@@ -63,8 +63,8 @@ export default function ProblemOfTheDayCard() {
         height: 160,
         borderRadius: "50%",
         background: "radial-gradient(circle at 30% 28%, #FFF5B0 0%, #FFE140 40%, #C89E00 100%)",
-        opacity: 0.50,
-        filter: "blur(2px)",
+        opacity: 0.60,
+        filter: "blur(0px)",
         pointerEvents: "none",
       }} />
     </div>

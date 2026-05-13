@@ -1,11 +1,11 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Spinner } from "@nextui-org/react";
 import Icon from "../Components/Icon";
+import MultiSelect from "../Components/MultiSelect";
 import ProblemOfTheDayCard from "../Components/ProblemOfTheDayCard";
-import useDebounce from "../hooks/useDebounce";
-import { useARandomProblemId, useProblemsData } from "../services/queries";
-import { formatFieldName, textMapForProblemStatus } from "../lib/utils";
+import { useARandomProblemId, useProblemsData, useAllTopics, useAllCompanies } from "../services/queries";
+import { formatFieldName } from "../lib/utils";
 
 const ProblemsTab = () => {
   const navigate = useNavigate();
@@ -13,8 +13,11 @@ const ProblemsTab = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [difficulty, setDifficulty] = useState("all");
   const [status, setStatus] = useState("all");
-  const [searchInput, setSearchInput] = useState("");
-  const search = useDebounce(searchInput, 400);
+  const [selectedTopics, setSelectedTopics] = useState(new Set());
+  const [selectedCompanies, setSelectedCompanies] = useState(new Set());
+
+  const { data: topicsList = [] } = useAllTopics();
+  const { data: companiesList = [] } = useAllCompanies();
 
   const difficultySet = useMemo(() => difficulty === "all" ? new Set() : new Set([difficulty.toUpperCase()]), [difficulty]);
   const statusSet = useMemo(() => {
@@ -24,7 +27,7 @@ const ProblemsTab = () => {
   }, [status]);
 
   const { isLoading, isFetching, data: problemsList, error } = useProblemsData(page, rowsPerPage, {
-    searchValue: search, difficulty: difficultySet, status: statusSet,
+    difficulty: difficultySet, topics: selectedTopics, companies: selectedCompanies,
   });
 
   const { isLoading: loadingRand, isFetching: fetchingRand, refetch: pickRandom } = useARandomProblemId((id) => navigate(`${id}`));
@@ -40,10 +43,11 @@ const ProblemsTab = () => {
     );
   }
 
-  const rows = problemsList?.problems ?? [];
+  const rows = problemsList?.entities ?? [];
 
   return (
     <div className="cl-container" style={{ paddingBottom: 40 }}>
+      <ArenaHeader />
       <div className="cl-card">
         <div className="cl-card-header">
           <div>
@@ -54,7 +58,7 @@ const ProblemsTab = () => {
             <div className="cl-card-sub">Filter, pick, solve. Or try a random one.</div>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
-            <button className="cl-btn cl-btn-subtle cl-btn-sm" onClick={() => { setSearchInput(""); setDifficulty("all"); setStatus("all"); setPage(1); }}>
+            <button className="cl-btn cl-btn-subtle cl-btn-sm" onClick={() => { setDifficulty("all"); setStatus("all"); setSelectedTopics(new Set()); setSelectedCompanies(new Set()); setPage(1); }}>
               <Icon name="reset" size={12} /> Reset
             </button>
             <button className="cl-btn cl-btn-cyan cl-btn-sm" disabled={loadingRand || fetchingRand} onClick={pickRandom}>
@@ -64,16 +68,25 @@ const ProblemsTab = () => {
         </div>
 
         <div style={{ padding: "14px 22px", display: "flex", gap: 10, borderBottom: "1px solid var(--stroke)", alignItems: "center", flexWrap: "wrap" }}>
-          <div className="cl-input-wrap" style={{ width: 280 }}>
-            <span className="cl-icon-l"><Icon name="search" size={14} /></span>
-            <input className="cl-input" placeholder="Search problems…" value={searchInput} onChange={(e) => { setSearchInput(e.target.value); setPage(1); }} />
-          </div>
+          <span style={{ fontSize: 11, color: "var(--text-mute)", textTransform: "uppercase", letterSpacing: ".1em", marginRight: 4 }}>Filters:</span>
           <Picker label="Difficulty" value={difficulty} onChange={(v) => { setDifficulty(v); setPage(1); }} options={[
             { v: "all", l: "All" }, { v: "easy", l: "Easy" }, { v: "medium", l: "Medium" }, { v: "hard", l: "Hard" },
           ]} />
           <Picker label="Status" value={status} onChange={(v) => { setStatus(v); setPage(1); }} options={[
             { v: "all", l: "All" }, { v: "solved", l: "Solved" }, { v: "attempted", l: "Attempted" }, { v: "todo", l: "Todo" },
           ]} />
+          <MultiSelect
+            label="Topic"
+            selected={selectedTopics}
+            onChange={(s) => { setSelectedTopics(s); setPage(1); }}
+            options={topicsList.map((t) => ({ v: t.slug, l: t.name }))}
+          />
+          <MultiSelect
+            label="Company"
+            selected={selectedCompanies}
+            onChange={(s) => { setSelectedCompanies(s); setPage(1); }}
+            options={companiesList.map((c) => ({ v: c.slug, l: c.name }))}
+          />
           <div style={{ marginLeft: "auto", fontSize: 11, color: "var(--text-mute)" }} className="cl-mono">
             Page {page} / {totalPages}
           </div>
@@ -157,6 +170,52 @@ const ProblemsTab = () => {
   );
 };
 
+const ArenaHeader = () => (
+  <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr", gap: 14, width: "100%", marginBottom: 24 }}>
+    <ProblemOfTheDayCard />
+    <div className="cl-card" style={{ padding: "18px 20px", display: "flex", flexDirection: "column" }}>
+      <div className="cl-eyebrow">current streak</div>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 6 }}>
+        <span style={{ fontFamily: "var(--font-display)", fontSize: 42, fontWeight: 600, letterSpacing: "-0.03em", lineHeight: 1 }}>12</span>
+        <span className="cl-text-mute" style={{ fontSize: 12 }}>best: 12</span>
+      </div>
+      <div style={{ display: "flex", gap: 3, marginTop: 12 }}>
+        {Array.from({ length: 14 }).map((_, i) => (
+          <div key={i} style={{ flex: 1, height: 27, borderRadius: 2, background: i < 12 ? (i === 11 ? "var(--cyan)" : "rgba(34,211,238,0.3)") : "var(--bg-3)" }} />
+        ))}
+      </div>
+      <div className="cl-text-mute cl-mono" style={{ fontSize: 10, marginTop: 8, letterSpacing: ".1em" }}>3 days ago</div>
+    </div>
+    <div className="cl-card" style={{ padding: "18px 20px", display: "flex", flexDirection: "column" }}>
+      <div className="cl-eyebrow">progress overview</div>
+      <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 10, flex: 1 }}>
+        <svg width="130" height="130" viewBox="0 0 90 90">
+          <circle cx="41" cy="41" r="32" fill="none" stroke="rgba(255,255,255,.06)" strokeWidth="8" />
+          <circle cx="41" cy="41" r="32" fill="none" stroke="var(--easy)" strokeWidth="8" strokeLinecap="round" strokeDasharray="90 201" transform="rotate(-90 41 41)" />
+          <circle cx="41" cy="41" r="32" fill="none" stroke="var(--medium)" strokeWidth="8" strokeLinecap="round" strokeDasharray="50 201" strokeDashoffset="-90" transform="rotate(-90 41 41)" />
+          <circle cx="41" cy="41" r="32" fill="none" stroke="var(--hard)" strokeWidth="8" strokeLinecap="round" strokeDasharray="14 201" strokeDashoffset="-140" transform="rotate(-90 41 41)" />
+          <text x="41" y="45" textAnchor="middle" fill="#EDEFF4" fontFamily="Comme" fontSize="18" fontWeight="600">154</text>
+        </svg>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 12, flex: 1 }}>
+          <StatLine color="var(--easy)" label="Easy" v={90} t={145} />
+          <StatLine color="var(--medium)" label="Med" v={50} t={320} />
+          <StatLine color="var(--hard)" label="Hard" v={14} t={120} />
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const StatLine = ({ color, label, v, t }) => (
+  <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "space-between" }}>
+    <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+      <span style={{ width: 6, height: 6, background: color, borderRadius: 2 }} />
+      <span style={{ color: "var(--text-dim)" }}>{label}</span>
+    </span>
+    <span className="cl-mono" style={{ color: "var(--text)" }}>{v}<span className="cl-text-mute">/{t}</span></span>
+  </div>
+);
+
 const Picker = ({ label, value, onChange, options }) => (
   <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "0 4px 0 10px", border: "1px solid var(--stroke-1)", borderRadius: 8, height: 38, background: "var(--bg-1)" }}>
     <span style={{ fontSize: 11, color: "var(--text-mute)", textTransform: "uppercase", letterSpacing: ".1em" }}>{label}</span>
@@ -170,5 +229,6 @@ const Picker = ({ label, value, onChange, options }) => (
     </div>
   </div>
 );
+
 
 export default ProblemsTab;

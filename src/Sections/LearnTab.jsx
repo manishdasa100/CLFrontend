@@ -17,18 +17,18 @@ const TRACKS = [
 ];
 
 const GRADIENTS = [
-  "#22D3EE 0%, #0891B2 100%",
-  "#FFE140 0%, #D9B800 100%",
-  "#6EE7B7 0%, #059669 100%",
-  "#A78BFA 0%, #6D28D9 100%",
-  "#FB7185 0%, #BE123C 100%",
-  "#FCD34D 0%, #B45309 100%",
+  "rgba(34,211,238,0.45) 0%, rgba(8,145,178,0.3) 100%",
+  "rgba(255,225,64,0.45) 0%, rgba(217,184,0,0.3) 100%",
+  "rgba(110,231,183,0.45) 0%, rgba(5,150,105,0.3) 100%",
+  "rgba(167,139,250,0.45) 0%, rgba(109,40,217,0.3) 100%",
+  "rgba(251,113,133,0.45) 0%, rgba(190,18,60,0.3) 100%",
+  "rgba(252,211,77,0.45) 0%, rgba(180,83,9,0.3) 100%",
 ];
 
 export default function LearnTab() {
   return (
     <div className="cl-container" style={{ paddingBottom: 40 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
         {TRACKS.map((c, i) => <TrackCard key={c.id} c={c} grad={GRADIENTS[i % GRADIENTS.length]} />)}
       </div>
     </div>
@@ -48,7 +48,7 @@ const TrackCard = ({ c, grad }) => (
     </div>
     <div style={{ padding: "18px 20px" }}>
       <div style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 600, letterSpacing: "-0.01em" }}>{c.t}</div>
-      <p className="cl-text-dim" style={{ fontSize: 12.5, lineHeight: 1.5, marginTop: 6, marginBottom: 14 }}>{c.d}</p>
+      <p className="cl-text-dim" style={{ fontSize: 12.5, lineHeight: 1.5, marginTop: 15, marginBottom: 15 }}>{c.d}</p>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <div className="cl-bar" style={{ flex: 1 }}><div className="cl-bar-fill" style={{ width: `${c.prog}%` }} /></div>
         <span className="cl-mono" style={{ fontSize: 10, color: c.prog === 100 ? "var(--easy)" : "var(--text-mute)" }}>

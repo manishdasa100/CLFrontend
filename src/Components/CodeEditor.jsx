@@ -8,7 +8,7 @@ import { languageCodes, formatFieldName } from "../lib/utils";
 
 export default function CodeEditor({ codeSnippets, toggleFullScreenEditor }) {
   const { id } = useParams();
-  const [language, setLanguage] = useState(codeSnippets?.[0]?.languageCode?.toLowerCase() || "javascript");
+  const [language, setLanguage] = useState(codeSnippets?.[0]?.languageCode?.toLowerCase() || "java");
   const [code, setCode] = useState(codeSnippets?.[0]?.code || "");
 
   useEffect(() => {
@@ -25,9 +25,18 @@ export default function CodeEditor({ codeSnippets, toggleFullScreenEditor }) {
   return (
     <div className="cl-card" style={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden", borderRadius: 0 }}>
       <div style={{ display: "flex", alignItems: "center", padding: "8px 14px", borderBottom: "1px solid var(--stroke)", gap: 10, background: "var(--bg-1)" }}>
-        <select className="cl-input" value={language} onChange={(e) => setLanguage(e.target.value)} style={{ width: "auto", height: 30, fontSize: 12, padding: "0 28px 0 10px" }}>
-          {codeSnippets?.map((s) => <option key={s.languageCode} value={s.languageCode.toLowerCase()}>{formatFieldName(s.languageCode)}</option>)}
-        </select>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "0 4px 0 10px", border: "1px solid var(--stroke-1)", borderRadius: 8, height: 32, background: "var(--bg-2)" }}>
+          <span style={{ fontSize: 11, color: "var(--text-mute)", textTransform: "uppercase", letterSpacing: ".1em" }}>Language</span>
+          <select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            style={{ height: 24, fontSize: 12, padding: "0 20px 0 4px", border: "none", background: "var(--bg-3)", borderRadius: 6, color: "var(--text)", cursor: "pointer", outline: "none", fontFamily: "inherit" }}
+          >
+            {codeSnippets?.map((s) => (
+              <option key={s.languageCode} value={s.languageCode.toLowerCase()}>{formatFieldName(s.languageCode)}</option>
+            ))}
+          </select>
+        </div>
         <div style={{ flex: 1 }} />
         <button className="cl-btn cl-btn-subtle cl-btn-sm" onClick={onRun} disabled={runMut.isPending}>
           {runMut.isPending ? "Running…" : <><Icon name="play" size={10} /> Run</>}

@@ -41,9 +41,9 @@ export default function ProblemDetailsPage() {
   const diff = String(data.difficulty || "").toLowerCase();
   const acceptance = data.submissionCount > 0
     ? Math.round((data.acceptedCount / data.submissionCount) * 100) + "%"
-    : "N/A";
+    : "0";
   const codeSnippets = data.codeSnippets
-    ? Object.entries(data.codeSnippets).map(([languageCode, code]) => ({ languageCode, code }))
+    ? Object.entries(data.codeSnippets).map(([languageCode, code]) => ({ languageCode, code: atob(code) }))
     : [];
   const examples = data.examples || [];
   const selectedCase = examples[testcaseIdx] || null;
@@ -131,7 +131,7 @@ export default function ProblemDetailsPage() {
                   {/* Stats row */}
                   <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 10, flexWrap: "wrap" }}>
                     <span className={`cl-chip cl-chip-${diff} cl-chip-dot`}>{formatFieldName(data.difficulty)}</span>
-                    <span className="cl-chip" style={{ fontSize: 11 }}>Acceptance {acceptance}</span>
+                    <span className="cl-chip" style={{ fontSize: 11 }}>Acceptance: {acceptance}</span>
                     <span style={{ fontSize: 12, color: "var(--text-mute)", display: "flex", alignItems: "center", gap: 4 }}>
                       👍 {data.submissionCount ?? 0}
                     </span>
@@ -150,7 +150,7 @@ export default function ProblemDetailsPage() {
                           <div style={{ color: "var(--text)", fontWeight: 600, marginBottom: 6 }}>Example {i + 1}</div>
                           <div style={{ borderLeft: "2px solid var(--stroke-2)", paddingLeft: 12, fontFamily: "var(--font-mono)", fontSize: 12, whiteSpace: "pre-wrap" }}>
                             {Object.entries(ex).map(([k, v]) => (
-                              <div key={k}><span style={{ color: "var(--cyan)" }}>{formatFieldName(k)}:</span> {v}</div>
+                              <div key={k}><span style={{ color: "var(--cyan)" }}>{formatFieldName(k)}:</span> <span dangerouslySetInnerHTML={{ __html: v }} /></div>
                             ))}
                           </div>
                         </div>
@@ -243,7 +243,7 @@ export default function ProblemDetailsPage() {
               {/* Testcase content */}
               <div style={{ padding: "14px 18px", fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--text-dim)", overflowY: "auto", flex: 1 }}>
                 {selectedCase ? (
-                  Object.entries(selectedCase).map(([k, v]) => (
+                  Object.entries(selectedCase).filter(([k]) => k !== "explanation").map(([k, v]) => (
                     <div key={k} style={{ marginBottom: 10 }}>
                       <div style={{ color: "var(--text-mute)", fontSize: 11, marginBottom: 4 }}>{formatFieldName(k)} =</div>
                       <div style={{ background: "var(--bg-2)", borderRadius: 6, padding: "6px 10px", whiteSpace: "pre-wrap" }}>{v}</div>

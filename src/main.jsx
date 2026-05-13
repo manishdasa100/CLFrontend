@@ -12,6 +12,7 @@ import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider} f
 import ErrorPage from './Pages/ErrorPage'
 import ProblemDetailsPage from './Pages/ProblemDetailsPage'
 import App from './App'
+import ProtectedRoute from './Components/ProtectedRoute'
 import './index.css'
 
 const router = createBrowserRouter(
@@ -20,14 +21,16 @@ const router = createBrowserRouter(
         <Route index element={<LandingPage/>}/>
         <Route path='signup' element={<SignUpPage/>}/>
         <Route path='login' element={<LoginPage/>}/>
-        <Route path='profile' element={<ProfilePage/>}/>
-        <Route path='profile/:username' element={<ProfilePage/>}/>
-        <Route path='arena' element={<ArenaPage/>}>
-          <Route path='learn' element={<LearnTab/>}/>
-          <Route path='study-plans' element={<StudyPlans/>}/>
-          <Route path='problemset'>
-            <Route index element={<ProblemsTab/>}/>
-            <Route path=':id' element={<ProblemDetailsPage/>}/>
+        <Route element={<ProtectedRoute />}>
+          <Route path='profile' element={<ProfilePage/>}/>
+          <Route path='profile/:username' element={<ProfilePage/>}/>
+          <Route path='arena' element={<ArenaPage/>}>
+            <Route path='learn' element={<LearnTab/>}/>
+            <Route path='study-plans' element={<StudyPlans/>}/>
+            <Route path='problemset'>
+              <Route index element={<ProblemsTab/>}/>
+              <Route path=':id' element={<ProblemDetailsPage/>}/>
+            </Route>
           </Route>
         </Route>
         <Route path='*' element={<ErrorPage/>}/>
