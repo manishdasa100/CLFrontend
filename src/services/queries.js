@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from "react-query"
-import { getARandomProblemId, getProblemById, getProblemOfTheDay, getProblems, executePersonalRun, executeSubmission, getAllTopics, getAllCompanies, login, register } from "./api"
+import { getARandomProblemId, getProblemById, getProblemOfTheDay, getProblems, executePersonalRun, executeSubmission, getAllTopics, getAllCompanies, login, register, getUserStreak, getUserSubmissionStatus, getProblemCounts } from "./api"
 
 export const useProblemsData = (page, limit, filters) => {
     return useQuery(
@@ -36,10 +36,7 @@ export const useARandomProblemId = (onSuccess, onError) => {
 }
 
 export const useProblemOfTheDayData = () => {
-    return useQuery(
-        "problemOfTheDay",
-        () => getProblemOfTheDay()
-    )
+    return useQuery("problemOfTheDay",() => getProblemOfTheDay())
 }
 
 export const useAllTopics = () => {
@@ -64,4 +61,16 @@ export const useLoginMutation = () => {
 
 export const useRegisterMutation = () => {
     return useMutation((payload) => register(payload))
+}
+
+export const useUserStreak = () => {
+    return useQuery("userStreak", getUserStreak)
+}
+
+export const useUserSubmissionStatus = () => {
+    return useQuery("userSubmissionStatus", getUserSubmissionStatus)
+}
+
+export const useProblemCounts = () => {
+    return useQuery("problemCounts", getProblemCounts, { staleTime: 30 * 60 * 1000 })
 }

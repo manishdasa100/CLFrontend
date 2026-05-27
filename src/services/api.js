@@ -38,6 +38,10 @@ export const register = async ({ username, firstName, lastName, email, password 
     return axiosInstance.post("auth/register", { username, firstName, lastName, email, password }).then((res) => res.data)
 }
 
+export const getMe = async () => {
+    return axiosInstance.get("me").then((res) => res.data)
+}
+
 export const getProblems = async(page, rows, filtersProps) => {
     const params = new URLSearchParams()
     params.append("page", page - 1)
@@ -83,4 +87,16 @@ export const executePersonalRun = async({ code, language, problemId }) => {
 
 export const executeSubmission = async({ code, language, problemId }) => {
     return axiosInstance.post(`executeSubmission`, { code, language, problemId }).then((response) => response.data)
+}
+
+export const getUserStreak = async() => {
+    return axiosInstance.get(`user/streak`).then((response) => response.data)
+}
+
+export const getUserSubmissionStatus = async() => {
+    return axiosInstance.get(`user/submission-status`).then((response) => response.data)
+}
+
+export const getProblemCounts = async() => {
+    return axiosInstance.get(`problem/counts`).then((response) => response.data)
 }

@@ -4,9 +4,11 @@ import AppNavbar from "../Components/AppNavbar";
 import Footer from "../Components/Footer";
 import BackgroundWrapper from "../Components/BackgroundWrapper";
 import Icon from "../Components/Icon";
+import { useUser } from "../context/UserContext";
 
 const ArenaPage = () => {
   const { pathname } = useLocation();
+  const { user } = useUser();
   const isProblemDetails = useMemo(() => pathname.match(/^\/arena\/problemset\/.+/), [pathname]);
 
   const key = useMemo(() => {
@@ -25,7 +27,7 @@ const ArenaPage = () => {
             <div style={{ display: "flex", flexDirection: "column", marginBottom: 18}}>
               <span className="cl-eyebrow" style={{ marginBottom: 5 }}>Your Arena</span>
               <div style={{ fontFamily: "var(--font-display)", fontSize: 30, fontWeight: 600, letterSpacing: "-0.02em" }}>
-                Good to see you, <span style={{ color: "var(--cyan)" }}>Manish</span>.
+                Good to see you, <span style={{ color: "var(--cyan)" }}>{user?.firstName ?? "..."}</span>.
               </div>
             </div>
 

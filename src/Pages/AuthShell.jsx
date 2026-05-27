@@ -4,6 +4,8 @@ import BrandLogo from "../Components/BrandLogo";
 import Icon from "../Components/Icon";
 import Toast from "../Components/Toast";
 import { useLoginMutation, useRegisterMutation } from "../services/queries";
+import { getMe } from "../services/api";
+import { useUser } from "../context/UserContext";
 
 function AuthShell({ mode }) {
   const [show, setShow] = useState(false);
@@ -12,9 +14,15 @@ function AuthShell({ mode }) {
   const [toast, setToast] = useState(null);
   const navigate = useNavigate();
 
+  const { setUser } = useUser();
   const loginMut = useLoginMutation();
   const registerMut = useRegisterMutation();
   const isPending = loginMut.isLoading || registerMut.isLoading;
+
+  const onAuthSuccess = (data) => {
+    localStorage.setItem("jwtToken", data.jwtToken);
+    getMe().then((me) => { setUser(me); navigate("/arena/problemset"); }).catch(() => navigate("/arena/problemset"));
+  };
 
   const set = (k) => (e) => setFields((f) => ({ ...f, [k]: e.target.value }));
 
@@ -32,7 +40,7 @@ function AuthShell({ mode }) {
       registerMut.mutate(
         { username: fields.username, firstName: fields.firstName, lastName: fields.lastName, email: fields.email, password: fields.password },
         {
-          onSuccess: (data) => { localStorage.setItem("jwtToken", data.jwtToken); navigate("/arena/problemset"); },
+          onSuccess: onAuthSuccess,
           onError: (err) => setToast(err?.response?.data?.message || "Registration failed. Please try again."),
         }
       );
@@ -43,7 +51,7 @@ function AuthShell({ mode }) {
       loginMut.mutate(
         { username: fields.username, password: fields.password },
         {
-          onSuccess: (data) => { localStorage.setItem("jwtToken", data.jwtToken); navigate("/arena/problemset"); },
+          onSuccess: onAuthSuccess,
           onError: (err) => setToast(err?.response?.data?.message || "Invalid username or password."),
         }
       );

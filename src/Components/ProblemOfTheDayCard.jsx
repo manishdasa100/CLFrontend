@@ -45,7 +45,7 @@ export default function ProblemOfTheDayCard() {
 
       {!loading && !isError && data?.problemId && (
         <Link
-          to={`problemset/${data.problemId}`}
+          to={`${data.problemId}`}
           className="cl-btn cl-btn-primary cl-btn-sm"
           style={{ marginTop: 26, width: "fit-content" }}
         >

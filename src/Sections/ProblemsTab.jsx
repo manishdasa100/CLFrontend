@@ -4,7 +4,8 @@ import { Spinner } from "@nextui-org/react";
 import Icon from "../Components/Icon";
 import MultiSelect from "../Components/MultiSelect";
 import ProblemOfTheDayCard from "../Components/ProblemOfTheDayCard";
-import { useARandomProblemId, useProblemsData, useAllTopics, useAllCompanies } from "../services/queries";
+import Badge from "../Components/Badge";
+import { useARandomProblemId, useProblemsData, useAllTopics, useAllCompanies, useUserStreak, useUserSubmissionStatus, useProblemCounts } from "../services/queries";
 import { formatFieldName } from "../lib/utils";
 
 const ProblemsTab = () => {
@@ -173,38 +174,148 @@ const ProblemsTab = () => {
 const ArenaHeader = () => (
   <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr", gap: 14, width: "100%", marginBottom: 24 }}>
     <ProblemOfTheDayCard />
-    <div className="cl-card" style={{ padding: "18px 20px", display: "flex", flexDirection: "column" }}>
-      <div className="cl-eyebrow">current streak</div>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 6 }}>
-        <span style={{ fontFamily: "var(--font-display)", fontSize: 42, fontWeight: 600, letterSpacing: "-0.03em", lineHeight: 1 }}>12</span>
-        <span className="cl-text-mute" style={{ fontSize: 12 }}>best: 12</span>
-      </div>
-      <div style={{ display: "flex", gap: 3, marginTop: 12 }}>
-        {Array.from({ length: 14 }).map((_, i) => (
-          <div key={i} style={{ flex: 1, height: 27, borderRadius: 2, background: i < 12 ? (i === 11 ? "var(--cyan)" : "rgba(34,211,238,0.3)") : "var(--bg-3)" }} />
-        ))}
-      </div>
-      <div className="cl-text-mute cl-mono" style={{ fontSize: 10, marginTop: 8, letterSpacing: ".1em" }}>3 days ago</div>
-    </div>
-    <div className="cl-card" style={{ padding: "18px 20px", display: "flex", flexDirection: "column" }}>
-      <div className="cl-eyebrow">progress overview</div>
-      <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 10, flex: 1 }}>
-        <svg width="130" height="130" viewBox="0 0 90 90">
-          <circle cx="41" cy="41" r="32" fill="none" stroke="rgba(255,255,255,.06)" strokeWidth="8" />
-          <circle cx="41" cy="41" r="32" fill="none" stroke="var(--easy)" strokeWidth="8" strokeLinecap="round" strokeDasharray="90 201" transform="rotate(-90 41 41)" />
-          <circle cx="41" cy="41" r="32" fill="none" stroke="var(--medium)" strokeWidth="8" strokeLinecap="round" strokeDasharray="50 201" strokeDashoffset="-90" transform="rotate(-90 41 41)" />
-          <circle cx="41" cy="41" r="32" fill="none" stroke="var(--hard)" strokeWidth="8" strokeLinecap="round" strokeDasharray="14 201" strokeDashoffset="-140" transform="rotate(-90 41 41)" />
-          <text x="41" y="45" textAnchor="middle" fill="#EDEFF4" fontFamily="Comme" fontSize="18" fontWeight="600">154</text>
-        </svg>
-        <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 12, flex: 1 }}>
-          <StatLine color="var(--easy)" label="Easy" v={90} t={145} />
-          <StatLine color="var(--medium)" label="Med" v={50} t={320} />
-          <StatLine color="var(--hard)" label="Hard" v={14} t={120} />
-        </div>
-      </div>
-    </div>
+    <StreakCard />
+    <ProgressCard />
   </div>
 );
+
+const StreakCard = () => {
+  const { data, isLoading } = useUserStreak();
+  const streak = data?.streakDays ?? 0;
+  const best = data?.highestStreakDays ?? 0;
+  const bestStreakdate = data?.highestStreakDate ? new Date(data.highestStreakDate) : null;
+  const badge = data?.highestStreakBadge;
+  const lastDate = data?.lastSubmissionDate;
+
+  const lastSubmittedLabel = (() => {
+    if (!lastDate) return "No submissions yet";
+    const days = Math.floor((Date.now() - new Date(lastDate).getTime()) / 86400000);
+    if (days === 0) return "Last submission: today";
+    if (days === 1) return "Last submission: yesterday";
+    return `Last submission: ${days} days ago`;
+  })();
+
+  const streakColor = streak <= 10 ? "var(--easy)" : streak <= 45 ? "var(--medium)" : "var(--hard)";
+  const radius = 26;
+  const circ = 2 * Math.PI * radius;
+  const progress = Math.min(streak / 100, 1);
+  const dash = progress * circ;
+
+  return (
+    <div className="cl-card" style={{ padding: "18px 20px", display: "flex", flexDirection: "column", gap: 16 }}>
+      {isLoading ? (
+        <div style={{ flex: 1, display: "flex", alignItems: "center", color: "var(--text-mute)", fontSize: 13 }}>Loading…</div>
+      ) : (
+        <>
+          {/* Top — circle + title + last submission */}
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ position: "relative", width: 64, height: 64, flexShrink: 0 }}>
+              <svg width="64" height="64" viewBox="0 0 64 64" style={{ transform: "rotate(-90deg)" }}>
+                <circle cx="32" cy="32" r={radius} fill="none" stroke="var(--bg-3)" strokeWidth="5" />
+                <circle cx="32" cy="32" r={radius} fill="none" stroke={streakColor} strokeWidth="5"
+                  strokeLinecap="round" strokeDasharray={`${dash} ${circ}`} />
+              </svg>
+              <span style={{
+                position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18, color: streakColor,
+              }}>{streak}</span>
+            </div>
+            <div>
+              <div style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, letterSpacing: "-0.01em" }}>Day streak</div>
+              <div style={{ fontSize: 12, color: "var(--text-mute)", marginTop: 3 }}>{lastSubmittedLabel}</div>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div style={{ height: 1, background: "var(--stroke)" }} />
+
+          {/* Bottom — best streak stats + badge */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1px 1fr 1px 1fr", gap: 8, alignItems: "center" }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+              <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22, letterSpacing: "-0.02em" }}>{best}</span>
+              <span style={{ fontSize: 10, color: "var(--text-mute)", textAlign: "center", lineHeight: 1.3 }}>Longest streak</span>
+            </div>
+            <div style={{ width: 1, height: "100%", background: "var(--stroke)", alignSelf: "stretch" }} />
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+              <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22, letterSpacing: "-0.02em", whiteSpace: "nowrap" }}>
+                {bestStreakdate ? (
+                  <>
+                    {`${bestStreakdate.toLocaleString("en-US", { month: "short" })} ${bestStreakdate.getDate()}`}
+                    {bestStreakdate.getFullYear() !== new Date().getFullYear() && (
+                      <span style={{ fontSize: 13, color: "var(--text-mute)", marginLeft: 3 }}>
+                        '{String(bestStreakdate.getFullYear()).slice(-2)}
+                      </span>
+                    )}
+                  </>
+                ) : "—"}
+              </span>
+              <span style={{ fontSize: 10, color: "var(--text-mute)", textAlign: "center", lineHeight: 1.3 }}>Best date</span>
+            </div>
+            <div style={{ width: 1, height: "100%", background: "var(--stroke)", alignSelf: "stretch" }} />
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+              {badge ? (
+                <Badge imageUrl={badge.imageUrl} name={badge.name} description={badge.description} size={46} />
+              ) : (
+                <>
+                  <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22, color: "var(--text-mute)" }}>—</span>
+                  <span style={{ fontSize: 10, color: "var(--text-mute)", textAlign: "center", lineHeight: 1.3 }}>Top badge</span>
+                </>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+const ProgressCard = () => {
+  const { data: statusData, isLoading: loadingStatus } = useUserSubmissionStatus();
+  const { data: countsData, isLoading: loadingCounts } = useProblemCounts();
+  const isLoading = loadingStatus || loadingCounts;
+
+  const solved = { easy: statusData?.solvedCountByDifficulty?.EASY ?? 0, medium: statusData?.solvedCountByDifficulty?.MEDIUM ?? 0, hard: statusData?.solvedCountByDifficulty?.HARD ?? 0 };
+  const total  = { easy: countsData?.EASY ?? 0, medium: countsData?.MEDIUM ?? 0, hard: countsData?.HARD ?? 0 };
+
+  const totalSolved = solved.easy + solved.medium + solved.hard;
+  const totalAll    = total.easy + total.medium + total.hard;
+
+  const circ = 2 * Math.PI * 32;
+  const easyDash   = totalAll > 0 ? (solved.easy   / totalAll) * circ : 0;
+  const medDash    = totalAll > 0 ? (solved.medium  / totalAll) * circ : 0;
+  const hardDash   = totalAll > 0 ? (solved.hard    / totalAll) * circ : 0;
+  const easyOffset = 0;
+  const medOffset  = -(easyDash);
+  const hardOffset = -(easyDash + medDash);
+
+  return (
+    <div className="cl-card" style={{ padding: "18px 20px", display: "flex", flexDirection: "column" }}>
+      <div className="cl-eyebrow">progress overview</div>
+      {isLoading ? (
+        <div style={{ flex: 1, display: "flex", alignItems: "center", color: "var(--text-mute)", fontSize: 13 }}>Loading…</div>
+      ) : (
+        <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 10, flex: 1 }}>
+          <svg width="130" height="130" viewBox="0 0 90 90">
+            <circle cx="41" cy="41" r="32" fill="none" stroke="rgba(255,255,255,.06)" strokeWidth="8" />
+            <circle cx="41" cy="41" r="32" fill="none" stroke="var(--easy)" strokeWidth="8" strokeLinecap="round"
+              strokeDasharray={`${easyDash} ${circ}`} strokeDashoffset={easyOffset} transform="rotate(-90 41 41)" />
+            <circle cx="41" cy="41" r="32" fill="none" stroke="var(--medium)" strokeWidth="8" strokeLinecap="round"
+              strokeDasharray={`${medDash} ${circ}`} strokeDashoffset={medOffset} transform="rotate(-90 41 41)" />
+            <circle cx="41" cy="41" r="32" fill="none" stroke="var(--hard)" strokeWidth="8" strokeLinecap="round"
+              strokeDasharray={`${hardDash} ${circ}`} strokeDashoffset={hardOffset} transform="rotate(-90 41 41)" />
+            <text x="41" y="38" textAnchor="middle" fill="#EDEFF4" fontFamily="Comme" fontSize="16" fontWeight="600">{totalSolved}</text>
+            <text x="41" y="52" textAnchor="middle" fill="#6B7385" fontFamily="Comme" fontSize="8">/ {totalAll}</text>
+          </svg>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 12, flex: 1 }}>
+            <StatLine color="var(--easy)"   label="Easy" v={solved.easy}   t={total.easy} />
+            <StatLine color="var(--medium)" label="Med"  v={solved.medium} t={total.medium} />
+            <StatLine color="var(--hard)"   label="Hard" v={solved.hard}   t={total.hard} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const StatLine = ({ color, label, v, t }) => (
   <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "space-between" }}>

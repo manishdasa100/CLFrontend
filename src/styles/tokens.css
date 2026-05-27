@@ -175,6 +175,188 @@ a { color: inherit; text-decoration: none; }
 .cl-lemon-hero::after { content: ''; position: absolute; top: 15%; left: 18%; width: 28%; height: 22%; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.55), transparent 70%); filter: blur(1px); }
 .cl-lemon-leaf { position: absolute; top: -14px; right: -4px; width: 40px; height: 26px; background: linear-gradient(135deg, #86EFAC, #10B981); clip-path: polygon(0% 80%, 50% 0%, 100% 80%, 50% 100%); transform: rotate(32deg); box-shadow: 0 4px 12px -2px rgba(16,185,129,0.4); }
 
+
+/* ────────────────────────────────────────────────────────────
+   Badge component styles.
+   Hex shape uses an SVG <clipPath> (id="bdg-hex-clip") injected
+   by the component on mount, so corners can be properly rounded.
+   ──────────────────────────────────────────────────────────── */
+
+.bdg {
+  position: relative;
+  width: var(--bdg-size, 180px);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  outline: none;
+  isolation: isolate;
+  transition: transform .35s cubic-bezier(.2,.8,.2,1);
+}
+.bdg:hover, .bdg:focus-visible {
+  transform: translateY(-4px);
+}
+
+/* radial glow behind the badge */
+.bdg-glow {
+  position: absolute;
+  inset: -22% -22% 14% -22%;
+  z-index: -1;
+  background:
+    radial-gradient(closest-side, var(--bdg-glow) 0%, var(--bdg-glow-soft) 38%, transparent 72%);
+  filter: blur(6px);
+  opacity: 0.85;
+  transition: opacity .3s ease;
+  pointer-events: none;
+}
+.bdg:hover .bdg-glow { opacity: 1; }
+
+/* hexagonal plates — clipped by the injected SVG clipPath so the
+   corners are properly rounded rather than sharp polygon vertices */
+.bdg-hex {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1.1547;
+  clip-path: url(#bdg-hex-clip);
+  -webkit-clip-path: url(#bdg-hex-clip);
+}
+
+/* outer frame */
+.bdg-hex-outer {
+  background:
+    linear-gradient(180deg,
+      var(--bdg-accent-light) 0%,
+      var(--bdg-accent) 38%,
+      var(--bdg-accent-dark) 100%);
+  padding: 7%;
+  filter: drop-shadow(0 18px 26px rgba(0,0,0,0.45));
+}
+/* inner darker plate */
+.bdg-hex-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(120% 80% at 50% 0%,
+      color-mix(in srgb, var(--bdg-inner-top) 88%, white 12%) 0%,
+      var(--bdg-inner-top) 38%,
+      var(--bdg-inner-bot) 100%);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+/* art wrapper — positioned to fill the inner hex, behind decorative layers */
+.bdg-art-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* art — fills the inner hex plate */
+.bdg-art {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* decorative stars — hidden by default, no layout impact */
+.bdg-stars { display: none; }
+.bdg-star  { display: none; }
+
+/* decorative cloud overlay — hidden by default */
+.bdg-cloud { display: none; }
+
+/* ribbon — single rounded plate sized to its content with fixed
+   horizontal padding and a sensible min-width */
+.bdg-ribbon {
+  position: relative;
+  margin-top: -7%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42%;
+  padding: calc(var(--bdg-size, 180px) * 0.05) calc(var(--bdg-size, 180px) * 0.10);
+  border-radius: calc(var(--bdg-size, 180px) * 0.045);
+  background:
+    linear-gradient(180deg,
+      var(--bdg-accent-light) 0%,
+      var(--bdg-accent) 50%,
+      var(--bdg-accent-dark) 100%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 35%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, black 30%, transparent),
+    0 8px 14px -4px rgba(0,0,0,0.45);
+  z-index: 1;
+}
+.bdg-ribbon-text {
+  font-family: var(--font-display, 'Comme', sans-serif);
+  font-weight: 500;
+  font-size: clamp(11px, calc(var(--bdg-size, 180px) * 0.105), 26px);
+  letter-spacing: 0.01em;
+  color: #ffffff;
+  text-shadow:
+    0 1px 0 rgba(0,0,0,0.35),
+    0 0 6px color-mix(in srgb, var(--bdg-accent-deep) 50%, transparent);
+  /* text-transform: uppercase; */
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* tooltip — description only */
+.bdg-tip-name {
+  display: block;
+  font-weight: 600;
+  font-size: 13px;
+  color: #EDEFF4;
+  margin-bottom: 4px;
+}
+
+.bdg-tip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 14px);
+  transform: translate(-50%, 6px);
+  width: max-content;
+  max-width: 260px;
+  padding: 10px 14px;
+  background: #11141C;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 10px;
+  box-shadow:
+    0 20px 38px -14px rgba(0,0,0,0.7),
+    0 0 0 1px var(--bdg-glow-soft);
+  color: #C8CCD6;
+  font-size: 12.5px;
+  line-height: 1.5;
+  text-align: center;
+  text-wrap: pretty;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s ease, transform .18s ease;
+  z-index: 10;
+}
+.bdg-tip.is-open {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.bdg-tip-arrow {
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  width: 9px;
+  height: 9px;
+  transform: translateX(-50%) rotate(45deg);
+  background: #11141C;
+  border-right: 1px solid rgba(255,255,255,0.10);
+  border-bottom: 1px solid rgba(255,255,255,0.10);
+}
+
+
 /* Toast */
 @keyframes toast-slide-in { from { transform: translateX(calc(100% + 24px)); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
