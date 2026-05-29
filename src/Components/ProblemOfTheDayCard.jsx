@@ -18,7 +18,7 @@ export default function ProblemOfTheDayCard() {
       display: "flex",
       flexDirection: "column",
     }}>
-      <div className="cl-eyebrow" style={{color: "var(--lemon)"}}>problem of the day</div>
+      <div className="cl-eyebrow" style={{fontSize: 13, color: "var(--lemon)"}}>problem of the day</div>
 
       <div style={{
         fontFamily: "var(--font-display)",

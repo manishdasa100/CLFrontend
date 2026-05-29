@@ -222,7 +222,7 @@ const StreakCard = () => {
             </div>
             <div>
               <div style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, letterSpacing: "-0.01em" }}>Day streak</div>
-              <div style={{ fontSize: 12, color: "var(--text-mute)", marginTop: 3 }}>{lastSubmittedLabel}</div>
+              <div style={{ fontSize: 13, color: "var(--text-mute)", marginTop: 3 }}>{lastSubmittedLabel}</div>
             </div>
           </div>
 
@@ -270,6 +270,7 @@ const StreakCard = () => {
 };
 
 const ProgressCard = () => {
+  const [tooltip, setTooltip] = useState(null);
   const { data: statusData, isLoading: loadingStatus } = useUserSubmissionStatus();
   const { data: countsData, isLoading: loadingCounts } = useProblemCounts();
   const isLoading = loadingStatus || loadingCounts;
@@ -279,53 +280,62 @@ const ProgressCard = () => {
 
   const totalSolved = solved.easy + solved.medium + solved.hard;
   const totalAll    = total.easy + total.medium + total.hard;
+  const pct = totalAll > 0 ? Math.round((totalSolved / totalAll) * 100) : 0;
 
-  const circ = 2 * Math.PI * 32;
-  const easyDash   = totalAll > 0 ? (solved.easy   / totalAll) * circ : 0;
-  const medDash    = totalAll > 0 ? (solved.medium  / totalAll) * circ : 0;
-  const hardDash   = totalAll > 0 ? (solved.hard    / totalAll) * circ : 0;
-  const easyOffset = 0;
-  const medOffset  = -(easyDash);
-  const hardOffset = -(easyDash + medDash);
+  const quality = pct >= 90 ? "Excellent" : pct >= 75 ? "Advanced" : pct >= 50 ? "Proficient" : pct >= 25 ? "Intermediate" : "Beginner";
+
+  const segments = [
+    { key: "easy",   color: "var(--easy)",   label: "Easy",   count: solved.easy,   pct: totalAll > 0 ? (solved.easy   / totalAll) * 100 : 0 },
+    { key: "medium", color: "var(--medium)", label: "Medium", count: solved.medium, pct: totalAll > 0 ? (solved.medium  / totalAll) * 100 : 0 },
+    { key: "hard",   color: "var(--hard)",   label: "Hard",   count: solved.hard,   pct: totalAll > 0 ? (solved.hard    / totalAll) * 100 : 0 },
+  ];
 
   return (
-    <div className="cl-card" style={{ padding: "18px 20px", display: "flex", flexDirection: "column" }}>
-      <div className="cl-eyebrow">progress overview</div>
+    <div className="cl-card" style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 14 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span className="cl-eyebrow" style={{ fontSize: 13, fontWeight: 400, color: "var(--text)" }}>Progress Score</span>
+      </div>
       {isLoading ? (
         <div style={{ flex: 1, display: "flex", alignItems: "center", color: "var(--text-mute)", fontSize: 13 }}>Loading…</div>
       ) : (
-        <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 10, flex: 1 }}>
-          <svg width="130" height="130" viewBox="0 0 90 90">
-            <circle cx="41" cy="41" r="32" fill="none" stroke="rgba(255,255,255,.06)" strokeWidth="8" />
-            <circle cx="41" cy="41" r="32" fill="none" stroke="var(--easy)" strokeWidth="8" strokeLinecap="round"
-              strokeDasharray={`${easyDash} ${circ}`} strokeDashoffset={easyOffset} transform="rotate(-90 41 41)" />
-            <circle cx="41" cy="41" r="32" fill="none" stroke="var(--medium)" strokeWidth="8" strokeLinecap="round"
-              strokeDasharray={`${medDash} ${circ}`} strokeDashoffset={medOffset} transform="rotate(-90 41 41)" />
-            <circle cx="41" cy="41" r="32" fill="none" stroke="var(--hard)" strokeWidth="8" strokeLinecap="round"
-              strokeDasharray={`${hardDash} ${circ}`} strokeDashoffset={hardOffset} transform="rotate(-90 41 41)" />
-            <text x="41" y="38" textAnchor="middle" fill="#EDEFF4" fontFamily="Comme" fontSize="16" fontWeight="600">{totalSolved}</text>
-            <text x="41" y="52" textAnchor="middle" fill="#6B7385" fontFamily="Comme" fontSize="8">/ {totalAll}</text>
-          </svg>
-          <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 12, flex: 1 }}>
-            <StatLine color="var(--easy)"   label="Easy" v={solved.easy}   t={total.easy} />
-            <StatLine color="var(--medium)" label="Med"  v={solved.medium} t={total.medium} />
-            <StatLine color="var(--hard)"   label="Hard" v={solved.hard}   t={total.hard} />
+        <>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: 6 }}>
+            <div>
+              <div style={{ fontSize: 13, color: "var(--text-mute)", marginBottom: 3 }}>Solve Quality</div>
+              <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22, letterSpacing: "-0.02em" }}>{quality}</div>
+            </div>
+            <span style={{ fontFamily: "var(--font-display)", fontWeight: 400, fontSize: 22, letterSpacing: "-0.02em" }}>{pct}%</span>
           </div>
+
+          <div style={{ display: "flex", gap: 4, alignItems: "stretch", height: 20 }}>
+            {segments.filter((seg) => seg.pct > 0).map((seg) => (
+              <div
+                key={seg.key}
+                style={{ width: `${seg.pct}%`, background: seg.color, borderRadius: 5, cursor: "default", transition: "width .4s", flexShrink: 0 }}
+                onMouseEnter={(e) => setTooltip({ label: seg.label, count: seg.count, x: e.clientX, y: e.clientY })}
+                onMouseMove={(e) => setTooltip((t) => t ? { ...t, x: e.clientX, y: e.clientY } : null)}
+                onMouseLeave={() => setTooltip(null)}
+              />
+            ))}
+            {pct < 100 && (
+              <div style={{ flex: 1, background: "var(--bg-3)", borderRadius: 5 }} />
+            )}
+          </div>
+        </>
+      )}
+
+      {tooltip && (
+        <div style={{
+          position: "fixed", left: tooltip.x + 10, top: tooltip.y - 36,
+          background: "var(--bg-3)", border: "1px solid var(--stroke-1)", borderRadius: 6,
+          padding: "4px 10px", fontSize: 12, zIndex: 9999, pointerEvents: "none", color: "var(--text)",
+        }}>
+          {tooltip.label}: <strong>{tooltip.count}</strong>
         </div>
       )}
     </div>
   );
 };
-
-const StatLine = ({ color, label, v, t }) => (
-  <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "space-between" }}>
-    <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-      <span style={{ width: 6, height: 6, background: color, borderRadius: 2 }} />
-      <span style={{ color: "var(--text-dim)" }}>{label}</span>
-    </span>
-    <span className="cl-mono" style={{ color: "var(--text)" }}>{v}<span className="cl-text-mute">/{t}</span></span>
-  </div>
-);
 
 const Picker = ({ label, value, onChange, options }) => (
   <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "0 4px 0 10px", border: "1px solid var(--stroke-1)", borderRadius: 8, height: 38, background: "var(--bg-1)" }}>
