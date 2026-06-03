@@ -13,6 +13,7 @@ import ErrorPage from './Pages/ErrorPage'
 import ProblemDetailsPage from './Pages/ProblemDetailsPage'
 import App from './App'
 import ProtectedRoute from './Components/ProtectedRoute'
+import OAuth2Callback from './Pages/OAuth2Callback'
 import './index.css'
 
 const router = createBrowserRouter(
@@ -21,6 +22,7 @@ const router = createBrowserRouter(
         <Route index element={<LandingPage/>}/>
         <Route path='signup' element={<SignUpPage/>}/>
         <Route path='login' element={<LoginPage/>}/>
+        <Route path='oauth2/callback' element={<OAuth2Callback/>}/>
         <Route element={<ProtectedRoute />}>
           <Route path='profile' element={<ProfilePage/>}/>
           <Route path='profile/:username' element={<ProfilePage/>}/>
