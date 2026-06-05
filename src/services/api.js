@@ -81,13 +81,23 @@ export const getAllCompanies = async() => {
     return axiosInstance.get(`allCompanies`).then((response) => response.data)
 }
 
-export const executePersonalRun = async({ code, language, problemId }) => {
-    return axiosInstance.post(`executePersonalRun`, { code, language, problemId }).then((response) => response.data)
-}
+export const submitCode = async ({ code, language, problemId, isRunCode }) => {
+    const bytes = new TextEncoder().encode(code);
+    let binary = "";
+    for (const b of bytes) binary += String.fromCharCode(b);
+    const userCode = btoa(binary);
+    return axiosInstance.post("submission/submit", {
+        problemId: Number(problemId),
+        language,
+        userCode,
+        isRunCode,
+        b64Encoded: true,
+    }).then((res) => res.data);
+};
 
-export const executeSubmission = async({ code, language, problemId }) => {
-    return axiosInstance.post(`executeSubmission`, { code, language, problemId }).then((response) => response.data)
-}
+export const checkSubmission = async (submissionId) => {
+    return axiosInstance.get(`submission/check/${submissionId}`).then((res) => res.data);
+};
 
 export const getUserStreak = async() => {
     return axiosInstance.get(`user/streak`).then((response) => response.data)

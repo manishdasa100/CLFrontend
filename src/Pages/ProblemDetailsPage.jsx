@@ -1,13 +1,70 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { ScaleLoader } from "react-spinners";
+import { Spinner } from "@nextui-org/react";
 import { useProblemByIdData } from "../services/queries";
 import CodeEditor from "../Components/CodeEditor";
 import Icon from "../Components/Icon";
 import { formatFieldName } from "../lib/utils";
 import "./ProblemDetailsPage.css";
 
-const LEFT_TABS = ["Description","Submissions"];
+const LEFT_TABS = ["Description", "Submissions"];
+
+const ResultField = ({ label, value, valueColor }) => (
+  <div style={{ marginBottom: 10 }}>
+    <div style={{ color: "var(--text-mute)", fontSize: 11, marginBottom: 4 }}>{label} =</div>
+    <div style={{ background: "var(--bg-2)", borderRadius: 6, padding: "6px 10px", whiteSpace: "pre-wrap", color: valueColor || "var(--text-dim)" }}>{value}</div>
+  </div>
+);
+
+const RunTestResult = ({ result }) => {
+  if (!result) return null;
+  const passed = result.status === "PASSED";
+  return (
+    <>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+        <span style={{ fontWeight: 700, fontSize: 13, color: passed ? "var(--easy)" : "var(--hard)" }}>{result.status}</span>
+        <span style={{ fontSize: 11, color: "var(--text-mute)" }}>{result.runtimeMs} ms</span>
+      </div>
+      <ResultField label="Input" value={result.input} />
+      <ResultField label="Expected Output" value={result.expectedOutput} />
+      <ResultField label="Actual Output" value={result.actualOutput} valueColor={passed ? undefined : "var(--hard)"} />
+      {result.stdOut && <ResultField label="Stdout" value={result.stdOut} />}
+      {result.errorMsg && <ResultField label="Error" value={result.errorMsg} valueColor="var(--hard)" />}
+    </>
+  );
+};
+
+const SubmitResultView = ({ report }) => {
+  const isAcc = report.status === "ACC";
+  const statusColor = isAcc ? "var(--easy)" : report.status === "TLE" || report.status === "MLE" ? "var(--medium)" : "var(--hard)";
+  return (
+    <>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 14 }}>
+        <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20, color: statusColor }}>{report.statusMsg}</span>
+        <span style={{ fontSize: 12, color: "var(--text-mute)" }}>{report.totalCorrect} / {report.totalTestcases} testcases passed</span>
+      </div>
+      <div style={{ display: "flex", gap: 16, marginBottom: 14 }}>
+        {[["Runtime", `${report.runtimeMs} ms`], ["Memory", `${report.memoryMb} MB`]].map(([l, v]) => (
+          <div key={l} style={{ background: "var(--bg-2)", borderRadius: 8, padding: "8px 14px", textAlign: "center" }}>
+            <div style={{ fontSize: 10, color: "var(--text-mute)", marginBottom: 3 }}>{l}</div>
+            <div style={{ fontWeight: 600, fontSize: 13 }}>{v}</div>
+          </div>
+        ))}
+      </div>
+      {report.compileError && <ResultField label="Compile Error" value={report.compileError} valueColor="var(--hard)" />}
+      {report.runtimeError && <ResultField label="Runtime Error" value={report.runtimeError} valueColor="var(--hard)" />}
+      {!isAcc && report.failedTestcase && (
+        <>
+          <div style={{ color: "var(--text-mute)", fontSize: 11, marginBottom: 8, marginTop: 4 }}>FAILED TESTCASE</div>
+          <ResultField label="Input" value={report.failedTestcase.input} />
+          <ResultField label="Expected Output" value={report.failedTestcase.expectedOutput} />
+          <ResultField label="Actual Output" value={report.failedTestcase.actualOutput} valueColor="var(--hard)" />
+        </>
+      )}
+    </>
+  );
+};
 
 export default function ProblemDetailsPage() {
   const { id } = useParams();
@@ -17,9 +74,55 @@ export default function ProblemDetailsPage() {
   const [bookmarked, setBookmarked] = useState(false);
   const [leftTab, setLeftTab] = useState("Description");
   const [testcaseIdx, setTestcaseIdx] = useState(0);
+  const [resultState, setResultState] = useState(null); // null | {status:'loading',isRun} | {status:'done',isRun,report} | {status:'error',message}
+  const [runTab, setRunTab] = useState(0);
 
   const { isLoading, isFetching, data, isError, error } = useProblemByIdData(id);
   const toggleFull = () => setFullScreen((v) => !v);
+
+  const handlePending = (isRun) => setResultState({ status: "loading", isRun });
+  const handleResult = (report, isRun, errorMsg) => {
+    if (errorMsg || !report) {
+      setResultState({ status: "error", message: errorMsg || "Something went wrong." });
+    } else {
+      setResultState({ status: "done", isRun, report });
+      setRunTab(0);
+    }
+  };
+
+  const MIN_EDITOR_H = 150;
+  const MIN_TC_H = 80;
+  const DIVIDER_H = 8;
+  const [editorHeightPx, setEditorHeightPx] = useState(null);
+  const rightColRef = useRef(null);
+
+  useEffect(() => {
+    if (rightColRef.current) {
+      setEditorHeightPx(Math.floor(rightColRef.current.clientHeight * 0.68));
+    }
+  }, []);
+
+  const onDividerMouseDown = (e) => {
+    e.preventDefault();
+    const startY = e.clientY;
+    const startH = editorHeightPx ?? Math.floor((rightColRef.current?.clientHeight ?? 600) * 0.68);
+
+    const onMove = (ev) => {
+      const colH = rightColRef.current?.clientHeight ?? 600;
+      const next = Math.max(MIN_EDITOR_H, Math.min(colH - MIN_TC_H - DIVIDER_H, startH + ev.clientY - startY));
+      setEditorHeightPx(next);
+    };
+    const onUp = () => {
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+    };
+    document.body.style.cursor = "row-resize";
+    document.body.style.userSelect = "none";
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  };
 
   if (isError) {
     return (
@@ -204,45 +307,83 @@ export default function ProblemDetailsPage() {
         )}
 
         {/* Right column: editor + testcases */}
-        <div style={{ width: fullScreen ? "100%" : "60%", display: "flex", flexDirection: "column", gap: 10 }}>
-          <div style={{ flex: "0 0 70%", minHeight: 0 }}>
-            <CodeEditor codeSnippets={codeSnippets} toggleFullScreenEditor={toggleFull} />
+        <div ref={rightColRef} style={{ width: fullScreen ? "100%" : "60%", display: "flex", flexDirection: "column" }}>
+          <div style={{ height: editorHeightPx != null ? `${editorHeightPx}px` : "68%", flexShrink: 0, minHeight: MIN_EDITOR_H }}>
+            <CodeEditor codeSnippets={codeSnippets} toggleFullScreenEditor={toggleFull} onPending={handlePending} onResult={handleResult} />
           </div>
 
-          {!fullScreen && (
-            <div className="cl-card" style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", borderRadius: 0 }}>
+          <>
+            {/* ── Drag divider ── */}
+            <div
+              onMouseDown={onDividerMouseDown}
+              style={{ height: DIVIDER_H, flexShrink: 0, cursor: "row-resize", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg-1)", borderTop: "1px solid var(--stroke)", borderBottom: "1px solid var(--stroke)" }}
+            >
+              <div style={{ width: 36, height: 3, borderRadius: 999, background: "var(--stroke-2)" }} />
+            </div>
+
+            <div className="cl-card" style={{ flex: 1, minHeight: MIN_TC_H, display: "flex", flexDirection: "column", overflow: "hidden", borderRadius: 0 }}>
               {/* Testcases tab bar */}
               <div style={{ padding: "0 16px", borderBottom: "1px solid var(--stroke)", display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".08em", color: "var(--text-dim)", padding: "10px 6px 10px 0", marginRight: 6 }}>
-                  TESTCASES
-                </span>
-                {examples.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setTestcaseIdx(i)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      padding: "10px 10px",
-                      fontSize: 12,
-                      color: testcaseIdx === i ? "var(--text)" : "var(--text-dim)",
-                      borderBottom: testcaseIdx === i ? "2px solid var(--cyan)" : "2px solid transparent",
-                      marginBottom: -1,
-                      fontWeight: testcaseIdx === i ? 600 : 400,
-                    }}
-                  >
-                    Case {i + 1}
-                  </button>
-                ))}
-                <button style={{ background: "none", border: "none", cursor: "pointer", padding: "10px 8px", fontSize: 13, color: "var(--text-mute)" }}>
-                  +Add
-                </button>
+
+                {/* Run result: tabs with pass/fail dots */}
+                {resultState?.status === "done" && resultState.isRun ? (
+                  <>
+                    <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".08em", color: "var(--text-dim)", padding: "10px 6px 10px 0", marginRight: 6 }}>TESTCASES</span>
+                    {resultState.report.testcaseResults.map((r, i) => (
+                      <button key={i} onClick={() => setRunTab(i)} style={{ background: "none", border: "none", cursor: "pointer", padding: "10px 10px", fontSize: 12, display: "flex", alignItems: "center", gap: 5, color: runTab === i ? "var(--text)" : "var(--text-dim)", borderBottom: runTab === i ? "2px solid var(--cyan)" : "2px solid transparent", marginBottom: -1, fontWeight: runTab === i ? 600 : 400 }}>
+                        <span style={{ fontSize: 8, color: r.status === "PASSED" ? "var(--easy)" : "var(--hard)" }}>●</span>
+                        Case {i + 1}
+                      </button>
+                    ))}
+                    <button onClick={() => setResultState(null)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: 11, color: "var(--text-mute)", padding: "10px 4px" }}>← Cases</button>
+                  </>
+                ) : resultState?.status === "done" && !resultState.isRun ? (
+                  /* Submit result: single result header */
+                  <>
+                    <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".08em", padding: "10px 6px 10px 0", color: resultState.report.status === "ACC" ? "var(--easy)" : "var(--hard)" }}>
+                      {resultState.report.statusMsg?.toUpperCase()}
+                    </span>
+                    <button onClick={() => setResultState(null)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: 11, color: "var(--text-mute)", padding: "10px 4px" }}>← Cases</button>
+                  </>
+                ) : resultState?.status === "error" ? (
+                  <>
+                    <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".08em", color: "var(--hard)", padding: "10px 6px 10px 0" }}>ERROR</span>
+                    <button onClick={() => setResultState(null)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: 11, color: "var(--text-mute)", padding: "10px 4px" }}>← Cases</button>
+                  </>
+                ) : (
+                  /* Default + loading: normal case tabs */
+                  <>
+                    <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".08em", color: "var(--text-dim)", padding: "10px 6px 10px 0", marginRight: 6 }}>TESTCASES</span>
+                    {examples.map((_, i) => (
+                      <button key={i} onClick={() => setTestcaseIdx(i)} style={{ background: "none", border: "none", cursor: "pointer", padding: "10px 10px", fontSize: 12, color: testcaseIdx === i ? "var(--text)" : "var(--text-dim)", borderBottom: testcaseIdx === i ? "2px solid var(--cyan)" : "2px solid transparent", marginBottom: -1, fontWeight: testcaseIdx === i ? 600 : 400 }}>
+                        Case {i + 1}
+                      </button>
+                    ))}
+                    <button style={{ background: "none", border: "none", cursor: "pointer", padding: "10px 8px", fontSize: 13, color: "var(--text-mute)" }}>+Add</button>
+                    {resultState?.status === "loading" && (
+                      <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6, paddingRight: 4 }}>
+                        <Spinner size="sm" color="primary" />
+                        <span style={{ fontSize: 11, color: "var(--text-mute)" }}>{resultState.isRun ? "Running…" : "Judging…"}</span>
+                      </span>
+                    )}
+                  </>
+                )}
               </div>
 
-              {/* Testcase content */}
+              {/* Testcase / result content */}
               <div style={{ padding: "14px 18px", fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--text-dim)", overflowY: "auto", flex: 1 }}>
-                {selectedCase ? (
+                {resultState?.status === "loading" ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, color: "var(--text-mute)", padding: "10px 0" }}>
+                    <Spinner size="sm" color="primary" />
+                    <span>{resultState.isRun ? "Running your code…" : "Judging your submission…"}</span>
+                  </div>
+                ) : resultState?.status === "error" ? (
+                  <div style={{ color: "var(--hard)" }}>{resultState.message}</div>
+                ) : resultState?.status === "done" && resultState.isRun ? (
+                  <RunTestResult result={resultState.report.testcaseResults[runTab]} />
+                ) : resultState?.status === "done" && !resultState.isRun ? (
+                  <SubmitResultView report={resultState.report} />
+                ) : selectedCase ? (
                   Object.entries(selectedCase).filter(([k]) => k !== "explanation").map(([k, v]) => (
                     <div key={k} style={{ marginBottom: 10 }}>
                       <div style={{ color: "var(--text-mute)", fontSize: 11, marginBottom: 4 }}>{formatFieldName(k)} =</div>
@@ -254,7 +395,7 @@ export default function ProblemDetailsPage() {
                 )}
               </div>
             </div>
-          )}
+          </>
         </div>
       </div>
     </div>

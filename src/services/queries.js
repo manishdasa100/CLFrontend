@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from "react-query"
-import { getARandomProblemId, getProblemById, getProblemOfTheDay, getProblems, executePersonalRun, executeSubmission, getAllTopics, getAllCompanies, login, register, getUserStreak, getUserSubmissionStatus, getProblemCounts } from "./api"
+import { getARandomProblemId, getProblemById, getProblemOfTheDay, getProblems, getAllTopics, getAllCompanies, login, register, getUserStreak, getUserSubmissionStatus, getProblemCounts } from "./api"
 
 export const useProblemsData = (page, limit, filters) => {
     return useQuery(
@@ -47,13 +47,6 @@ export const useAllCompanies = () => {
     return useQuery("allCompanies", getAllCompanies, { staleTime: Infinity })
 }
 
-export const useExecutePersonalRunMutation = () => {
-    return useMutation((payload) => executePersonalRun(payload))
-}
-
-export const useExecuteSubmissionMutation = () => {
-    return useMutation((payload) => executeSubmission(payload))
-}
 
 export const useLoginMutation = () => {
     return useMutation((payload) => login(payload))

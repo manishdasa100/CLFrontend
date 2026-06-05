@@ -1,26 +1,80 @@
-import { CardBody, Card, Tabs, Tab, Button } from "@nextui-org/react";
 import Editor from "@monaco-editor/react";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import Icon from "./Icon";
-import { useExecutePersonalRunMutation, useExecuteSubmissionMutation } from "../services/queries";
 import { useParams } from "react-router-dom";
 import { languageCodes, formatFieldName } from "../lib/utils";
+import { submitCode, checkSubmission } from "../services/api";
 
-export default function CodeEditor({ codeSnippets, toggleFullScreenEditor }) {
+const codeKey = (id, lang) => `acecode_code_${id}_${lang}`;
+
+export default function CodeEditor({ codeSnippets, toggleFullScreenEditor, onPending, onResult }) {
   const { id } = useParams();
-  const [language, setLanguage] = useState(codeSnippets?.[0]?.languageCode?.toLowerCase() || "java");
-  const [code, setCode] = useState(codeSnippets?.[0]?.code || "");
+
+  const initLang = codeSnippets?.[0]?.languageCode?.toLowerCase() || "java";
+  const [language, setLanguage] = useState(initLang);
+  const [code, setCode] = useState(() => {
+    const saved = localStorage.getItem(codeKey(id, initLang));
+    return saved !== null ? saved : (codeSnippets?.[0]?.code || "");
+  });
+  const [action, setAction] = useState(null); // 'run' | 'submit' | null
+  const abortRef = useRef(false);
 
   useEffect(() => {
+    const saved = localStorage.getItem(codeKey(id, language));
+    if (saved !== null) {
+      setCode(saved);
+    } else {
+      const snip = codeSnippets?.find((s) => s.languageCode.toLowerCase() === language);
+      if (snip) setCode(snip.code);
+    }
+  }, [language]); // intentionally omits codeSnippets — only reset on explicit language switch
+
+  useEffect(() => () => { abortRef.current = true; }, []);
+
+  const handleCodeChange = (v) => {
+    const next = v || "";
+    setCode(next);
+    localStorage.setItem(codeKey(id, language), next);
+  };
+
+  const resetToDefault = () => {
     const snip = codeSnippets?.find((s) => s.languageCode.toLowerCase() === language);
-    if (snip) setCode(snip.code);
-  }, [language, codeSnippets]);
+    if (!snip) return;
+    localStorage.removeItem(codeKey(id, language));
+    setCode(snip.code);
+  };
 
-  const runMut = useExecutePersonalRunMutation();
-  const subMut = useExecuteSubmissionMutation();
+  const execute = async (isRunCode) => {
+    if (action) return;
+    abortRef.current = false;
+    setAction(isRunCode ? "run" : "submit");
+    onPending?.(isRunCode);
 
-  const onRun = () => runMut.mutate({ code, language: languageCodes[language], problemId: id });
-  const onSubmit = () => subMut.mutate({ code, language: languageCodes[language], problemId: id });
+    try {
+      const { submissionId } = await submitCode({
+        code,
+        language: languageCodes[language],
+        problemId: Number(id),
+        isRunCode,
+      });
+
+      while (!abortRef.current) {
+        await new Promise((r) => setTimeout(r, 1500));
+        if (abortRef.current) break;
+        const res = await checkSubmission(submissionId);
+        if (res.submissionStatus === "COMPLETED") {
+          if (!abortRef.current) onResult?.(res.executionReport, isRunCode);
+          break;
+        }
+      }
+    } catch (err) {
+      if (!abortRef.current) {
+        onResult?.(null, isRunCode, err?.response?.data?.message || "Something went wrong.");
+      }
+    } finally {
+      if (!abortRef.current) setAction(null);
+    }
+  };
 
   return (
     <div className="cl-card" style={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden", borderRadius: 0 }}>
@@ -38,11 +92,14 @@ export default function CodeEditor({ codeSnippets, toggleFullScreenEditor }) {
           </select>
         </div>
         <div style={{ flex: 1 }} />
-        <button className="cl-btn cl-btn-subtle cl-btn-sm" onClick={onRun} disabled={runMut.isPending}>
-          {runMut.isPending ? "Running…" : <><Icon name="play" size={10} /> Run</>}
+        <button className="cl-btn cl-btn-icon" onClick={resetToDefault} disabled={!!action} title="Reset to default snippet">
+          <Icon name="reset" size={13} />
         </button>
-        <button className="cl-btn cl-btn-primary cl-btn-sm" onClick={onSubmit} disabled={subMut.isPending}>
-          {subMut.isPending ? "Submitting…" : "Submit"}
+        <button className="cl-btn cl-btn-subtle cl-btn-sm" onClick={() => execute(true)} disabled={!!action}>
+          {action === "run" ? "Running…" : <><Icon name="play" size={10} /> Run</>}
+        </button>
+        <button className="cl-btn cl-btn-primary cl-btn-sm" onClick={() => execute(false)} disabled={!!action}>
+          {action === "submit" ? "Submitting…" : "Submit"}
         </button>
         <button className="cl-btn cl-btn-icon" onClick={toggleFullScreenEditor}><Icon name="expand" size={13} /></button>
       </div>
@@ -51,7 +108,7 @@ export default function CodeEditor({ codeSnippets, toggleFullScreenEditor }) {
           language={language}
           theme="ace-black"
           value={code}
-          onChange={(v) => setCode(v || "")}
+          onChange={handleCodeChange}
           beforeMount={(monaco) => {
             monaco.editor.defineTheme("ace-black", {
               base: "vs-dark",
