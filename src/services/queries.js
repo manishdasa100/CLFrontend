@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from "react-query"
-import { getARandomProblemId, getProblemById, getProblemOfTheDay, getProblems, getAllTopics, getAllCompanies, login, register, getUserStreak, getUserSubmissionStatus, getProblemCounts } from "./api"
+import { getARandomProblemId, getProblemById, getProblemOfTheDay, getProblems, getAllTopics, getAllCompanies, login, register, getUserStreak, getUserSubmissionStatus, getProblemCounts, getUserLists, addToList, createList } from "./api"
 
 export const useProblemsData = (page, limit, filters) => {
     return useQuery(
@@ -66,4 +66,16 @@ export const useUserSubmissionStatus = () => {
 
 export const useProblemCounts = () => {
     return useQuery("problemCounts", getProblemCounts, { staleTime: 30 * 60 * 1000 })
+}
+
+export const useUserLists = (username) => {
+    return useQuery(["userLists", username], () => getUserLists(username), { enabled: !!username })
+}
+
+export const useAddToListMutation = () => {
+    return useMutation((payload) => addToList(payload))
+}
+
+export const useCreateListMutation = () => {
+    return useMutation((payload) => createList(payload))
 }

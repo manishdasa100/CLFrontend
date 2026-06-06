@@ -2,10 +2,13 @@ import { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { ScaleLoader } from "react-spinners";
 import { Spinner } from "@nextui-org/react";
-import { useProblemByIdData } from "../services/queries";
+import { useQueryClient } from "react-query";
+import { useProblemByIdData, useUserLists, useAddToListMutation, useCreateListMutation } from "../services/queries";
 import CodeEditor from "../Components/CodeEditor";
 import Icon from "../Components/Icon";
+import Toast from "../Components/Toast";
 import { formatFieldName } from "../lib/utils";
+import { useUser } from "../context/UserContext";
 import "./ProblemDetailsPage.css";
 
 const LEFT_TABS = ["Description", "Submissions"];
@@ -69,9 +72,11 @@ const SubmitResultView = ({ report }) => {
 export default function ProblemDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useUser();
   const [fullScreen, setFullScreen] = useState(false);
   const [liked, setLiked] = useState(false);
-  const [bookmarked, setBookmarked] = useState(false);
+  const [listPopupOpen, setListPopupOpen] = useState(false);
+  const [toast, setToast] = useState(null); // { message, state }
   const [leftTab, setLeftTab] = useState("Description");
   const [testcaseIdx, setTestcaseIdx] = useState(0);
   const [resultState, setResultState] = useState(null); // null | {status:'loading',isRun} | {status:'done',isRun,report} | {status:'error',message}
@@ -153,6 +158,15 @@ export default function ProblemDetailsPage() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 72px)" }}>
+      {toast && <Toast message={toast.message} state={toast.state} onClose={() => setToast(null)} />}
+      {listPopupOpen && (
+        <SaveToListPopup
+          problemId={data.id}
+          username={user?.username}
+          onClose={() => setListPopupOpen(false)}
+          onToast={(t) => setToast(t)}
+        />
+      )}
 
       {/* ── Breadcrumb bar ── */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "25px 42px", borderBottom: "1px solid var(--stroke)", flexShrink: 0, height: 40, background: "rgba(255,255,255,0.02)" }}>
@@ -225,8 +239,8 @@ export default function ProblemDetailsPage() {
                       <button className="cl-btn cl-btn-icon" onClick={() => setLiked((v) => !v)} style={{ color: liked ? "var(--hard)" : undefined }}>
                         <Icon name={liked ? "heartFill" : "heart"} size={22} />
                       </button>
-                      <button className="cl-btn cl-btn-icon" onClick={() => setBookmarked((v) => !v)} style={{ color: bookmarked ? "var(--lemon)" : undefined }}>
-                        <Icon name={bookmarked ? "bookmarkFill" : "bookmark"} size={21} />
+                      <button className="cl-btn cl-btn-icon" onClick={() => setListPopupOpen(true)} title="Save to list">
+                        <Icon name="bookmark" size={21} />
                       </button>
                     </div>
                   </div>
@@ -401,3 +415,188 @@ export default function ProblemDetailsPage() {
     </div>
   );
 }
+
+const Toggle = ({ value, onChange }) => (
+  <button
+    type="button"
+    onClick={() => onChange(!value)}
+    style={{
+      width: 40, height: 22, borderRadius: 11, padding: 0, flexShrink: 0,
+      background: value ? "var(--cyan)" : "var(--bg-3)",
+      border: `1px solid ${value ? "var(--cyan)" : "var(--stroke-1)"}`,
+      cursor: "pointer", position: "relative",
+      transition: "background 0.2s, border-color 0.2s",
+    }}
+  >
+    <span style={{
+      position: "absolute", top: 3, left: value ? 21 : 3,
+      width: 14, height: 14, borderRadius: "50%",
+      background: value ? "#fff" : "var(--text-mute)",
+      transition: "left 0.2s, background 0.2s",
+      display: "block",
+    }} />
+  </button>
+);
+
+const SaveToListPopup = ({ problemId, username, onClose, onToast }) => {
+  const queryClient = useQueryClient();
+  const { data: lists = [], isLoading } = useUserLists(username);
+  const addMut = useAddToListMutation();
+  const createMut = useCreateListMutation();
+
+  const [view, setView] = useState("list"); // "list" | "create"
+  const [form, setForm] = useState({ name: "", description: "", isPublic: false, isPinned: false });
+  const [createResult, setCreateResult] = useState(null); // { success: bool, message: string } | null
+  const [addResult, setAddResult] = useState(null);       // { state: 'success'|'warning'|'failure', message } | null
+  const set = (k) => (v) => setForm((f) => ({ ...f, [k]: v }));
+
+  const goToCreate = () => { setCreateResult(null); setAddResult(null); setView("create"); };
+  const goToList   = () => { setCreateResult(null); setView("list"); };
+
+  const handleAdd = (list) => {
+    setAddResult(null);
+    addMut.mutate(
+      { id: list.id, problemIds: [Number(problemId)] },
+      {
+        onSuccess: (msg) => {
+          const lower = (msg ?? "").toLowerCase().trim();
+          const state = lower.startsWith("1 new") ? "success" : "warning";
+          setAddResult({ state, message: msg });
+        },
+        onError: (err) => {
+          setAddResult({ state: "failure", message: err?.response?.data?.message || "Failed to add problem to list." });
+        },
+      }
+    );
+  };
+
+  const handleCreate = (e) => {
+    e.preventDefault();
+    if (!form.name.trim()) return;
+    setCreateResult(null);
+    createMut.mutate(form, {
+      onSuccess: (msg) => {
+        queryClient.invalidateQueries(["userLists", username]);
+        setCreateResult({ success: true, message: msg || "List created" });
+        setTimeout(() => {
+          setForm({ name: "", description: "", isPublic: false, isPinned: false });
+          setCreateResult(null);
+          setView("list");
+        }, 1500);
+      },
+      onError: (err) => {
+        setCreateResult({ success: false, message: err?.response?.data?.message || "Failed to create list." });
+      },
+    });
+  };
+
+  return (
+    <>
+      <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.55)" }} />
+
+      <div style={{
+        position: "fixed", zIndex: 1001,
+        top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+        background: "var(--bg-1)", border: "1px solid var(--stroke-1)",
+        borderRadius: 12, padding: "20px 20px 16px", width: 320,
+        boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
+      }}>
+        {view === "list" ? (
+          <>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <span style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 15 }}>Save to list</span>
+              <button className="cl-btn cl-btn-icon" onClick={onClose}><Icon name="close" size={14} /></button>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 12, maxHeight: 180, overflowY: "auto" }}>
+              {isLoading ? (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 0", color: "var(--text-mute)", fontSize: 13 }}>
+                  <Spinner size="sm" color="primary" /> Loading lists…
+                </div>
+              ) : lists.length === 0 ? (
+                <div style={{ color: "var(--text-mute)", fontSize: 13, padding: "8px 0" }}>No lists yet. Create one below.</div>
+              ) : lists.map((list) => (
+                <button
+                  key={list.id}
+                  onClick={() => handleAdd(list)}
+                  disabled={addMut.isLoading}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 10,
+                    padding: "10px 12px", borderRadius: 8, width: "100%",
+                    background: "transparent", border: "1px solid var(--stroke)",
+                    cursor: "pointer", textAlign: "left",
+                    color: "var(--text)", fontSize: 13, fontFamily: "inherit",
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-3)"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                >
+                  <Icon name="bookmark" size={13} style={{ color: "var(--text-mute)", flexShrink: 0 }} />
+                  <span style={{ flex: 1 }}>{list.name}</span>
+                  <span style={{ fontSize: 10, color: "var(--text-mute)", border: "1px solid var(--stroke)", borderRadius: 4, padding: "1px 5px" }}>
+                    {list.isPublic ? "public" : "private"}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {addResult && (
+              <div style={{ fontSize: 12, textAlign: "center", padding: "8px 4px 4px", color: addResult.state === "success" ? "var(--easy)" : addResult.state === "warning" ? "var(--medium)" : "var(--hard)" }}>
+                {addResult.message}
+              </div>
+            )}
+
+            <div style={{ height: 1, background: "var(--stroke)", margin: "4px 0 12px" }} />
+            <button className="cl-btn cl-btn-subtle" style={{ width: "100%", gap: 8, justifyContent: "center" }} onClick={goToCreate}>
+              <Icon name="plus" size={13} /> Create new list
+            </button>
+          </>
+        ) : (
+          <>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
+              <button className="cl-btn cl-btn-icon" onClick={goToList}><Icon name="chevronLeft" size={14} /></button>
+              <span style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 15 }}>New list</span>
+              <div style={{ flex: 1 }} />
+              <button className="cl-btn cl-btn-icon" onClick={onClose}><Icon name="close" size={14} /></button>
+            </div>
+
+            <form onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <div className="cl-field">
+                <label className="cl-field-label">Name</label>
+                <input className="cl-input" placeholder="e.g. Amazon Interview Prep" value={form.name} onChange={(e) => set("name")(e.target.value)} autoFocus required />
+              </div>
+              <div className="cl-field">
+                <label className="cl-field-label">Description</label>
+                <input className="cl-input" placeholder="Optional" value={form.description} onChange={(e) => set("description")(e.target.value)} />
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "4px 0" }}>
+                {[
+                  { key: "isPublic",  label: "Public",  sub: "Anyone can view this list" },
+                  { key: "isPinned",  label: "Pinned",  sub: "Show at the top of your lists" },
+                ].map(({ key, label, sub }) => (
+                  <div key={key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+                    <div>
+                      <div style={{ fontSize: 13, color: "var(--text)" }}>{label}</div>
+                      <div style={{ fontSize: 11, color: "var(--text-mute)", marginTop: 2 }}>{sub}</div>
+                    </div>
+                    <Toggle value={form[key]} onChange={set(key)} />
+                  </div>
+                ))}
+              </div>
+
+              <button type="submit" className="cl-btn cl-btn-primary" style={{ marginTop: 4, gap: 8, justifyContent: "center" }} disabled={!form.name.trim() || createMut.isLoading || createResult?.success}>
+                {createMut.isLoading ? "Creating…" : <><Icon name="plus" size={13} /> Create list</>}
+              </button>
+
+              {createResult && (
+                <div style={{ fontSize: 12, textAlign: "center", color: createResult.success ? "var(--easy)" : "var(--hard)", marginTop: -6 }}>
+                  {createResult.message}
+                </div>
+              )}
+            </form>
+          </>
+        )}
+      </div>
+    </>
+  );
+};

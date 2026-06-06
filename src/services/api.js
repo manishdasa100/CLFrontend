@@ -110,3 +110,15 @@ export const getUserSubmissionStatus = async() => {
 export const getProblemCounts = async() => {
     return axiosInstance.get(`problem/counts`).then((response) => response.data)
 }
+
+export const getUserLists = async (username) => {
+    return axiosInstance.get(`lists/${username}`).then((res) => res.data);
+};
+
+export const addToList = async ({ id, problemIds }) => {
+    return axiosInstance.post("list/add", { id, problemIds }).then((res) => res.data);
+};
+
+export const createList = async ({ name, description, isPublic, isPinned }) => {
+    return axiosInstance.post("list/create", { name, description, isPublic, isPinned }).then((res) => res.data);
+};
