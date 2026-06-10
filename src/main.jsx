@@ -24,7 +24,6 @@ const router = createBrowserRouter(
         <Route path='login' element={<LoginPage/>}/>
         <Route path='oauth2/callback' element={<OAuth2Callback/>}/>
         <Route element={<ProtectedRoute />}>
-          <Route path='profile' element={<ProfilePage/>}/>
           <Route path='profile/:username' element={<ProfilePage/>}/>
           <Route path='arena' element={<ArenaPage/>}>
             <Route path='learn' element={<LearnTab/>}/>

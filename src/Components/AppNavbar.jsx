@@ -75,7 +75,7 @@ export default function AppNavbar() {
                       <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text)" }}>{user?.firstName} {user?.lastName}</div>
                       <div style={{ fontSize: 11, color: "var(--text-mute)" }}>@{user?.username}</div>
                     </div>
-                    <Link to="/profile" onClick={() => setDropdownOpen(false)} style={{
+                    <Link to={`/profile/${user?.username}`} onClick={() => setDropdownOpen(false)} style={{
                       display: "flex", alignItems: "center", gap: 8,
                       padding: "8px 10px", borderRadius: 6, fontSize: 13,
                       color: "var(--text)", textDecoration: "none", marginTop: 4,

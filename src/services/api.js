@@ -42,6 +42,10 @@ export const getMe = async () => {
     return axiosInstance.get("me").then((res) => res.data)
 }
 
+export const getProfileByUsername = async (username) => {
+    return axiosInstance.get(`profile/${username}`).then((res) => res.data)
+}
+
 export const getProblems = async(page, rows, filtersProps) => {
     const params = new URLSearchParams()
     params.append("page", page - 1)

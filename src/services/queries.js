@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from "react-query"
-import { getARandomProblemId, getProblemById, getProblemOfTheDay, getProblems, getAllTopics, getAllCompanies, login, register, getUserStreak, getUserSubmissionStatus, getProblemCounts, getUserLists, addToList, createList } from "./api"
+import { getARandomProblemId, getProblemById, getProblemOfTheDay, getProblems, getAllTopics, getAllCompanies, login, register, getUserStreak, getUserSubmissionStatus, getProblemCounts, getUserLists, addToList, createList, getProfileByUsername } from "./api"
 
 export const useProblemsData = (page, limit, filters) => {
     return useQuery(
@@ -70,6 +70,10 @@ export const useProblemCounts = () => {
 
 export const useUserLists = (username) => {
     return useQuery(["userLists", username], () => getUserLists(username), { enabled: !!username })
+}
+
+export const useProfileByUsername = (username) => {
+    return useQuery(["profile", username], () => getProfileByUsername(username), { enabled: !!username })
 }
 
 export const useAddToListMutation = () => {
