@@ -61,11 +61,63 @@ export function countBadges(groups) {
   return Object.values(groups || {}).reduce((a, arr) => a + (arr ? arr.length : 0), 0);
 }
 
+/* Build a minimal PATCH payload — only fields the user actually changed.
+   Returns { payload, locationWarning }.
+   locationWarning is true when the user filled only one of city/country. */
+export function buildProfileUpdatePayload(original, cleaned) {
+  const payload = {};
+
+  // userOccupation: null when cleared
+  const origOcc = original.userOccupation || null;
+  const newOcc  = cleaned.userOccupation  || null;
+  if (origOcc !== newOcc) payload.userOccupation = newOcc;
+
+  // school, github, linkedin, twitter: "" (not null) when cleared
+  for (const key of ['school', 'githubUrl', 'linkedinUrl', 'twitterUrl']) {
+    const origVal = original[key] || "";
+    const newVal  = cleaned[key]  || "";
+    if (origVal !== newVal) payload[key] = newVal;
+  }
+
+  // skillTags
+  const origTags = JSON.stringify(original.skillTags || []);
+  const newTags  = JSON.stringify(cleaned.skillTags  || []);
+  if (origTags !== newTags) payload.skillTags = cleaned.skillTags || [];
+
+  // location: partial fill → warning; both empty → { city: "", country: "" }
+  const origCity    = (original.location?.city    || "").trim();
+  const origCountry = (original.location?.country || "").trim();
+  const newCity     = (cleaned.location?.city     || "").trim();
+  const newCountry  = (cleaned.location?.country  || "").trim();
+
+  let locationWarning = false;
+  if (origCity !== newCity || origCountry !== newCountry) {
+    if ((newCity && !newCountry) || (!newCity && newCountry)) {
+      locationWarning = true;
+    } else {
+      payload.location = { city: newCity, country: newCountry };
+    }
+  }
+
+  // workExperience: original (GET) has nested company; cleaned (draft) has flat companyName
+  const toFlat = (getCompanyName) => (e) => ({
+    companyName: (getCompanyName(e) || "").trim(),
+    jobTitle:    (e.jobTitle  || "").trim(),
+    startYear:   e.startYear ? Number(e.startYear) : null,
+    endYear:     e.endYear   ? Number(e.endYear)   : null,
+  });
+  const origExpStr = JSON.stringify((original.workExperience || []).map(toFlat(e => e.company?.name)));
+  const newExpStr  = JSON.stringify((cleaned.workExperience  || []).map(toFlat(e => e.companyName)));
+  if (origExpStr !== newExpStr) payload.workExperience = (cleaned.workExperience || []).map(toFlat(e => e.companyName));
+
+  return { payload, locationWarning };
+}
+
 /* Normalize a draft before persisting (trim, drop empties, coerce years). */
 export function sanitizeProfile(d) {
   const n = clone(d);
   n.skillTags = (n.skillTags || []).map(s => s.trim()).filter(Boolean);
-  n.workExperience = (n.workExperience || []).filter(e => e.companySlug.name.trim() || e.jobTitle.trim());
+  n.workExperience = (n.workExperience || []).filter(e => (e.companyName || "").trim() || (e.jobTitle || "").trim());
   n.workExperience.forEach(e => {
     e.startYear = e.startYear ? Number(e.startYear) : "";
     e.endYear = e.endYear ? Number(e.endYear) : "";

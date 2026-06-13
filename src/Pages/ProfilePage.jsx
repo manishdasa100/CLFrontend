@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { useQueryClient } from "react-query";
 import { useParams } from "react-router-dom";
 import AppNavbar from "../Components/AppNavbar";
 import Footer from "../Components/Footer";
@@ -9,9 +10,9 @@ import {
   ProgressCard, EarnedBadges, ListsCard, SubmissionsCard
 } from "../Components/ProfileView";
 import { EditIdentityCard, EditToolbar, ConfirmExitDialog, Toast } from "../Components/ProfileEdit";
-import { clone, deepEqual, evaluateCompleteness, buildProgress, countBadges, sanitizeProfile } from "../Components/profileUtils";
+import { clone, deepEqual, evaluateCompleteness, buildProgress, countBadges, sanitizeProfile, buildProfileUpdatePayload } from "../Components/profileUtils";
 import { useUser } from "../context/UserContext";
-import { useUserSubmissionStatus, useProblemCounts, useUserLists, useProfileByUsername } from "../services/queries";
+import { useUserSubmissionStatus, useProblemCounts, useUserLists, useProfileByUsername, useUpdateProfileMutation } from "../services/queries";
 import "../styles/profile.css";
 
 /* Recent submissions are hardcoded until the backend ships the endpoint. */
@@ -25,6 +26,8 @@ const RECENT_SUBMISSIONS = [
 export default function ProfilePage() {
   const { username } = useParams();
   const { setUser } = useUser();
+  const queryClient = useQueryClient();
+  const { mutateAsync: updateProfile } = useUpdateProfileMutation();
 
   const { data: profileData } = useProfileByUsername(username);
   const { data: submissionStats } = useUserSubmissionStatus();
@@ -37,6 +40,7 @@ export default function ProfilePage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [toast, setToast] = useState(null);
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => { if (profileData) setProfile(clone(profileData)); }, [profileData]);
 
@@ -68,23 +72,48 @@ export default function ProfilePage() {
   const badgeCount = countBadges(profile.earnedBadges);
   const showBanner = mode === "view" && isOwner && completeness.showBanner && !bannerDismissed;
 
-  const enterEdit = () => { setDraft(clone(profile)); setMode("edit"); };
+  const enterEdit = () => {
+    const d = clone(profile);
+    d.workExperience = (d.workExperience || []).map(e => ({
+      companyName: e.company?.name || "",
+      jobTitle:    e.jobTitle    || "",
+      startYear:   e.startYear   || "",
+      endYear:     e.endYear     || "",
+    }));
+    setDraft(d);
+    setMode("edit");
+  };
 
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2600); };
+  const showToast = (msg, type = "success") => { setToast({ message: msg, type }); setTimeout(() => setToast(null), 2600); };
 
   const save = async () => {
     const clean = sanitizeProfile(draft);
-    // TODO: await updateProfile(clean);  — add to services/api.js once endpoint is confirmed
-    setProfile(clean);
-    if (setUser) setUser(clean);
-    setMode("view");
-    setDraft(null);
-    setConfirmOpen(false);
-    setBannerDismissed(false);
-    showToast("Profile updated successfully");
+    const { payload, locationWarning } = buildProfileUpdatePayload(profile, clean);
+
+    if (locationWarning) {
+      showToast("Location needs both city and country — fix or clear both to save.", "warning");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      if (Object.keys(payload).length > 0) await updateProfile(payload);
+      await queryClient.refetchQueries(["profile", username]);
+      setMode("view");
+      setDraft(null);
+      setConfirmOpen(false);
+      setBannerDismissed(false);
+      showToast("Profile updated successfully");
+    } catch (err) {
+      const raw = err?.response?.data;
+      const msg = (typeof raw === "string" ? raw : raw?.message) || "Failed to save profile changes.";
+      showToast(msg, "error");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const requestExit = () => { if (dirty) setConfirmOpen(true); else { setMode("view"); setDraft(null); } };
+  const requestExit = () => { if (saving) return; if (dirty) setConfirmOpen(true); else { setMode("view"); setDraft(null); } };
   const discardExit = () => { setMode("view"); setDraft(null); setConfirmOpen(false); };
 
   return (
@@ -96,9 +125,9 @@ export default function ProfilePage() {
           <CompletenessBanner stats={completeness} onAction={enterEdit} onDismiss={() => setBannerDismissed(true)} />
         )}
 
-        {mode === "edit" && <EditToolbar dirty={dirty} onSave={save} onExit={requestExit} />}
+        {mode === "edit" && <EditToolbar dirty={dirty} onSave={save} onExit={requestExit} saving={saving} />}
 
-        <div className="pf-grid">
+        <div className="pf-grid" style={saving ? { pointerEvents: "none", opacity: 0.6 } : undefined}>
           {mode === "edit"
             ? <EditIdentityCard draft={draft} update={update} />
             : <IdentityCard p={profile} />}
@@ -123,7 +152,7 @@ export default function ProfilePage() {
       </div>
 
       {confirmOpen && <ConfirmExitDialog onSave={save} onDiscard={discardExit} onCancel={() => setConfirmOpen(false)} />}
-      {toast && <Toast message={toast} />}
+      {toast && <Toast message={toast.message} type={toast.type} />}
 
       <Footer />
     </BackgroundWrapper>

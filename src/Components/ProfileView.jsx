@@ -67,7 +67,7 @@ function Avatar({ url, first, last }) {
 
 function ExperienceItem({ exp }) {
   const [ok, setOk] = useState(true);
-  const co = exp.companySlug || {};
+  const co = exp.company || {};
   return (
     <div className="pf-exp">
       <div className="pf-exp-logo">

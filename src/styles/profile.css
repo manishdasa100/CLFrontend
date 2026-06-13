@@ -523,6 +523,9 @@
 .pf-input::placeholder { color: var(--text-faint); }
 .pf-input:focus { border-color: rgba(34,211,238,0.5); box-shadow: 0 0 0 3px rgba(34,211,238,0.12); background: var(--bg-2); }
 .pf-input-sm { height: 32px; font-size: 12.5px; }
+.pf-select { cursor: pointer; }
+.pf-select option { background: var(--bg-2); color: var(--text); }
+.pf-select-empty { color: var(--text-faint); }
 .pf-edit-row { display: flex; gap: 8px; }
 .pf-edit-stack { display: flex; flex-direction: column; gap: 10px; }
 

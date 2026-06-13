@@ -46,6 +46,14 @@ export const getProfileByUsername = async (username) => {
     return axiosInstance.get(`profile/${username}`).then((res) => res.data)
 }
 
+export const getOccupations = async () => {
+    return axiosInstance.get('occupations').then((res) => res.data)
+}
+
+export const updateUserProfile = async (payload) => {
+    return axiosInstance.put('user/update', payload).then((res) => res.data)
+}
+
 export const getProblems = async(page, rows, filtersProps) => {
     const params = new URLSearchParams()
     params.append("page", page - 1)

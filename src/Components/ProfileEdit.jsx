@@ -1,7 +1,8 @@
 /* ProfileEdit.jsx — edit-mode editors, toolbar, dialog, toast. */
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import Icon from "../Components/Icon";
 import { isDefaultDp, initialsOf } from "./profileUtils";
+import { useOccupations } from "../services/queries";
 
 const DEFAULT_DP = "https://assets.codinglemon.com/users/default/default_user_dp.jpg";
 
@@ -16,6 +17,17 @@ function AddInline({ children, onClick }) {
 /* ── editable identity card ──────────────────────────────────── */
 export function EditIdentityCard({ draft, update }) {
   const fileRef = useRef(null);
+  const { data: occupations = [] } = useOccupations();
+  const [otherMode, setOtherMode] = useState(false);
+
+  // When occupations load and the existing value isn't in the list, activate other mode
+  useEffect(() => {
+    if (occupations.length > 0 && draft.userOccupation && !occupations.includes(draft.userOccupation)) {
+      setOtherMode(true);
+    }
+  }, [occupations]);
+
+  const dropdownValue = !draft.userOccupation && !otherMode ? "" : otherMode ? "Other" : draft.userOccupation;
 
   const onPickFile = (e) => {
     const f = e.target.files && e.target.files[0];
@@ -33,14 +45,10 @@ export function EditIdentityCard({ draft, update }) {
 
   const addExp = () => update(d => {
     d.workExperience = [...(d.workExperience || []), {
-      companySlug: { name: "", slug: "", websiteLink: "", companyLogoUri: "" },
-      jobTitle: "", startYear: "", endYear: ""
+      companyName: "", jobTitle: "", startYear: "", endYear: ""
     }];
   });
-  const setExp = (i, key, v) => update(d => {
-    if (key === "company") d.workExperience[i].companySlug.name = v;
-    else d.workExperience[i][key] = v;
-  });
+  const setExp = (i, key, v) => update(d => { d.workExperience[i][key] = v; });
   const removeExp = (i) => update(d => { d.workExperience.splice(i, 1); });
 
   const SOCIAL = [
@@ -82,15 +90,47 @@ export function EditIdentityCard({ draft, update }) {
         <div className="pf-block" style={{ marginTop: 16 }}>
           <div className="pf-block-head">
             <span className="pf-block-label"><Icon name="briefcase" size={12} /> Occupation</span>
-            {(draft.userOccupation != null) && (
+            {(draft.userOccupation != null || otherMode) && (
               <button className="pf-editbtn pf-editbtn-danger pf-editbtn-icon" type="button" aria-label="Remove occupation"
-                      onClick={() => update(d => { d.userOccupation = null; })}><Icon name="x" size={12} /></button>
+                      onClick={() => { setOtherMode(false); update(d => { d.userOccupation = null; }); }}><Icon name="x" size={12} /></button>
             )}
           </div>
-          {draft.userOccupation != null
-            ? <input className="pf-input pf-input-sm" placeholder="e.g. Developer" value={draft.userOccupation}
-                     onChange={(e) => update(d => { d.userOccupation = e.target.value; })} />
-            : <AddInline onClick={() => update(d => { d.userOccupation = ""; })}>Add occupation</AddInline>}
+          {(draft.userOccupation != null || otherMode) ? (
+            <>
+              <select
+                className={`pf-input pf-input-sm pf-select${dropdownValue === "" ? " pf-select-empty" : ""}`}
+                value={dropdownValue}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === "Other") {
+                    setOtherMode(true);
+                    update(d => { d.userOccupation = ""; });
+                  } else {
+                    setOtherMode(false);
+                    update(d => { d.userOccupation = val; });
+                  }
+                }}
+              >
+                <option value="" disabled>Select occupation…</option>
+                {occupations.map(occ => (
+                  <option key={occ} value={occ}>{occ}</option>
+                ))}
+                <option value="Other">Other…</option>
+              </select>
+              {otherMode && (
+                <input
+                  className="pf-input pf-input-sm"
+                  style={{ marginTop: 6 }}
+                  placeholder="Enter your occupation"
+                  value={draft.userOccupation || ""}
+                  onChange={(e) => update(d => { d.userOccupation = e.target.value; })}
+                  autoFocus
+                />
+              )}
+            </>
+          ) : (
+            <AddInline onClick={() => update(d => { d.userOccupation = ""; })}>Add occupation</AddInline>
+          )}
         </div>
 
         <div className="pf-divider" />
@@ -119,8 +159,8 @@ export function EditIdentityCard({ draft, update }) {
                   <button className="pf-editbtn pf-editbtn-danger pf-editbtn-icon" type="button" aria-label="Remove role"
                           onClick={() => removeExp(i)}><Icon name="x" size={12} /></button>
                 </div>
-                <input className="pf-input pf-input-sm" placeholder="Company" value={exp.companySlug.name}
-                       onChange={(e) => setExp(i, "company", e.target.value)} />
+                <input className="pf-input pf-input-sm" placeholder="Company" value={exp.companyName || ""}
+                       onChange={(e) => setExp(i, "companyName", e.target.value)} />
                 <input className="pf-input pf-input-sm" placeholder="Job title" value={exp.jobTitle}
                        onChange={(e) => setExp(i, "jobTitle", e.target.value)} />
                 <div className="pf-edit-row">
@@ -199,23 +239,28 @@ export function EditIdentityCard({ draft, update }) {
 }
 
 /* ── edit toolbar ────────────────────────────────────────────── */
-export function EditToolbar({ dirty, onSave, onExit }) {
+export function EditToolbar({ dirty, onSave, onExit, saving }) {
   return (
     <div className="pf-editbar">
       <span className="pf-editbar-pulse" />
       <div className="pf-editbar-text">
         <div className="pf-editbar-title">Editing your profile</div>
         <div className="pf-editbar-sub">
-          {dirty ? <span className="dirty">Unsaved changes</span> : "All changes saved"} · changes are private until you save
+          {saving
+            ? <span className="dirty">Saving…</span>
+            : dirty ? <span className="dirty">Unsaved changes</span> : "All changes saved"
+          } · changes are private until you save
         </div>
       </div>
       <div className="pf-editbar-actions">
-        <button className="cl-btn cl-btn-ghost cl-btn-sm" type="button" onClick={onExit}>
+        <button className="cl-btn cl-btn-ghost cl-btn-sm" type="button" onClick={onExit} disabled={saving}
+                style={saving ? { opacity: 0.5, cursor: "not-allowed" } : undefined}>
           <Icon name="logout" size={13} /> Exit
         </button>
-        <button className="cl-btn cl-btn-primary cl-btn-sm" type="button" onClick={onSave} disabled={!dirty}
-                style={!dirty ? { opacity: 0.5, cursor: "not-allowed" } : undefined}>
-          <Icon name="save" size={13} /> Save changes
+        <button className="cl-btn cl-btn-primary cl-btn-sm" type="button" onClick={onSave}
+                disabled={!dirty || saving}
+                style={(!dirty || saving) ? { opacity: 0.5, cursor: "not-allowed" } : undefined}>
+          {saving ? "Saving…" : <><Icon name="save" size={13} /> Save changes</>}
         </button>
       </div>
     </div>
@@ -249,10 +294,18 @@ export function ConfirmExitDialog({ onSave, onDiscard, onCancel }) {
 }
 
 /* ── toast ───────────────────────────────────────────────────── */
-export function Toast({ message }) {
+const TOAST_STYLES = {
+  success: { border: "rgba(110,231,183,.3)",  ico: { bg: "rgba(110,231,183,0.15)", color: "var(--easy)"   }, icon: "check" },
+  warning: { border: "rgba(252,211,77,.3)",   ico: { bg: "rgba(252,211,77,0.15)",  color: "var(--medium)" }, icon: "warn"  },
+  error:   { border: "rgba(251,113,133,.3)",  ico: { bg: "rgba(251,113,133,0.15)", color: "var(--hard)"   }, icon: "close" },
+};
+export function Toast({ message, type = "success" }) {
+  const s = TOAST_STYLES[type] || TOAST_STYLES.success;
   return (
-    <div className="pf-toast">
-      <span className="pf-toast-ico"><Icon name="check" size={15} /></span>
+    <div className="pf-toast" style={{ borderColor: s.border }}>
+      <span className="pf-toast-ico" style={{ background: s.ico.bg, color: s.ico.color }}>
+        <Icon name={s.icon} size={15} />
+      </span>
       <span className="pf-toast-text">{message}</span>
     </div>
   );
