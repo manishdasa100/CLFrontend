@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useQueryClient } from "react-query";
 import { useParams } from "react-router-dom";
 import AppNavbar from "../Components/AppNavbar";
@@ -12,7 +12,7 @@ import {
 import { EditIdentityCard, EditToolbar, ConfirmExitDialog, Toast } from "../Components/ProfileEdit";
 import { clone, deepEqual, evaluateCompleteness, buildProgress, countBadges, sanitizeProfile, buildProfileUpdatePayload } from "../Components/profileUtils";
 import { useUser } from "../context/UserContext";
-import { useUserSubmissionStatus, useProblemCounts, useUserLists, useProfileByUsername, useUpdateProfileMutation } from "../services/queries";
+import { useUserSubmissionStatus, useProblemCounts, useUserLists, useProfileByUsername, useUpdateProfileMutation, useUploadProfilePicMutation } from "../services/queries";
 import "../styles/profile.css";
 
 /* Recent submissions are hardcoded until the backend ships the endpoint. */
@@ -28,6 +28,8 @@ export default function ProfilePage() {
   const { setUser } = useUser();
   const queryClient = useQueryClient();
   const { mutateAsync: updateProfile } = useUpdateProfileMutation();
+  const { mutateAsync: uploadPic } = useUploadProfilePicMutation();
+  const selectedFileRef = useRef(null);
 
   const { data: profileData } = useProfileByUsername(username);
   const { data: submissionStats } = useUserSubmissionStatus();
@@ -37,6 +39,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState(null);
   const [mode, setMode] = useState("view");      // 'view' | 'edit'
   const [draft, setDraft] = useState(null);
+  const [baseline, setBaseline] = useState(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [toast, setToast] = useState(null);
   const [bannerDismissed, setBannerDismissed] = useState(false);
@@ -68,7 +71,7 @@ export default function ProfilePage() {
   }
 
   const isOwner = !!profile.profileOwner;
-  const dirty = mode === "edit" && draft && !deepEqual(draft, profile);
+  const dirty = mode === "edit" && draft && baseline && !deepEqual(draft, baseline);
   const badgeCount = countBadges(profile.earnedBadges);
   const showBanner = mode === "view" && isOwner && completeness.showBanner && !bannerDismissed;
 
@@ -81,6 +84,7 @@ export default function ProfilePage() {
       endYear:     e.endYear     || "",
     }));
     setDraft(d);
+    setBaseline(clone(d));
     setMode("edit");
   };
 
@@ -95,26 +99,68 @@ export default function ProfilePage() {
       return;
     }
 
-    setSaving(true);
-    try {
-      if (Object.keys(payload).length > 0) await updateProfile(payload);
-      await queryClient.refetchQueries(["profile", username]);
+    const hasProfileChanges = Object.keys(payload).length > 0;
+    const file = selectedFileRef.current;
+
+    if (!hasProfileChanges && !file) {
       setMode("view");
       setDraft(null);
+      return;
+    }
+
+    setSaving(true);
+
+    const tasks = [];
+    if (hasProfileChanges) tasks.push(updateProfile(payload));
+    if (file) tasks.push(uploadPic(file));
+
+    const results = await Promise.allSettled(tasks);
+
+    const profileResult = hasProfileChanges ? results[0] : null;
+    const picResult     = file ? results[hasProfileChanges ? 1 : 0] : null;
+
+    const profileOk = !profileResult || profileResult.status === "fulfilled";
+    const picOk     = !picResult    || picResult.status    === "fulfilled";
+
+    const shouldRefetch = profileOk || picOk;
+    if (shouldRefetch) {
+      await queryClient.refetchQueries(["profile", username]);
+      const fresh = queryClient.getQueryData(["profile", username]);
+      if (fresh?.profilePictureUrl) {
+        setUser(u => ({ ...u, profilePictureUrl: fresh.profilePictureUrl }));
+      }
+    }
+
+    if (profileOk) {
+      selectedFileRef.current = null;
+      setMode("view");
+      setDraft(null);
+      setBaseline(null);
       setConfirmOpen(false);
       setBannerDismissed(false);
+    }
+
+    if (profileOk && picOk) {
       showToast("Profile updated successfully");
-    } catch (err) {
-      const raw = err?.response?.data;
+    } else if (profileOk && !picOk) {
+      const raw = picResult.reason?.response?.data;
+      const msg = (typeof raw === "string" ? raw : raw?.message) || "Profile saved, but photo upload failed.";
+      showToast(msg, "warning");
+    } else if (!profileOk && picOk) {
+      const raw = profileResult.reason?.response?.data;
       const msg = (typeof raw === "string" ? raw : raw?.message) || "Failed to save profile changes.";
       showToast(msg, "error");
-    } finally {
-      setSaving(false);
+    } else {
+      const raw = profileResult?.reason?.response?.data;
+      const msg = (typeof raw === "string" ? raw : raw?.message) || "Failed to save profile changes.";
+      showToast(msg, "error");
     }
+
+    setSaving(false);
   };
 
-  const requestExit = () => { if (saving) return; if (dirty) setConfirmOpen(true); else { setMode("view"); setDraft(null); } };
-  const discardExit = () => { setMode("view"); setDraft(null); setConfirmOpen(false); };
+  const requestExit = () => { if (saving) return; if (dirty) setConfirmOpen(true); else { selectedFileRef.current = null; setMode("view"); setDraft(null); setBaseline(null); } };
+  const discardExit = () => { selectedFileRef.current = null; setMode("view"); setDraft(null); setBaseline(null); setConfirmOpen(false); };
 
   return (
     <BackgroundWrapper>
@@ -129,7 +175,7 @@ export default function ProfilePage() {
 
         <div className="pf-grid" style={saving ? { pointerEvents: "none", opacity: 0.6 } : undefined}>
           {mode === "edit"
-            ? <EditIdentityCard draft={draft} update={update} />
+            ? <EditIdentityCard draft={draft} update={update} onFileSelect={(f) => { selectedFileRef.current = f; }} />
             : <IdentityCard p={profile} />}
 
           <div className="pf-rcol">

@@ -95,7 +95,7 @@ export function buildProfileUpdatePayload(original, cleaned) {
     if ((newCity && !newCountry) || (!newCity && newCountry)) {
       locationWarning = true;
     } else {
-      payload.location = { city: newCity, country: newCountry };
+      payload.location = { city: newCity || null, country: newCountry || null };
     }
   }
 

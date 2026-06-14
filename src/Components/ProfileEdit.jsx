@@ -3,6 +3,7 @@ import React, { useRef, useEffect, useState } from "react";
 import Icon from "../Components/Icon";
 import { isDefaultDp, initialsOf } from "./profileUtils";
 import { useOccupations } from "../services/queries";
+import { ImageCropModal } from "./ImageCropModal";
 
 const DEFAULT_DP = "https://assets.codinglemon.com/users/default/default_user_dp.jpg";
 
@@ -15,10 +16,11 @@ function AddInline({ children, onClick }) {
 }
 
 /* ── editable identity card ──────────────────────────────────── */
-export function EditIdentityCard({ draft, update }) {
+export function EditIdentityCard({ draft, update, onFileSelect }) {
   const fileRef = useRef(null);
   const { data: occupations = [] } = useOccupations();
   const [otherMode, setOtherMode] = useState(false);
+  const [cropFile, setCropFile] = useState(null);
 
   // When occupations load and the existing value isn't in the list, activate other mode
   useEffect(() => {
@@ -32,9 +34,14 @@ export function EditIdentityCard({ draft, update }) {
   const onPickFile = (e) => {
     const f = e.target.files && e.target.files[0];
     if (!f) return;
-    const reader = new FileReader();
-    reader.onload = () => update(d => { d.profilePictureUrl = reader.result; });
-    reader.readAsDataURL(f);
+    setCropFile(f);
+    e.target.value = "";
+  };
+
+  const onCropConfirm = (croppedFile, previewUrl) => {
+    onFileSelect?.(croppedFile);
+    update(d => { d.profilePictureUrl = previewUrl; });
+    setCropFile(null);
   };
 
   const hasPic = draft.profilePictureUrl && !isDefaultDp(draft.profilePictureUrl);
@@ -58,6 +65,7 @@ export function EditIdentityCard({ draft, update }) {
   ];
 
   return (
+    <>
     <aside className="pf-id is-editing">
       <div className="pf-cover">
         <span className="pf-cover-badge"><Icon name="edit" size={12} style={{ color: "var(--cyan)" }} /> Editing</span>
@@ -76,7 +84,7 @@ export function EditIdentityCard({ draft, update }) {
         </div>
         {hasPic && (
           <button className="pf-editbtn pf-editbtn-ghost" type="button" style={{ marginTop: 10 }}
-                  onClick={() => update(d => { d.profilePictureUrl = DEFAULT_DP; })}>
+                  onClick={() => { onFileSelect?.(null); update(d => { d.profilePictureUrl = DEFAULT_DP; }); }}>
             <Icon name="x" size={11} /> Remove photo
           </button>
         )}
@@ -235,6 +243,14 @@ export function EditIdentityCard({ draft, update }) {
         </div>
       </div>
     </aside>
+    {cropFile && (
+      <ImageCropModal
+        file={cropFile}
+        onConfirm={onCropConfirm}
+        onCancel={() => setCropFile(null)}
+      />
+    )}
+    </>
   );
 }
 

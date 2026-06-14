@@ -54,6 +54,14 @@ export const updateUserProfile = async (payload) => {
     return axiosInstance.put('user/update', payload).then((res) => res.data)
 }
 
+export const uploadProfilePic = async (file) => {
+    const formData = new FormData();
+    formData.append("profilePictureImageFile", file);
+    return axiosInstance.post("user/uploadProfilePic", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+    }).then((res) => res.data);
+}
+
 export const getProblems = async(page, rows, filtersProps) => {
     const params = new URLSearchParams()
     params.append("page", page - 1)
