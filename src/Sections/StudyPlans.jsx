@@ -1,37 +1,129 @@
+import { useMemo } from "react";
 import Icon from "../Components/Icon";
+import { useGlobalLists } from "../services/queries";
+import "../styles/studyplans.css";
 
-const PLANS = [
-  { t: "75-Day Interview Crush", d: "The high-signal set before an onsite. 3 problems per day, curated progression.", items: 75, duration: "75 days", level: "mixed", highlight: true },
-  { t: "DP Bootcamp", d: "A structured walk through DP patterns — 1D, 2D, tree, bitmask, digit.", items: 42, duration: "6 weeks", level: "advanced" },
-  { t: "Graph Deep Dive", d: "From BFS/DFS basics to shortest paths, union-find, and network flow.", items: 36, duration: "5 weeks", level: "intermediate" },
-  { t: "Daily Warm-up", d: "One easy problem a day. Habit-first; no pressure, no skipping.", items: "∞", duration: "forever", level: "beginner" },
-  { t: "SQL for Engineers", d: "JOINs, window functions, and the kinds of queries interviewers actually ask.", items: 28, duration: "4 weeks", level: "intermediate" },
-  { t: "Top 150 Classics", d: "The canonical list — the problems every engineer has seen at least once.", items: 150, duration: "flex", level: "mixed" },
-];
+const TIER_META = {
+  BEGINNER:     { label: "Beginner",     chip: "cl-chip-easy"   },
+  INTERMEDIATE: { label: "Intermediate", chip: "cl-chip-medium" },
+  ADVANCED:     { label: "Advanced",     chip: "cl-chip-hard"   },
+  MIXED:        { label: "Mixed",        chip: "cl-chip-cyan"   },
+};
+
+function StudyPlanCard({ plan }) {
+  const tier = TIER_META[plan.difficultyTier] || TIER_META.MIXED;
+  return (
+    <div className="sp-card sp-plan">
+      <div className="sp-plan-accent" />
+      {plan.isPinned && (
+        <div className="sp-pin"><Icon name="pin2" size={12} /> Pinned</div>
+      )}
+      <div className="sp-row">
+        <span className="sp-badge"><Icon name="grid" size={11} /> Study Plan</span>
+        <span className={`cl-chip ${tier.chip}`}>{tier.label}</span>
+      </div>
+      <h3 className="sp-title">{plan.name}</h3>
+      <p className="sp-desc">{plan.description || "—"}</p>
+      <div className="sp-foot">
+        <span className="sp-meta">
+          <Icon name="list" size={12} />
+          <span className="cl-mono">{plan.totalProblems}</span> {plan.totalProblems === 1 ? "problem" : "problems"}
+        </span>
+        <span className="sp-dot">·</span>
+        <span className="sp-meta">
+          <Icon name="fire" size={12} />
+          <span className="cl-mono">{plan.timelineDays}</span> {plan.timelineDays === 1 ? "day" : "days"}
+        </span>
+        <button className="cl-btn cl-btn-cyan cl-btn-sm sp-cta">
+          Start plan <Icon name="arrowRight" size={12} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ProblemListCard({ list }) {
+  return (
+    <div className="sp-card sp-list">
+      {list.isPinned && (
+        <div className="sp-pin sp-pin-muted"><Icon name="pin2" size={12} /> Pinned</div>
+      )}
+      <div className="sp-row">
+        <span className="sp-badge sp-badge-muted"><Icon name="bookmark" size={11} /> Problem List</span>
+      </div>
+      <h3 className="sp-title sp-title-list">{list.name}</h3>
+      <p className="sp-desc">{list.description || "—"}</p>
+      <div className="sp-foot">
+        <span className="sp-meta">
+          <Icon name="list" size={12} />
+          <span className="cl-mono">{list.totalProblems}</span> {list.totalProblems === 1 ? "problem" : "problems"}
+        </span>
+        <button className="cl-btn cl-btn-ghost cl-btn-sm sp-cta">
+          Browse <Icon name="arrowRight" size={12} />
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function StudyPlans() {
+  const { data: items, isLoading, isError, error } = useGlobalLists();
+
+  const { plans, lists } = useMemo(() => {
+    if (!Array.isArray(items)) return { plans: [], lists: [] };
+    const byPin = (a, b) => Number(!!b.isPinned) - Number(!!a.isPinned);
+    return {
+      plans: items.filter(i => i.isStudyPlan).sort(byPin),
+      lists: items.filter(i => !i.isStudyPlan).sort(byPin),
+    };
+  }, [items]);
+
+  const hasAny = plans.length > 0 || lists.length > 0;
+
   return (
     <div className="cl-container" style={{ paddingBottom: 40 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16 }}>
-        {PLANS.map((p, i) => (
-          <div key={i} className="cl-card" style={{ padding: "24px 26px", position: "relative", overflow: "hidden",
-            background: p.highlight ? "linear-gradient(135deg, rgba(34,211,238,0.06), var(--bg-1))" : undefined,
-            borderColor: p.highlight ? "rgba(34,211,238,0.25)" : undefined }}>
-            {p.highlight && <div className="cl-chip cl-chip-cyan" style={{ position: "absolute", top: 18, right: 18 }}>featured</div>}
-            <div className="cl-eyebrow">{p.level}</div>
-            <h3 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 600, letterSpacing: "-0.015em", margin: "8px 0 6px" }}>{p.t}</h3>
-            <p className="cl-text-dim" style={{ fontSize: 13, lineHeight: 1.55, marginBottom: 18 }}>{p.d}</p>
-            <div style={{ display: "flex", gap: 14, fontSize: 12, color: "var(--text-mute)", alignItems: "center" }}>
-              <span><span className="cl-mono" style={{ color: "var(--text)" }}>{p.items}</span> problems</span>
-              <span>·</span>
-              <span>{p.duration}</span>
-              <button className="cl-btn cl-btn-ghost cl-btn-sm" style={{ marginLeft: "auto" }}>
-                Start plan <Icon name="arrowRight" size={12} />
-              </button>
-            </div>
+      {isLoading && (
+        <div className="sp-state">Loading study plans…</div>
+      )}
+
+      {isError && (
+        <div className="sp-state sp-state-error">
+          <Icon name="warn" size={14} />
+          {error?.response?.data?.message || "Failed to load study plans."}
+        </div>
+      )}
+
+      {!isLoading && !isError && !hasAny && (
+        <div className="sp-state">No study plans or problem lists are available yet.</div>
+      )}
+
+      {!isLoading && !isError && plans.length > 0 && (
+        <section className="sp-section">
+          <header className="sp-section-head">
+            <span className="sp-section-title"><Icon name="grid" size={13} /> Study Plans</span>
+            <span className="sp-section-count cl-mono">{plans.length}</span>
+          </header>
+          <div className="sp-grid">
+            {plans.map(plan => <StudyPlanCard key={plan.id} plan={plan} />)}
           </div>
-        ))}
-      </div>
+        </section>
+      )}
+
+      {!isLoading && !isError && plans.length > 0 && lists.length > 0 && (
+        <div className="sp-divider" role="separator" aria-hidden="true" />
+      )}
+
+      {!isLoading && !isError && lists.length > 0 && (
+        <section className="sp-section">
+          <header className="sp-section-head">
+            <span className="sp-section-title"><Icon name="bookmark" size={13} /> Problem Lists</span>
+            <span className="sp-section-count cl-mono">{lists.length}</span>
+          </header>
+          <div className="sp-grid">
+            {lists.map(list => <ProblemListCard key={list.id} list={list} />)}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

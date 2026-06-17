@@ -142,3 +142,13 @@ export const addToList = async ({ id, problemIds }) => {
 export const createList = async ({ name, description, isPublic, isPinned }) => {
     return axiosInstance.post("list/create", { name, description, isPublic, isPinned }).then((res) => res.data);
 };
+
+export const getGlobalLists = async () => {
+    try {
+        const res = await axiosInstance.get("lists/global");
+        return res.data;
+    } catch (err) {
+        if (err.response?.status === 404) return [];
+        throw err;
+    }
+};
