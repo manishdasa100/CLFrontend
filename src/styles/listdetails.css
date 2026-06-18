@@ -1,0 +1,187 @@
+/* ListDetailsPage — problem list / study plan details */
+
+.ld-shell {
+  padding-top: 24px;
+  padding-bottom: 48px;
+}
+
+.ld-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  color: var(--text-mute);
+  text-decoration: none;
+  margin-bottom: 18px;
+  padding: 5px 9px 5px 6px;
+  border-radius: 6px;
+  transition: background .12s ease, color .12s ease;
+}
+.ld-back:hover {
+  color: var(--text);
+  background: rgba(255,255,255,0.04);
+}
+
+/* header card */
+.ld-head {
+  position: relative;
+  padding: 26px 28px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--stroke-1);
+  background: linear-gradient(180deg, var(--bg-1), var(--bg-0));
+  box-shadow: var(--shadow-panel);
+  margin-bottom: 22px;
+  overflow: hidden;
+}
+.ld-head-plan {
+  background: linear-gradient(135deg, rgba(34,211,238,0.06), var(--bg-1) 55%, var(--bg-0));
+  border-color: rgba(34,211,238,0.22);
+}
+.ld-head-accent {
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px; height: 100%;
+  background: linear-gradient(180deg, var(--cyan), rgba(34,211,238,0));
+}
+
+.ld-head-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.ld-kind {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 4px 9px;
+  border-radius: 999px;
+}
+.ld-kind-plan {
+  background: rgba(34,211,238,0.10);
+  color: var(--cyan);
+  border: 1px solid rgba(34,211,238,0.25);
+}
+.ld-kind-list {
+  background: rgba(255,255,255,0.03);
+  color: var(--text-mute);
+  border: 1px solid var(--stroke-1);
+}
+
+.ld-pin {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255,225,64,0.10);
+  color: var(--lemon);
+  border: 1px solid rgba(255,225,64,0.25);
+}
+
+.ld-vis {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--stroke-1);
+}
+.ld-vis-public { color: var(--easy); background: rgba(110,231,183,0.06); border-color: rgba(110,231,183,0.2); }
+.ld-vis-private { color: var(--text-mute); }
+
+.ld-name {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 6px 0 8px;
+  color: var(--text);
+}
+.ld-desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-dim);
+  margin: 0 0 16px;
+  max-width: 70ch;
+}
+
+.ld-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 12.5px;
+  color: var(--text-mute);
+}
+.ld-meta-item { display: inline-flex; align-items: center; gap: 5px; }
+.ld-meta-item .cl-mono { color: var(--text); }
+.ld-meta-dot { opacity: 0.4; }
+
+/* table */
+.ld-table-wrap {
+  border: 1px solid var(--stroke-1);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--bg-1), var(--bg-0));
+  overflow: hidden;
+}
+.ld-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.ld-table thead th {
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 500;
+  color: var(--text-mute);
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--stroke-1);
+  background: var(--bg-2);
+}
+.ld-table tbody td {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--stroke);
+  font-size: 13.5px;
+}
+.ld-table tbody tr:last-child td { border-bottom: none; }
+
+.ld-row { cursor: pointer; transition: background .12s ease; }
+.ld-row:hover { background: rgba(255,255,255,0.025); }
+.ld-row:hover .ld-title { color: var(--cyan); }
+
+.ld-title { color: var(--text); font-weight: 500; transition: color .12s ease; }
+
+.ld-empty {
+  text-align: center;
+  padding: 36px 18px !important;
+  color: var(--text-mute);
+  font-size: 13px;
+}
+
+/* states */
+.ld-state {
+  padding: 36px 18px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-mute);
+  border: 1px dashed var(--stroke-1);
+  border-radius: var(--radius-lg);
+  background: var(--bg-0);
+}
+.ld-state-error {
+  color: var(--hard);
+  border-color: rgba(251,113,133,0.3);
+  background: rgba(251,113,133,0.04);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  width: 100%;
+}

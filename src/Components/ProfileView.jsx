@@ -1,5 +1,6 @@
 /* ProfileView.jsx — view-mode sections. */
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Icon from "../Components/Icon"
 import Badge from "../Components/Badge";
 import { initialsOf, titleCase, langLabel, isDefaultDp } from "./profileUtils";
@@ -290,6 +291,7 @@ export function EarnedBadges({ groups, totalEarned }) {
 
 /* ── lists ───────────────────────────────────────────────────── */
 export function ListsCard({ lists }) {
+  const navigate = useNavigate();
   return (
     <div className="pf-card">
       <div className="pf-card-head">
@@ -302,7 +304,14 @@ export function ListsCard({ lists }) {
       <div className="pf-lists">
         {lists.length === 0 && <span className="pf-none">No problem lists created</span>}
         {lists.map(l => (
-          <div className="pf-list-card" key={l.id}>
+          <div
+            className="pf-list-card"
+            key={l.id}
+            role="button"
+            tabIndex={0}
+            onClick={() => navigate(`/lists/${l.creator}/${encodeURIComponent(l.name)}`)}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate(`/lists/${l.creator}/${encodeURIComponent(l.name)}`); } }}
+          >
             <div className="pf-list-top">
               <div className="pf-list-name">{l.name}</div>
               {l.isPinned && <span className="pf-pin"><Icon name="pin2" size={14} /></span>}

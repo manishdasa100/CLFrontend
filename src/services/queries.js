@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from "react-query"
-import { getARandomProblemId, getProblemById, getProblemOfTheDay, getProblems, getAllTopics, getAllCompanies, login, register, getUserStreak, getUserSubmissionStatus, getProblemCounts, getUserLists, addToList, createList, getProfileByUsername, getOccupations, updateUserProfile, uploadProfilePic, getGlobalLists } from "./api"
+import { getARandomProblemId, getProblemById, getProblemOfTheDay, getProblems, getAllTopics, getAllCompanies, login, register, getUserStreak, getUserSubmissionStatus, getProblemCounts, getUserLists, addToList, createList, getProfileByUsername, getOccupations, updateUserProfile, uploadProfilePic, getGlobalLists, getListDetails } from "./api"
 
 export const useProblemsData = (page, limit, filters) => {
     return useQuery(
@@ -98,4 +98,12 @@ export const useCreateListMutation = () => {
 
 export const useGlobalLists = () => {
     return useQuery("globalLists", getGlobalLists)
+}
+
+export const useListDetails = (username, listName) => {
+    return useQuery(
+        ["listDetails", username, listName],
+        () => getListDetails(username, listName),
+        { enabled: !!username && !!listName }
+    )
 }

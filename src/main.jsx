@@ -11,6 +11,7 @@ import ProblemsTab from './Sections/ProblemsTab'
 import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider} from 'react-router-dom'
 import ErrorPage from './Pages/ErrorPage'
 import ProblemDetailsPage from './Pages/ProblemDetailsPage'
+import ListDetailsPage from './Pages/ListDetailsPage'
 import App from './App'
 import ProtectedRoute from './Components/ProtectedRoute'
 import OAuth2Callback from './Pages/OAuth2Callback'
@@ -25,6 +26,7 @@ const router = createBrowserRouter(
         <Route path='oauth2/callback' element={<OAuth2Callback/>}/>
         <Route element={<ProtectedRoute />}>
           <Route path='profile/:username' element={<ProfilePage/>}/>
+          <Route path='lists/:username/:listName' element={<ListDetailsPage/>}/>
           <Route path='arena' element={<ArenaPage/>}>
             <Route path='learn' element={<LearnTab/>}/>
             <Route path='study-plans' element={<StudyPlans/>}/>

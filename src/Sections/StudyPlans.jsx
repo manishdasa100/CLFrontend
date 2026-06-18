@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import Icon from "../Components/Icon";
 import { useGlobalLists } from "../services/queries";
 import "../styles/studyplans.css";
@@ -10,7 +11,7 @@ const TIER_META = {
   MIXED:        { label: "Mixed",        chip: "cl-chip-cyan"   },
 };
 
-function StudyPlanCard({ plan }) {
+function StudyPlanCard({ plan, onOpen }) {
   const tier = TIER_META[plan.difficultyTier] || TIER_META.MIXED;
   return (
     <div className="sp-card sp-plan">
@@ -34,7 +35,7 @@ function StudyPlanCard({ plan }) {
           <Icon name="fire" size={12} />
           <span className="cl-mono">{plan.timelineDays}</span> {plan.timelineDays === 1 ? "day" : "days"}
         </span>
-        <button className="cl-btn cl-btn-cyan cl-btn-sm sp-cta">
+        <button className="cl-btn cl-btn-cyan cl-btn-sm sp-cta" type="button" onClick={onOpen}>
           Start plan <Icon name="arrowRight" size={12} />
         </button>
       </div>
@@ -42,7 +43,7 @@ function StudyPlanCard({ plan }) {
   );
 }
 
-function ProblemListCard({ list }) {
+function ProblemListCard({ list, onOpen }) {
   return (
     <div className="sp-card sp-list">
       {list.isPinned && (
@@ -58,7 +59,7 @@ function ProblemListCard({ list }) {
           <Icon name="list" size={12} />
           <span className="cl-mono">{list.totalProblems}</span> {list.totalProblems === 1 ? "problem" : "problems"}
         </span>
-        <button className="cl-btn cl-btn-ghost cl-btn-sm sp-cta">
+        <button className="cl-btn cl-btn-ghost cl-btn-sm sp-cta" type="button" onClick={onOpen}>
           Browse <Icon name="arrowRight" size={12} />
         </button>
       </div>
@@ -67,7 +68,10 @@ function ProblemListCard({ list }) {
 }
 
 export default function StudyPlans() {
+  const navigate = useNavigate();
   const { data: items, isLoading, isError, error } = useGlobalLists();
+
+  const openList = (item) => navigate(`/lists/${item.creator}/${encodeURIComponent(item.name)}`);
 
   const { plans, lists } = useMemo(() => {
     if (!Array.isArray(items)) return { plans: [], lists: [] };
@@ -104,7 +108,7 @@ export default function StudyPlans() {
             <span className="sp-section-count cl-mono">{plans.length}</span>
           </header>
           <div className="sp-grid">
-            {plans.map(plan => <StudyPlanCard key={plan.id} plan={plan} />)}
+            {plans.map(plan => <StudyPlanCard key={plan.id} plan={plan} onOpen={() => openList(plan)} />)}
           </div>
         </section>
       )}
@@ -120,7 +124,7 @@ export default function StudyPlans() {
             <span className="sp-section-count cl-mono">{lists.length}</span>
           </header>
           <div className="sp-grid">
-            {lists.map(list => <ProblemListCard key={list.id} list={list} />)}
+            {lists.map(list => <ProblemListCard key={list.id} list={list} onOpen={() => openList(list)} />)}
           </div>
         </section>
       )}

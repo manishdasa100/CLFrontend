@@ -152,3 +152,7 @@ export const getGlobalLists = async () => {
         throw err;
     }
 };
+
+export const getListDetails = async (username, listName) => {
+    return axiosInstance.get(`list/${username}`, { params: { name: listName } }).then((res) => res.data);
+};
