@@ -41,15 +41,18 @@ export function CompletenessBanner({ stats, onAction, onDismiss }) {
 }
 
 /* ── identity card (view) ────────────────────────────────────── */
-function RankMark({ rank }) {
+function RankBadge({ rank }) {
   const [ok, setOk] = useState(true);
   return (
-    <span className="pf-rank-chip" title={`${rank.milestonePoints} pts`}>
+    <div className="pf-rank-badge" tabIndex={0} role="img" aria-label={`Rank: ${rank.rankName}`}>
       {rank.rankBadgeUrl && ok
         ? <img src={rank.rankBadgeUrl} alt="" onError={() => setOk(false)} />
-        : <span className="pf-rank-chip-fallback">{rank.rankName.charAt(0)}</span>}
-      <span className="pf-rank-chip-name">{rank.rankName}</span>
-    </span>
+        : <span className="pf-rank-badge-fallback">{rank.rankName.charAt(0)}</span>}
+      <div className="pf-rank-tip" role="tooltip">
+        Rank: {rank.rankName}
+        <span className="pf-rank-tip-arrow" aria-hidden="true" />
+      </div>
+    </div>
   );
 }
 
@@ -104,9 +107,7 @@ export function IdentityCard({ p }) {
   const hasSocial = p.githubUrl || p.linkedinUrl || p.twitterUrl;
   return (
     <aside className="pf-id">
-      <div className="pf-cover">
-        <span className="pf-cover-badge"><Icon name="medal" size={12} style={{ color: "var(--lemon)" }} /> {p.rank.rankName}</span>
-      </div>
+      <div className="pf-cover" />
       <div className="pf-id-body">
         <div className="pf-avatar-wrap">
           <Avatar url={p.profilePictureUrl} first={p.firstName} last={p.lastName} />
@@ -117,12 +118,14 @@ export function IdentityCard({ p }) {
             <h1 className="pf-name">{p.firstName} {p.lastName}</h1>
             <div className="pf-handle">@{p.username}</div>
           </div>
+          {p.rank && <RankBadge rank={p.rank} />}
         </div>
 
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
-          {p.userOccupation && <span className="pf-occ"><Icon name="briefcase" size={12} /> {p.userOccupation}</span>}
-          <RankMark rank={p.rank} />
-        </div>
+        {p.userOccupation && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
+            <span className="pf-occ"><Icon name="briefcase" size={12} /> {p.userOccupation}</span>
+          </div>
+        )}
 
         <div className="pf-divider" />
 

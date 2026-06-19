@@ -116,11 +116,11 @@
 .pf-id {
   position: sticky;
   top: 84px;
+  z-index: 5;
   background: linear-gradient(180deg, var(--bg-1), var(--bg-0));
   border: 1px solid var(--stroke-1);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-panel);
-  overflow: hidden;
 }
 .pf-id.is-editing { border-color: rgba(34,211,238,0.28); }
 
@@ -128,6 +128,8 @@
 .pf-cover {
   position: relative;
   height: 96px;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  overflow: hidden;
   background:
     radial-gradient(120% 160% at 15% 0%, rgba(34,211,238,0.4), transparent 55%),
     radial-gradient(120% 180% at 90% 10%, rgba(167,139,250,0.45), transparent 55%),
@@ -142,16 +144,6 @@
   background-size: 22px 22px;
   mask-image: linear-gradient(180deg, #000, transparent);
 }
-.pf-cover-badge {
-  position: absolute; top: 12px; right: 12px;
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 5px 10px; border-radius: 99px;
-  background: rgba(7,8,12,0.5);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,0.14);
-  font-size: 11px; font-weight: 500; color: var(--text);
-}
-
 .pf-id-body { padding: 0 22px 22px; }
 
 /* avatar */
@@ -191,7 +183,7 @@
 
 /* name row */
 .pf-name-row {
-  display: flex; align-items: flex-start; justify-content: space-between;
+  display: flex; align-items: center; justify-content: space-between;
   gap: 12px; margin-top: 16px;
 }
 .pf-name {
@@ -206,26 +198,62 @@
   font-size: 12px; margin-top: 5px;
   word-break: break-all;
 }
-.pf-rank-chip {
-  display: inline-flex; align-items: center; gap: 7px;
-  margin-top: 12px;
-  padding: 5px 11px 5px 6px; border-radius: 99px;
-  background: rgba(255,225,64,0.08);
-  border: 1px solid rgba(255,225,64,0.25);
+.pf-rank-badge {
+  position: relative;
+  flex-shrink: 0;
+  display: grid; place-items: center;
+  outline: none;
 }
-.pf-rank-chip img { width: 20px; height: 20px; object-fit: contain; }
-.pf-rank-chip-fallback {
-  width: 20px; height: 20px; border-radius: 50%;
+.pf-rank-badge img {
+  width: 55px; height: 55px;
+  object-fit: contain;
+  display: block;
+}
+.pf-rank-badge-fallback {
+  width: 56px; height: 56px; border-radius: 50%;
   background: radial-gradient(circle at 32% 28%, #FFF6B8, #FFE140 40%, #B98F00);
   display: grid; place-items: center;
   font-family: var(--font-display); font-weight: 700;
-  font-size: 11px; color: #3a2900;
+  font-size: 26px; color: #3a2900;
 }
-.pf-rank-chip-name {
-  font-family: var(--font-mono);
-  font-size: 11px; font-weight: 500;
-  letter-spacing: 0.1em; color: var(--lemon);
-  text-transform: uppercase;
+/* tooltip — consistent with earned badge tooltip (.bdg-tip) */
+.pf-rank-tip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 12px);
+  transform: translate(-50%, 6px);
+  width: max-content;
+  max-width: 220px;
+  padding: 9px 13px;
+  background: #11141C;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 10px;
+  box-shadow:
+    0 20px 38px -14px rgba(0,0,0,0.7),
+    0 0 0 1px rgba(255,225,64,0.12);
+  color: #EDEFF4;
+  font-size: 12.5px; font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s ease, transform .18s ease;
+  z-index: 10;
+}
+.pf-rank-badge:hover .pf-rank-tip,
+.pf-rank-badge:focus-visible .pf-rank-tip {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.pf-rank-tip-arrow {
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  width: 9px; height: 9px;
+  transform: translateX(-50%) rotate(45deg);
+  background: #11141C;
+  border-right: 1px solid rgba(255,255,255,0.10);
+  border-bottom: 1px solid rgba(255,255,255,0.10);
 }
 .pf-occ {
   display: inline-flex; align-items: center; gap: 6px;
