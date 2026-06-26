@@ -168,25 +168,30 @@ function ensureBadgeDefs() {
 function Badge({ imageUrl, name, description, size = 180 }) {
   const [accent, setAccent] = React.useState(() => badgeHashPick(name || imageUrl || ''));
   const [tipOpen, setTipOpen] = React.useState(false);
-  const imgRef = React.useRef(null);
+  // We sample the dominant color from the *visible* <img> instead of fetching a
+  // second copy of the image. Reading pixels requires a CORS-clean image, so we
+  // load it with crossOrigin; if that's blocked (origin sent no CORS header) we
+  // fall back to a plain load so the badge still renders — color extraction is
+  // simply skipped in that case and the deterministic fallback color is kept.
+  const [allowCors, setAllowCors] = React.useState(true);
   const hideTimer = React.useRef(null);
 
   React.useEffect(() => { ensureBadgeDefs(); }, []);
 
-  React.useEffect(() => {
-    // try to extract dominant color once the image has loaded
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.referrerPolicy = 'no-referrer';
-    img.onload = () => {
-      const c = extractDominantColor(img);
-      if (c) setAccent(c);
-      // else keep the deterministic fallback already in state
-    };
-    img.onerror = () => { /* keep fallback */ };
-    img.src = imageUrl;
-    return () => { img.onload = img.onerror = null; };
-  }, [imageUrl]);
+  // new image URL → optimistically retry the CORS load for color sampling
+  React.useEffect(() => { setAllowCors(true); }, [imageUrl]);
+
+  const handleArtLoad = (e) => {
+    if (!allowCors) return;            // plain (non-CORS) load → canvas would taint
+    const c = extractDominantColor(e.currentTarget);
+    if (c) setAccent(c);              // else keep the deterministic fallback
+  };
+
+  const handleArtError = () => {
+    // most likely the CORS request was blocked; reload without crossOrigin so
+    // the image still displays (we forgo color extraction).
+    setAllowCors((cors) => (cors ? false : cors));
+  };
 
   const accentDark = mixHex(accent, '#000000', 0.32);
   const accentDeep = mixHex(accent, '#000000', 0.55);
@@ -233,11 +238,15 @@ function Badge({ imageUrl, name, description, size = 180 }) {
         {/* inner hexagonal plate — holds the illustration full-bleed */}
         <div className="bdg-hex bdg-hex-inner">
           <img
-            ref={imgRef}
+            key={allowCors ? 'cors' : 'plain'}
             className="bdg-art"
             src={imageUrl}
+            crossOrigin={allowCors ? 'anonymous' : undefined}
+            loading="lazy"
             alt=""
             draggable="false"
+            onLoad={handleArtLoad}
+            onError={handleArtError}
           />
         </div>
       </div>

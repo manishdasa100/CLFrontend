@@ -3,6 +3,7 @@ import { useRef, useState, useEffect } from "react";
 import BrandLogo from "./BrandLogo";
 import Icon from "./Icon";
 import { useUser } from "../context/UserContext";
+import { isDefaultDp } from "./profileUtils";
 
 export default function AppNavbar() {
   const { pathname } = useLocation();
@@ -10,7 +11,11 @@ export default function AppNavbar() {
   const { user, clearUser } = useUser();
   const loggedIn = !!user;
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
   const dropdownRef = useRef(null);
+
+  // reset the broken-image fallback whenever the picture URL changes
+  useEffect(() => { setAvatarError(false); }, [user?.profilePictureUrl]);
 
   useEffect(() => {
     const handler = (e) => { if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setDropdownOpen(false); };
@@ -50,8 +55,8 @@ export default function AppNavbar() {
               <span className="cl-chip cl-chip-cyan"><Icon name="fire" size={12} /> 12d</span>
               <div ref={dropdownRef} style={{ position: "relative" }}>
                 <div onClick={() => setDropdownOpen((o) => !o)} style={{ cursor: "pointer" }}>
-                  {user?.profilePictureUrl ? (
-                    <img src={user.profilePictureUrl} alt="avatar" style={{
+                  {user?.profilePictureUrl && !isDefaultDp(user.profilePictureUrl) && !avatarError ? (
+                    <img src={user.profilePictureUrl} alt="avatar" onError={() => setAvatarError(true)} style={{
                       width: 30, height: 30, borderRadius: "50%",
                       objectFit: "cover", border: "1px solid rgba(255,255,255,.2)",
                     }} />

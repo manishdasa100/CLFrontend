@@ -69,6 +69,18 @@ function Avatar({ url, first, last }) {
   );
 }
 
+/* chronological order — earliest role first; ongoing roles (no end year) sort last on ties */
+function sortExperiences(exps) {
+  return [...exps].sort((a, b) => {
+    const sa = Number(a.startYear) || 0;
+    const sb = Number(b.startYear) || 0;
+    if (sa !== sb) return sa - sb;
+    const ea = a.endYear ? Number(a.endYear) : Infinity;
+    const eb = b.endYear ? Number(b.endYear) : Infinity;
+    return ea - eb;
+  });
+}
+
 function ExperienceItem({ exp }) {
   const [ok, setOk] = useState(true);
   const co = exp.company || {};
@@ -76,7 +88,7 @@ function ExperienceItem({ exp }) {
     <div className="pf-exp">
       <div className="pf-exp-logo">
         {co.companyLogoUri && ok
-          ? <img src={co.companyLogoUri} alt="" onError={() => setOk(false)} />
+          ? <img src={co.companyLogoUri} alt="" loading="lazy" onError={() => setOk(false)} />
           : <span className="pf-exp-logo-fallback">{(co.name || "?").charAt(0)}</span>}
       </div>
       <div className="pf-exp-body">
@@ -137,7 +149,7 @@ export function IdentityCard({ p }) {
         <div className="pf-block">
           <div className="pf-block-head"><span className="pf-block-label"><Icon name="briefcase" size={12} /> Experience</span></div>
           {p.workExperience && p.workExperience.length
-            ? p.workExperience.map((e, i) => <ExperienceItem key={i} exp={e} />)
+            ? sortExperiences(p.workExperience).map((e, i) => <ExperienceItem key={i} exp={e} />)
             : <span className="pf-none">No experience added</span>}
         </div>
 
@@ -295,6 +307,8 @@ export function EarnedBadges({ groups, totalEarned }) {
 /* ── lists ───────────────────────────────────────────────────── */
 export function ListsCard({ lists }) {
   const navigate = useNavigate();
+  // pinned lists first; stable sort keeps the rest in their original order
+  const sortedLists = [...lists].sort((a, b) => Number(!!b.isPinned) - Number(!!a.isPinned));
   return (
     <div className="pf-card">
       <div className="pf-card-head">
@@ -306,7 +320,7 @@ export function ListsCard({ lists }) {
       </div>
       <div className="pf-lists">
         {lists.length === 0 && <span className="pf-none">No problem lists created</span>}
-        {lists.map(l => (
+        {sortedLists.map(l => (
           <div
             className="pf-list-card"
             key={l.id}
