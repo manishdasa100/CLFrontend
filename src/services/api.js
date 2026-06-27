@@ -156,3 +156,27 @@ export const getGlobalLists = async () => {
 export const getListDetails = async (username, listName) => {
     return axiosInstance.get(`list/${username}`, { params: { name: listName } }).then((res) => res.data);
 };
+
+export const getStudyPlanProgress = async (listId) => {
+    try {
+        const res = await axiosInstance.get("studyPlan/get", { params: { listId } });
+        return res.data;
+    } catch (err) {
+        if (err.response?.status === 404) return null;
+        throw err;
+    }
+};
+
+// Unified mutation endpoint: studyPlan/set?operation=<OP>&listId=<id>.
+// Axios rejects any non-2xx, so callers surface err.response.data.message on failure.
+export const activateStudyPlan = async (listId) => {
+    return axiosInstance.post("studyPlan/set", null, { params: { operation: "ACTIVATE", listId } }).then((res) => res.data);
+};
+
+export const resetStudyPlan = async (listId) => {
+    return axiosInstance.post("studyPlan/set", null, { params: { operation: "RESET", listId } }).then((res) => res.data);
+};
+
+export const deactivateStudyPlan = async (listId) => {
+    return axiosInstance.post("studyPlan/set", null, { params: { operation: "DEACTIVATE", listId } }).then((res) => res.data);
+};

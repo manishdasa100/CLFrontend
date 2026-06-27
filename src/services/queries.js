@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from "react-query"
-import { getARandomProblemId, getProblemById, getProblemOfTheDay, getProblems, getAllTopics, getAllCompanies, login, register, getUserStreak, getUserSubmissionStatus, getProblemCounts, getUserLists, addToList, createList, getProfileByUsername, getOccupations, updateUserProfile, uploadProfilePic, getGlobalLists, getListDetails } from "./api"
+import { getARandomProblemId, getProblemById, getProblemOfTheDay, getProblems, getAllTopics, getAllCompanies, login, register, getUserStreak, getUserSubmissionStatus, getProblemCounts, getUserLists, addToList, createList, getProfileByUsername, getOccupations, updateUserProfile, uploadProfilePic, getGlobalLists, getListDetails, getStudyPlanProgress, activateStudyPlan, resetStudyPlan, deactivateStudyPlan } from "./api"
 
 export const useProblemsData = (page, limit, filters) => {
     return useQuery(
@@ -106,4 +106,24 @@ export const useListDetails = (username, listName) => {
         () => getListDetails(username, listName),
         { enabled: !!username && !!listName }
     )
+}
+
+export const useStudyPlanProgress = (listId, enabled) => {
+    return useQuery(
+        ["studyPlanProgress", listId],
+        () => getStudyPlanProgress(listId),
+        { enabled: !!listId && !!enabled }
+    )
+}
+
+export const useActivateStudyPlanMutation = () => {
+    return useMutation((listId) => activateStudyPlan(listId))
+}
+
+export const useResetStudyPlanMutation = () => {
+    return useMutation((listId) => resetStudyPlan(listId))
+}
+
+export const useDeactivateStudyPlanMutation = () => {
+    return useMutation((listId) => deactivateStudyPlan(listId))
 }
