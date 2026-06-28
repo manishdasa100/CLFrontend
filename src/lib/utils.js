@@ -60,3 +60,17 @@ export const timeAgo = (raw) => {
     const years = Math.floor(months / 12)
     return `${years} year${years === 1 ? "" : "s"} ago`
 }
+
+// Single source of truth for judge verdicts, shared across the problem and profile
+// submission views. `tier` drives semantic color (pass=green, wrong=amber, error=red);
+// `ran` mirrors the backend runSuccess flag.
+export const SUBMISSION_STATUS = {
+    ACC: { label: "Accepted",              tier: "pass",  ran: true },
+    WA:  { label: "Wrong Answer",          tier: "wrong", ran: true },
+    TLE: { label: "Time Limit Exceeded",   tier: "wrong", ran: true },
+    MLE: { label: "Memory Limit Exceeded", tier: "wrong", ran: true },
+    OLE: { label: "Output Limit Exceeded", tier: "wrong", ran: true },
+    CE:  { label: "Compilation Error",     tier: "error", ran: false },
+    RE:  { label: "Runtime Error",         tier: "error", ran: false },
+    IE:  { label: "Internal Error",        tier: "error", ran: false },
+}

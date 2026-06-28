@@ -7,7 +7,7 @@ import { useProblemByIdData, useUserLists, useAddToListMutation, useCreateListMu
 import CodeEditor from "../Components/CodeEditor";
 import Icon from "../Components/Icon";
 import Toast from "../Components/Toast";
-import { formatFieldName, timeAgo } from "../lib/utils";
+import { formatFieldName, timeAgo, SUBMISSION_STATUS } from "../lib/utils";
 import { useUser } from "../context/UserContext";
 import "./ProblemDetailsPage.css";
 
@@ -69,27 +69,16 @@ const SubmitResultView = ({ report }) => {
   );
 };
 
-/* Verdict vocabulary of the judge. `tier` drives the color rail and stamp tint;
-   `ran` mirrors the backend runSuccess flag (false ⇒ runtime/memory are meaningless). */
-const STATUS_META = {
-  ACC: { label: "Accepted",             tier: "pass",  ran: true },
-  WA:  { label: "Wrong Answer",         tier: "wrong", ran: true },
-  TLE: { label: "Time Limit Exceeded",  tier: "wrong", ran: true },
-  MLE: { label: "Memory Limit Exceeded", tier: "wrong", ran: true },
-  OLE: { label: "Output Limit Exceeded", tier: "wrong", ran: true },
-  CE:  { label: "Compilation Error",    tier: "error", ran: false },
-  RE:  { label: "Runtime Error",        tier: "error", ran: false },
-  IE:  { label: "Internal Error",       tier: "error", ran: false },
-};
+/* Verdict colors keyed by the shared SUBMISSION_STATUS tier (pass/wrong/error). */
 const TIER_COLOR = { pass: "var(--easy)", wrong: "var(--medium)", error: "var(--hard)" };
 const TIER_VARIANT = { pass: "success", wrong: "warning", error: "danger" };
 const LANG_LABEL = { JAVA: "Java", PYTHON: "Python", CPP: "C++", C: "C", GO: "Go", JAVASCRIPT: "JavaScript", RUST: "Rust" };
 
 const SubmissionRow = ({ sub }) => {
-  const meta = STATUS_META[sub.status] || { label: sub.status, tier: "error", ran: false };
+  const meta = SUBMISSION_STATUS[sub.status] || { label: sub.status, tier: "error", ran: false };
   const color = TIER_COLOR[meta.tier];
   const lang = LANG_LABEL[sub.language] || formatFieldName(sub.language) || sub.language;
-  const runtime = sub.runtimeMs ?? sub.runtime;
+  const runtime = sub.runtimeMs;
 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "11px 14px", background: "var(--bg-2)", borderRadius: 8, borderLeft: `3px solid ${color}` }}>

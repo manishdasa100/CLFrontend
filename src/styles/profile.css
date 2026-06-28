@@ -505,9 +505,9 @@
 .pf-subs tbody tr:hover td { background: rgba(34,211,238,0.025); color: var(--text); }
 .pf-subs tbody tr:last-child td { border-bottom: none; }
 .pf-status { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 500; }
-.pf-status-ac { color: var(--easy); }
-.pf-status-wa { color: var(--hard); }
-.pf-status-tle { color: var(--medium); }
+.pf-status-pass  { color: var(--easy); }
+.pf-status-wrong { color: var(--medium); }
+.pf-status-error { color: var(--hard); }
 .pf-status-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
 .pf-sub-title { color: var(--text); font-weight: 500; }
 .pf-sub-title:hover { color: var(--cyan); }
@@ -516,6 +516,10 @@
   font-family: var(--font-mono); font-size: 11.5px; padding: 3px 8px; border-radius: 4px;
   background: var(--bg-2); border: 1px solid var(--stroke-1); color: var(--text-dim);
 }
+.pf-subs-msg { display: flex; align-items: center; padding: 22px; font-size: 13px; color: var(--text-mute); }
+.pf-subs-empty { padding: 30px 22px; text-align: center; }
+.pf-subs-empty-title { font-family: var(--font-display); font-weight: 600; font-size: 14.5px; color: var(--text); }
+.pf-subs-empty-sub { font-size: 12.5px; color: var(--text-mute); margin-top: 5px; }
 
 /* ════════════════════════════════════════════════════════════════
    EDIT MODE — inline editors

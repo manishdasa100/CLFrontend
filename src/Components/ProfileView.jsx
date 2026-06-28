@@ -1,9 +1,11 @@
 /* ProfileView.jsx — view-mode sections. */
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Icon from "../Components/Icon"
 import Badge from "../Components/Badge";
 import { initialsOf, titleCase, langLabel, isDefaultDp } from "./profileUtils";
+import { timeAgo, SUBMISSION_STATUS } from "../lib/utils";
+import { useRecentSubmissions } from "../services/queries";
 
 /* ── completeness banner ─────────────────────────────────────── */
 export function CompletenessBanner({ stats, onAction, onDismiss }) {
@@ -349,46 +351,79 @@ export function ListsCard({ lists }) {
 }
 
 /* ── recent submissions ──────────────────────────────────────── */
-const STATUS_META = {
-  AC:  { label: "Accepted",     cls: "pf-status-ac" },
-  WA:  { label: "Wrong Answer", cls: "pf-status-wa" },
-  TLE: { label: "Time Limit",   cls: "pf-status-tle" }
-};
-export function SubmissionsCard({ rows }) {
+const SUB_TIER_CLASS = { pass: "pf-status-pass", wrong: "pf-status-wrong", error: "pf-status-error" };
+
+export function SubmissionsCard() {
+  // limit 6 by default; "View all" refetches the full history without a limit.
+  const [showAll, setShowAll] = useState(false);
+  const { data: rows = [], isLoading, isError, isFetching, refetch } = useRecentSubmissions(showAll ? undefined : 6);
+
   return (
     <div className="pf-card">
       <div className="pf-card-head">
         <div>
           <div className="pf-card-title"><span className="pf-titledot" style={{ background: "var(--easy)" }} /> Recent submissions</div>
-          <div className="pf-card-sub">Latest attempts in the arena</div>
+          <div className="pf-card-sub">Your latest attempts in the arena</div>
         </div>
-        <a href="#" className="cl-btn cl-btn-ghost cl-btn-sm">View all <Icon name="arrowRight" size={11} /></a>
+        {!isError && rows.length > 0 && (showAll ? (
+          <button className="cl-btn cl-btn-ghost cl-btn-sm" type="button" onClick={() => setShowAll(false)} disabled={isFetching}>
+            {isFetching ? "Loading…" : "Show less"}
+          </button>
+        ) : rows.length >= 6 ? (
+          <button className="cl-btn cl-btn-ghost cl-btn-sm" type="button" onClick={() => setShowAll(true)} disabled={isFetching}>
+            {isFetching ? "Loading…" : <>View all <Icon name="arrowRight" size={11} /></>}
+          </button>
+        ) : null)}
       </div>
-      <table className="pf-subs">
-        <thead>
-          <tr>
-            <th style={{ width: 150 }}>Status</th>
-            <th>Problem</th>
-            <th style={{ width: 100 }}>Difficulty</th>
-            <th style={{ width: 90 }}>Language</th>
-            <th style={{ width: 120, textAlign: "right" }}>Submitted</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r, i) => {
-            const s = STATUS_META[r.status] || STATUS_META.AC;
-            return (
-              <tr key={i}>
-                <td><span className={`pf-status ${s.cls}`}><span className="pf-status-dot" /> {s.label}</span></td>
-                <td><a href="#" className="pf-sub-title">{r.id}. {r.title}</a></td>
-                <td><span className={`cl-chip cl-chip-${r.diff} cl-chip-dot`}>{titleCase(r.diff)}</span></td>
-                <td><span className="pf-sub-lang">{r.lang}</span></td>
-                <td style={{ textAlign: "right" }}><span className="pf-sub-time">{r.when}</span></td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+
+      {isLoading ? (
+        <div className="pf-subs-msg">Loading recent submissions…</div>
+      ) : isError ? (
+        <div className="pf-subs-msg">
+          Couldn’t load your submissions.
+          <button className="cl-btn cl-btn-subtle cl-btn-sm" type="button" onClick={() => refetch()} style={{ marginLeft: 10 }}>
+            <Icon name="reset" size={12} /> Try again
+          </button>
+        </div>
+      ) : rows.length === 0 ? (
+        <div className="pf-subs-empty">
+          <div className="pf-subs-empty-title">No submissions yet</div>
+          <div className="pf-subs-empty-sub">Solve a problem in the arena and your attempts will show up here.</div>
+        </div>
+      ) : (
+        <table className="pf-subs">
+          <thead>
+            <tr>
+              <th style={{ width: 160 }}>Status</th>
+              <th>Problem</th>
+              <th style={{ width: 100 }}>Difficulty</th>
+              <th style={{ width: 96 }}>Language</th>
+              <th style={{ width: 120, textAlign: "right" }}>Submitted</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r, i) => {
+              const meta = SUBMISSION_STATUS[r.status] || { label: r.status, tier: "error" };
+              const prob = r.problemData || {};
+              const pid = prob.id ?? r.problemId;
+              const diff = (prob.difficulty || "").toLowerCase();
+              return (
+                <tr key={i}>
+                  <td><span className={`pf-status ${SUB_TIER_CLASS[meta.tier]}`}><span className="pf-status-dot" /> {meta.label}</span></td>
+                  <td>
+                    {pid != null
+                      ? <Link to={`/arena/problemset/${pid}`} className="pf-sub-title">{pid}. {prob.title}</Link>
+                      : <span className="pf-sub-title">{prob.title}</span>}
+                  </td>
+                  <td>{diff && <span className={`cl-chip cl-chip-${diff} cl-chip-dot`}>{titleCase(prob.difficulty)}</span>}</td>
+                  <td><span className="pf-sub-lang">{langLabel((r.language || "").toLowerCase())}</span></td>
+                  <td style={{ textAlign: "right" }}><span className="pf-sub-time">{timeAgo(r.dateOfSubmission)}</span></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }

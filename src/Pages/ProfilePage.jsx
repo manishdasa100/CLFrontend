@@ -15,14 +15,6 @@ import { useUser } from "../context/UserContext";
 import { useUserSubmissionStatus, useProblemCounts, useUserLists, useProfileByUsername, useUpdateProfileMutation, useUploadProfilePicMutation } from "../services/queries";
 import "../styles/profile.css";
 
-/* Recent submissions are hardcoded until the backend ships the endpoint. */
-const RECENT_SUBMISSIONS = [
-  { id: 1,   title: "Two Sum",              lang: "Java", status: "AC",  diff: "easy", when: "2 hours ago" },
-  { id: 217, title: "Contains Duplicate",   lang: "Java", status: "WA",  diff: "easy", when: "yesterday" },
-  { id: 23,  title: "Merge k Sorted Lists", lang: "Java", status: "AC",  diff: "hard", when: "2 days ago" },
-  { id: 42,  title: "Trapping Rain Water",  lang: "Java", status: "TLE", diff: "hard", when: "4 days ago" }
-];
-
 export default function ProfilePage() {
   const { username } = useParams();
   const { setUser } = useUser();
@@ -192,7 +184,7 @@ export default function ProfilePage() {
             <ProgressCard rows={progress.rows} solved={progress.solved} total={progress.total} langs={progress.langs} />
             <EarnedBadges groups={profile.earnedBadges} totalEarned={badgeCount} />
             <ListsCard lists={lists || []} />
-            <SubmissionsCard rows={RECENT_SUBMISSIONS} />
+            <SubmissionsCard />
           </div>
         </div>
       </div>

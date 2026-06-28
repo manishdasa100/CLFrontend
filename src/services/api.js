@@ -123,6 +123,12 @@ export const getSubmissions = async (problemId) => {
     return axiosInstance.get("submissions", { params: { problemId } }).then((res) => res.data);
 };
 
+// limit omitted ⇒ backend returns the user's full submission history.
+export const getRecentSubmissions = async (limit) => {
+    const params = limit != null ? { limit } : undefined;
+    return axiosInstance.get("submissions/recent", { params }).then((res) => res.data);
+};
+
 export const getUserStreak = async() => {
     return axiosInstance.get(`user/streak`).then((response) => response.data)
 }

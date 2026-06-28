@@ -145,7 +145,7 @@ export default function ListDetailsPage() {
             {/* ── Identity rail ── */}
             <aside className="ld-rail">
               <div className={`ld-panel ${isPlan ? "ld-panel-plan" : ""}`}>
-                {isPlan && <div className="ld-panel-accent" />}
+                {isPlan && <div className="ld-panel-accent"/>}
 
                 <div className="ld-kindline">
                   <div className="ld-kindline-l">
