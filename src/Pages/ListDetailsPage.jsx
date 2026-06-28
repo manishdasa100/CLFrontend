@@ -116,6 +116,13 @@ export default function ListDetailsPage() {
     });
   };
 
+  // Open a confirm prompt, clearing any leftover error from a previous attempt.
+  const openConfirm = (action) => {
+    reset.reset();
+    deactivate.reset();
+    setConfirming(action);
+  };
+
   return (
     <BackgroundWrapper>
       <AppNavbar />
@@ -326,19 +333,25 @@ export default function ListDetailsPage() {
                       </div>
                     ) : (
                       <div className="ld-action-row">
-                        <button className="cl-btn cl-btn-subtle ld-action-btn" onClick={() => setConfirming("reset")}>
+                        <button className="cl-btn cl-btn-subtle ld-action-btn" onClick={() => openConfirm("reset")}>
                           <Icon name="reset" size={14} /> Reset
                         </button>
-                        <button className="cl-btn ld-btn-danger ld-action-btn" onClick={() => setConfirming("deactivate")}>
+                        <button className="cl-btn ld-btn-danger ld-action-btn" onClick={() => openConfirm("deactivate")}>
                           <Icon name="x" size={14} /> Deactivate
                         </button>
                       </div>
                     )}
 
-                    {(reset.isError || deactivate.isError) && !pending && (
+                    {!pending && confirming === "reset" && reset.isError && (
                       <p className="ld-activate-err">
                         <Icon name="warn" size={12} />
-                        {(reset.error || deactivate.error)?.response?.data?.message || "Something went wrong. Try again."}
+                        {reset.error?.response?.data?.message || "Couldn't reset the plan. Try again."}
+                      </p>
+                    )}
+                    {!pending && confirming === "deactivate" && deactivate.isError && (
+                      <p className="ld-activate-err">
+                        <Icon name="warn" size={12} />
+                        {deactivate.error?.response?.data?.message || "Couldn't deactivate the plan. Try again."}
                       </p>
                     )}
                   </div>
