@@ -119,6 +119,10 @@ export const checkSubmission = async (submissionId) => {
     return axiosInstance.get(`submission/check/${submissionId}`).then((res) => res.data);
 };
 
+export const getSubmissions = async (problemId) => {
+    return axiosInstance.get("submissions", { params: { problemId } }).then((res) => res.data);
+};
+
 export const getUserStreak = async() => {
     return axiosInstance.get(`user/streak`).then((response) => response.data)
 }

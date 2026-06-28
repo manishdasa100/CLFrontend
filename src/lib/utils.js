@@ -22,3 +22,41 @@ export const formatFieldName = (field) => {
 export const percentisize = (num, deno) => {
     return ((num / deno) * 100).toFixed(0) + "%"
 }
+
+// The backend sends a zone-less Asia/Kolkata (IST, UTC+05:30) wall-clock timestamp
+// with nanosecond precision, e.g. "2026-06-28T18:18:31.494364200". JS would read a
+// zone-less string as the viewer's local time, so we anchor it to IST (fixed, no DST)
+// and truncate the fraction to milliseconds before parsing.
+const IST_OFFSET = "+05:30"
+
+const parseIstTimestamp = (raw) => {
+    if (!raw) return null
+    const [datePart, timePart = "00:00:00"] = raw.split("T")
+    const [clock, frac = ""] = timePart.split(".")
+    const millis = frac.slice(0, 3).padEnd(3, "0")
+    const date = new Date(`${datePart}T${clock}.${millis}${IST_OFFSET}`)
+    return Number.isNaN(date.getTime()) ? null : date
+}
+
+// Human-friendly elapsed time since an IST submission timestamp. Each tier is derived
+// from the previous floor so boundaries (e.g. 12 months) never produce "0 years ago".
+export const timeAgo = (raw) => {
+    const date = parseIstTimestamp(raw)
+    if (!date) return null
+
+    const mins = Math.floor((Date.now() - date.getTime()) / 60000)
+    if (mins < 5) return "just now"
+    if (mins < 60) return `${mins} mins ago`
+
+    const hours = Math.floor(mins / 60)
+    if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`
+
+    const days = Math.floor(hours / 24)
+    if (days < 30) return `${days} day${days === 1 ? "" : "s"} ago`
+
+    const months = Math.floor(days / 30)
+    if (months < 12) return `${months} month${months === 1 ? "" : "s"} ago`
+
+    const years = Math.floor(months / 12)
+    return `${years} year${years === 1 ? "" : "s"} ago`
+}

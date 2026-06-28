@@ -3,11 +3,11 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { ScaleLoader } from "react-spinners";
 import { Spinner } from "@nextui-org/react";
 import { useQueryClient } from "react-query";
-import { useProblemByIdData, useUserLists, useAddToListMutation, useCreateListMutation } from "../services/queries";
+import { useProblemByIdData, useUserLists, useAddToListMutation, useCreateListMutation, useSubmissions } from "../services/queries";
 import CodeEditor from "../Components/CodeEditor";
 import Icon from "../Components/Icon";
 import Toast from "../Components/Toast";
-import { formatFieldName } from "../lib/utils";
+import { formatFieldName, timeAgo } from "../lib/utils";
 import { useUser } from "../context/UserContext";
 import "./ProblemDetailsPage.css";
 
@@ -69,9 +69,103 @@ const SubmitResultView = ({ report }) => {
   );
 };
 
+/* Verdict vocabulary of the judge. `tier` drives the color rail and stamp tint;
+   `ran` mirrors the backend runSuccess flag (false ⇒ runtime/memory are meaningless). */
+const STATUS_META = {
+  ACC: { label: "Accepted",             tier: "pass",  ran: true },
+  WA:  { label: "Wrong Answer",         tier: "wrong", ran: true },
+  TLE: { label: "Time Limit Exceeded",  tier: "wrong", ran: true },
+  MLE: { label: "Memory Limit Exceeded", tier: "wrong", ran: true },
+  OLE: { label: "Output Limit Exceeded", tier: "wrong", ran: true },
+  CE:  { label: "Compilation Error",    tier: "error", ran: false },
+  RE:  { label: "Runtime Error",        tier: "error", ran: false },
+  IE:  { label: "Internal Error",       tier: "error", ran: false },
+};
+const TIER_COLOR = { pass: "var(--easy)", wrong: "var(--medium)", error: "var(--hard)" };
+const TIER_VARIANT = { pass: "success", wrong: "warning", error: "danger" };
+const LANG_LABEL = { JAVA: "Java", PYTHON: "Python", CPP: "C++", C: "C", GO: "Go", JAVASCRIPT: "JavaScript", RUST: "Rust" };
+
+const SubmissionRow = ({ sub }) => {
+  const meta = STATUS_META[sub.status] || { label: sub.status, tier: "error", ran: false };
+  const color = TIER_COLOR[meta.tier];
+  const lang = LANG_LABEL[sub.language] || formatFieldName(sub.language) || sub.language;
+  const runtime = sub.runtimeMs ?? sub.runtime;
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "11px 14px", background: "var(--bg-2)", borderRadius: 8, borderLeft: `3px solid ${color}` }}>
+      <span className={`cl-chip cl-chip-mono cl-chip-${TIER_VARIANT[meta.tier]}`} style={{ minWidth: 48, justifyContent: "center", fontWeight: 600 }}>
+        {sub.status}
+      </span>
+
+      <div style={{ flex: 1, minWidth: 0, fontSize: 13, color: "var(--text)", fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+        {meta.label}
+      </div>
+
+      <span className="cl-mono" style={{ fontSize: 12, color: "var(--text-dim)", minWidth: 60, textAlign: "right", flexShrink: 0 }}>{lang}</span>
+      <span className="cl-mono" title="Runtime" style={{ fontSize: 12, color: "var(--text-mute)", width: 56, textAlign: "right", flexShrink: 0 }}>{runtime} ms</span>
+      <span className="cl-mono" title="Memory" style={{ fontSize: 12, color: "var(--text-mute)", width: 56, textAlign: "right", flexShrink: 0 }}>{sub.memoryMb} MB</span>
+      <span title={sub.dateOfSubmission} style={{ fontSize: 11.5, color: "var(--text-mute)", width: 92, textAlign: "right", flexShrink: 0 }}>{timeAgo(sub.dateOfSubmission)}</span>
+    </div>
+  );
+};
+
+const SubmissionsView = ({ problemId }) => {
+  const { data: submissions, isLoading, isError, refetch, isFetching } = useSubmissions(problemId);
+
+  if (isLoading) {
+    return (
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, color: "var(--text-mute)", fontSize: 13 }}>
+        <Spinner size="sm" color="primary" /> Loading submissions…
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: 24, textAlign: "center" }}>
+        <div style={{ color: "var(--text-dim)", fontSize: 13 }}>Couldn’t load your submissions.</div>
+        <button className="cl-btn cl-btn-subtle cl-btn-sm" onClick={() => refetch()}>
+          <Icon name="reset" size={13} /> Try again
+        </button>
+      </div>
+    );
+  }
+
+  if (!submissions || submissions.length === 0) {
+    return (
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, padding: 24, textAlign: "center" }}>
+        <div style={{ fontFamily: "var(--font-display)", fontSize: 15, color: "var(--text)" }}>No submissions yet</div>
+        <div style={{ fontSize: 12.5, color: "var(--text-mute)", maxWidth: "32ch", lineHeight: 1.5 }}>
+          Run and submit your solution to start building a history here.
+        </div>
+      </div>
+    );
+  }
+
+  const accepted = submissions.filter((s) => s.status === "ACC").length;
+
+  return (
+    <div style={{ flex: 1, overflowY: "auto", padding: "18px 4px 24px" }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 14, paddingLeft: 2 }}>
+        <span className="cl-mono" style={{ fontSize: 13, color: "var(--text)" }}>{submissions.length}</span>
+        <span style={{ fontSize: 12, color: "var(--text-mute)" }}>{submissions.length === 1 ? "submission" : "submissions"}</span>
+        {accepted > 0 && <span style={{ fontSize: 11.5, color: "var(--easy)" }}>· {accepted} accepted</span>}
+        {isFetching && <Spinner size="sm" color="primary" style={{ marginLeft: 4 }} />}
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {submissions.map((sub, i) => (
+          <SubmissionRow key={sub.submissionId ?? i} sub={sub} />
+        ))}
+      </div>
+    </div>
+  );
+};
+
 export default function ProblemDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user } = useUser();
   const [fullScreen, setFullScreen] = useState(false);
   const [liked, setLiked] = useState(false);
@@ -92,6 +186,8 @@ export default function ProblemDetailsPage() {
     } else {
       setResultState({ status: "done", isRun, report });
       setRunTab(0);
+      // A judged submit (not a run) creates a new submission record — refresh the history.
+      if (!isRun) queryClient.invalidateQueries(["submissions", id]);
     }
   };
 
@@ -313,9 +409,7 @@ export default function ProblemDetailsPage() {
                 </div>
               </div>
             ) : (
-              <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-mute)", fontSize: 13 }}>
-                {leftTab} coming soon
-              </div>
+              <SubmissionsView problemId={id} />
             )}
           </div>
         )}

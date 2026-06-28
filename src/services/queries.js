@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from "react-query"
-import { getARandomProblemId, getProblemById, getProblemOfTheDay, getProblems, getAllTopics, getAllCompanies, login, register, getUserStreak, getUserSubmissionStatus, getProblemCounts, getUserLists, addToList, createList, getProfileByUsername, getOccupations, updateUserProfile, uploadProfilePic, getGlobalLists, getListDetails, getStudyPlanProgress, activateStudyPlan, resetStudyPlan, deactivateStudyPlan } from "./api"
+import { getARandomProblemId, getProblemById, getProblemOfTheDay, getProblems, getAllTopics, getAllCompanies, login, register, getUserStreak, getUserSubmissionStatus, getProblemCounts, getUserLists, addToList, createList, getProfileByUsername, getOccupations, updateUserProfile, uploadProfilePic, getGlobalLists, getListDetails, getStudyPlanProgress, activateStudyPlan, resetStudyPlan, deactivateStudyPlan, getSubmissions } from "./api"
 
 export const useProblemsData = (page, limit, filters) => {
     return useQuery(
@@ -18,6 +18,14 @@ export const useProblemByIdData = (id) => {
         {
             keepPreviousData: true
         }
+    )
+}
+
+export const useSubmissions = (problemId) => {
+    return useQuery(
+        ["submissions", problemId],
+        () => getSubmissions(problemId),
+        { enabled: !!problemId, staleTime: Infinity }
     )
 }
 
