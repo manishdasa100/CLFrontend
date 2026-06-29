@@ -75,13 +75,22 @@ const TIER_VARIANT = { pass: "success", wrong: "warning", error: "danger" };
 const LANG_LABEL = { JAVA: "Java", PYTHON: "Python", CPP: "C++", C: "C", GO: "Go", JAVASCRIPT: "JavaScript", RUST: "Rust" };
 
 const SubmissionRow = ({ sub }) => {
+  const navigate = useNavigate();
   const meta = SUBMISSION_STATUS[sub.status] || { label: sub.status, tier: "error", ran: false };
   const color = TIER_COLOR[meta.tier];
   const lang = LANG_LABEL[sub.language] || formatFieldName(sub.language) || sub.language;
   const runtime = sub.runtimeMs;
+  const open = () => sub.submissionId && navigate(`/submission/${sub.submissionId}`);
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "11px 14px", background: "var(--bg-2)", borderRadius: 8, borderLeft: `3px solid ${color}` }}>
+    <div
+      className="pd-sub-row"
+      role="button"
+      tabIndex={0}
+      onClick={open}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } }}
+      style={{ display: "flex", alignItems: "center", gap: 14, padding: "11px 14px", borderRadius: 8, borderLeft: `3px solid ${color}` }}
+    >
       <span className={`cl-chip cl-chip-mono cl-chip-${TIER_VARIANT[meta.tier]}`} style={{ minWidth: 48, justifyContent: "center", fontWeight: 600 }}>
         {sub.status}
       </span>

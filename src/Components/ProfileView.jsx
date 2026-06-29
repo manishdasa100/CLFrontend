@@ -1,6 +1,6 @@
 /* ProfileView.jsx — view-mode sections. */
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Icon from "../Components/Icon"
 import Badge from "../Components/Badge";
 import { initialsOf, titleCase, langLabel, isDefaultDp } from "./profileUtils";
@@ -356,6 +356,7 @@ const SUB_TIER_CLASS = { pass: "pf-status-pass", wrong: "pf-status-wrong", error
 export function SubmissionsCard() {
   // limit 6 by default; "View all" refetches the full history without a limit.
   const [showAll, setShowAll] = useState(false);
+  const navigate = useNavigate();
   const { data: rows = [], isLoading, isError, isFetching, refetch } = useRecentSubmissions(showAll ? undefined : 6);
 
   return (
@@ -407,14 +408,18 @@ export function SubmissionsCard() {
               const prob = r.problemData || {};
               const pid = prob.id ?? r.problemId;
               const diff = (prob.difficulty || "").toLowerCase();
+              const open = () => r.submissionId && navigate(`/submission/${r.submissionId}`);
               return (
-                <tr key={i}>
+                <tr
+                  key={r.submissionId ?? i}
+                  className="pf-sub-row"
+                  role="button"
+                  tabIndex={0}
+                  onClick={open}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } }}
+                >
                   <td><span className={`pf-status ${SUB_TIER_CLASS[meta.tier]}`}><span className="pf-status-dot" /> {meta.label}</span></td>
-                  <td>
-                    {pid != null
-                      ? <Link to={`/arena/problemset/${pid}`} className="pf-sub-title">{pid}. {prob.title}</Link>
-                      : <span className="pf-sub-title">{prob.title}</span>}
-                  </td>
+                  <td><span className="pf-sub-title">{pid != null ? `${pid}. ` : ""}{prob.title}</span></td>
                   <td>{diff && <span className={`cl-chip cl-chip-${diff} cl-chip-dot`}>{titleCase(prob.difficulty)}</span>}</td>
                   <td><span className="pf-sub-lang">{langLabel((r.language || "").toLowerCase())}</span></td>
                   <td style={{ textAlign: "right" }}><span className="pf-sub-time">{timeAgo(r.dateOfSubmission)}</span></td>

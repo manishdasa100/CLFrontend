@@ -129,6 +129,10 @@ export const getRecentSubmissions = async (limit) => {
     return axiosInstance.get("submissions/recent", { params }).then((res) => res.data);
 };
 
+export const getSubmissionDetails = async (submissionId) => {
+    return axiosInstance.get(`submission/${submissionId}`).then((res) => res.data);
+};
+
 export const getUserStreak = async() => {
     return axiosInstance.get(`user/streak`).then((response) => response.data)
 }

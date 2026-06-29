@@ -61,6 +61,19 @@ export const timeAgo = (raw) => {
     return `${years} year${years === 1 ? "" : "s"} ago`
 }
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+// Display the zone-less IST submission timestamp as-is, without converting zones
+// (the backend value is already IST wall-clock). e.g. "Jun 28, 2026 · 17:59".
+export const formatSubmittedAt = (raw) => {
+    if (!raw) return ""
+    const [datePart, timePart = ""] = raw.split("T")
+    const [y, m, d] = datePart.split("-").map(Number)
+    const [hh = "00", mm = "00"] = timePart.split(":")
+    if (!y || !m || !d) return ""
+    return `${MONTHS[m - 1]} ${d}, ${y} · ${hh}:${mm}`
+}
+
 // Single source of truth for judge verdicts, shared across the problem and profile
 // submission views. `tier` drives semantic color (pass=green, wrong=amber, error=red);
 // `ran` mirrors the backend runSuccess flag.
