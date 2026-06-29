@@ -1,5 +1,5 @@
 /* ProfileView.jsx — view-mode sections. */
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "../Components/Icon"
 import Badge from "../Components/Badge";
@@ -274,7 +274,7 @@ export function ProgressCard({ rows, solved, total, langs }) {
 }
 
 /* ── earned badges (uses <Badge>) ────────────────────────────── */
-export function EarnedBadges({ groups, totalEarned }) {
+export function EarnedBadges({ groups, totalEarned, isOwner }) {
   const entries = Object.entries(groups || {});
   return (
     <div className="pf-card" style={{ overflow: "visible" }}>
@@ -289,7 +289,7 @@ export function EarnedBadges({ groups, totalEarned }) {
         {entries.length === 0 ? (
           <div className="pf-badge-empty">
             <div className="pf-badge-empty-title">No badges yet</div>
-            <div className="pf-badge-empty-sub">Solve problems, keep streaks, and join contests to start collecting badges.</div>
+            {isOwner && <div className="pf-badge-empty-sub">Solve problems, keep streaks, and join contests to start collecting badges.</div>}
           </div>
         ) : entries.map(([group, badges]) => (
           <div className="pf-badge-group" key={group}>
@@ -353,11 +353,13 @@ export function ListsCard({ lists }) {
 /* ── recent submissions ──────────────────────────────────────── */
 const SUB_TIER_CLASS = { pass: "pf-status-pass", wrong: "pf-status-wrong", error: "pf-status-error" };
 
-export function SubmissionsCard() {
+export function SubmissionsCard({ username, isOwner }) {
   // limit 6 by default; "View all" refetches the full history without a limit.
   const [showAll, setShowAll] = useState(false);
   const navigate = useNavigate();
-  const { data: rows = [], isLoading, isError, isFetching, refetch } = useRecentSubmissions(showAll ? undefined : 6);
+  // collapse back to the default 6 when switching to a different profile
+  useEffect(() => { setShowAll(false); }, [username]);
+  const { data: rows = [], isLoading, isError, isFetching, refetch } = useRecentSubmissions(username, showAll ? undefined : 6);
 
   return (
     <div className="pf-card">
@@ -389,7 +391,7 @@ export function SubmissionsCard() {
       ) : rows.length === 0 ? (
         <div className="pf-subs-empty">
           <div className="pf-subs-empty-title">No submissions yet</div>
-          <div className="pf-subs-empty-sub">Solve a problem in the arena and your attempts will show up here.</div>
+          {isOwner && <div className="pf-subs-empty-sub">Solve a problem in the arena and your attempts will show up here.</div>}
         </div>
       ) : (
         <table className="pf-subs">

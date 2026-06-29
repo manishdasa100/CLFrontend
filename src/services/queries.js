@@ -29,11 +29,11 @@ export const useSubmissions = (problemId) => {
     )
 }
 
-export const useRecentSubmissions = (limit) => {
+export const useRecentSubmissions = (username, limit) => {
     return useQuery(
-        ["recentSubmissions", limit ?? "all"],
-        () => getRecentSubmissions(limit),
-        { keepPreviousData: true }
+        ["recentSubmissions", username, limit ?? "all"],
+        () => getRecentSubmissions(username, limit),
+        { enabled: !!username, keepPreviousData: true }
     )
 }
 

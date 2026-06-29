@@ -182,9 +182,9 @@ export default function ProfilePage() {
             <MetricRow p={profile} solved={progress.solved} total={progress.total}
                        listCount={(lists || []).length} badgeCount={badgeCount} />
             <ProgressCard rows={progress.rows} solved={progress.solved} total={progress.total} langs={progress.langs} />
-            <EarnedBadges groups={profile.earnedBadges} totalEarned={badgeCount} />
+            <EarnedBadges groups={profile.earnedBadges} totalEarned={badgeCount} isOwner={isOwner} />
             <ListsCard lists={lists || []} />
-            <SubmissionsCard />
+            <SubmissionsCard username={username} isOwner={isOwner} />
           </div>
         </div>
       </div>
