@@ -23,25 +23,20 @@ export const percentisize = (num, deno) => {
     return ((num / deno) * 100).toFixed(0) + "%"
 }
 
-// The backend sends a zone-less Asia/Kolkata (IST, UTC+05:30) wall-clock timestamp
-// with nanosecond precision, e.g. "2026-06-28T18:18:31.494364200". JS would read a
-// zone-less string as the viewer's local time, so we anchor it to IST (fixed, no DST)
-// and truncate the fraction to milliseconds before parsing.
-const IST_OFFSET = "+05:30"
-
-const parseIstTimestamp = (raw) => {
+// The backend sends dateOfSubmission as a UTC instant (ISO-8601 with a Z suffix),
+// e.g. "2026-07-03T13:55:29.296519Z". new Date() parses the offset natively, so the
+// resulting instant is correct in any viewer timezone; it's then displayed in the
+// viewer's own local timezone.
+const parseInstant = (raw) => {
     if (!raw) return null
-    const [datePart, timePart = "00:00:00"] = raw.split("T")
-    const [clock, frac = ""] = timePart.split(".")
-    const millis = frac.slice(0, 3).padEnd(3, "0")
-    const date = new Date(`${datePart}T${clock}.${millis}${IST_OFFSET}`)
+    const date = new Date(raw)
     return Number.isNaN(date.getTime()) ? null : date
 }
 
-// Human-friendly elapsed time since an IST submission timestamp. Each tier is derived
-// from the previous floor so boundaries (e.g. 12 months) never produce "0 years ago".
+// Human-friendly elapsed time since a submission. Each tier is derived from the
+// previous floor so boundaries (e.g. 12 months) never produce "0 years ago".
 export const timeAgo = (raw) => {
-    const date = parseIstTimestamp(raw)
+    const date = parseInstant(raw)
     if (!date) return null
 
     const mins = Math.floor((Date.now() - date.getTime()) / 60000)
@@ -61,17 +56,13 @@ export const timeAgo = (raw) => {
     return `${years} year${years === 1 ? "" : "s"} ago`
 }
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-
-// Display the zone-less IST submission timestamp as-is, without converting zones
-// (the backend value is already IST wall-clock). e.g. "Jun 28, 2026 · 17:59".
+// Absolute submission time in the viewer's local timezone, e.g. "Jul 3, 2026 · 19:25".
 export const formatSubmittedAt = (raw) => {
-    if (!raw) return ""
-    const [datePart, timePart = ""] = raw.split("T")
-    const [y, m, d] = datePart.split("-").map(Number)
-    const [hh = "00", mm = "00"] = timePart.split(":")
-    if (!y || !m || !d) return ""
-    return `${MONTHS[m - 1]} ${d}, ${y} · ${hh}:${mm}`
+    const date = parseInstant(raw)
+    if (!date) return ""
+    const datePart = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    const timePart = date.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })
+    return `${datePart} · ${timePart}`
 }
 
 // Single source of truth for judge verdicts, shared across the problem and profile

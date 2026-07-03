@@ -7,7 +7,7 @@ import { useProblemByIdData, useUserLists, useAddToListMutation, useCreateListMu
 import CodeEditor from "../Components/CodeEditor";
 import Icon from "../Components/Icon";
 import Toast from "../Components/Toast";
-import { formatFieldName, timeAgo, SUBMISSION_STATUS } from "../lib/utils";
+import { formatFieldName, timeAgo, formatSubmittedAt, SUBMISSION_STATUS } from "../lib/utils";
 import { useUser } from "../context/UserContext";
 import "./ProblemDetailsPage.css";
 
@@ -102,7 +102,7 @@ const SubmissionRow = ({ sub }) => {
       <span className="cl-mono" style={{ fontSize: 12, color: "var(--text-dim)", minWidth: 60, textAlign: "right", flexShrink: 0 }}>{lang}</span>
       <span className="cl-mono" title="Runtime" style={{ fontSize: 12, color: "var(--text-mute)", width: 56, textAlign: "right", flexShrink: 0 }}>{runtime} ms</span>
       <span className="cl-mono" title="Memory" style={{ fontSize: 12, color: "var(--text-mute)", width: 56, textAlign: "right", flexShrink: 0 }}>{sub.memoryMb} MB</span>
-      <span title={sub.dateOfSubmission} style={{ fontSize: 11.5, color: "var(--text-mute)", width: 92, textAlign: "right", flexShrink: 0 }}>{timeAgo(sub.dateOfSubmission)}</span>
+      <span title={formatSubmittedAt(sub.dateOfSubmission)} style={{ fontSize: 11.5, color: "var(--text-mute)", width: 92, textAlign: "right", flexShrink: 0 }}>{timeAgo(sub.dateOfSubmission)}</span>
     </div>
   );
 };
