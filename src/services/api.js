@@ -30,12 +30,22 @@ axiosInstance.interceptors.response.use(
     }
 )
 
+// The viewer's IANA timezone (e.g. "Asia/Kolkata", "Europe/London"), sent to
+// endpoints whose result depends on the user's local day (streaks, submissions).
+const userTimezone = () => {
+    try {
+        return Intl.DateTimeFormat().resolvedOptions().timeZone
+    } catch {
+        return undefined
+    }
+}
+
 export const login = async ({ username, password }) => {
     return axiosInstance.post("auth/login", { username, password }).then((res) => res.data)
 }
 
 export const register = async ({ username, firstName, lastName, email, password }) => {
-    return axiosInstance.post("auth/register", { username, firstName, lastName, email, password }).then((res) => res.data)
+    return axiosInstance.post("auth/register", { username, firstName, lastName, email, password, zoneId: userTimezone() }).then((res) => res.data)
 }
 
 export const getMe = async () => {
@@ -112,6 +122,8 @@ export const submitCode = async ({ code, language, problemId, isRunCode }) => {
         userCode,
         isRunCode,
         b64Encoded: true,
+    }, {
+        headers: { "X-Timezone": userTimezone() },
     }).then((res) => res.data);
 };
 
@@ -135,7 +147,7 @@ export const getSubmissionDetails = async (submissionId) => {
 };
 
 export const getUserStreak = async() => {
-    return axiosInstance.get(`user/streak`).then((response) => response.data)
+    return axiosInstance.get(`user/streak`, { headers: { "X-Timezone": userTimezone() } }).then((response) => response.data)
 }
 
 export const getUserSubmissionStatus = async() => {
