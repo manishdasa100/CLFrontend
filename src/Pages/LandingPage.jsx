@@ -12,7 +12,6 @@ export default function LandingPage() {
     <BackgroundWrapper>
       <AppNavbar />
       <Hero user={user} />
-      <StatsBar />
       <Features />
       <LangsStrip />
       <ProblemShowcase />
@@ -24,7 +23,7 @@ export default function LandingPage() {
 
 const Hero = ({ user }) => (
   <section style={{ padding: "80px 0 60px" }}>
-    <div className="cl-container" style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 60, alignItems: "center" }}>
+    <div className="cl-container cl-hero-grid">
       <div>
         <div className="cl-eyebrow" style={{ marginBottom: 20 }}>// when life gives you lemons</div>
         <h1 className="cl-h1">
@@ -33,22 +32,17 @@ const Hero = ({ user }) => (
           <span className="cl-blink" style={{ display: "inline-block", width: 14, height: 14, marginLeft: 10, borderRadius: 3, background: "var(--cyan)", boxShadow: "0 0 20px var(--cyan)", verticalAlign: "baseline" }} />
         </h1>
         <p className="cl-lede" style={{ marginTop: 28 }}>
-          Your daily gym for algorithmic thinking. 1,400+ hand-picked problems, 14 languages,
-          real-time progress tracking — wrapped in an editor that doesn't get in your way.
+          A calmer way to learn data structures and algorithms. Hand-picked problems across
+          7 languages, a clear path to follow, and progress you can actually see — in an
+          editor that stays out of your way.
         </p>
-        <div style={{ display: "flex", gap: 12, marginTop: 36, alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 12, marginTop: 36, alignItems: "center", flexWrap: "wrap" }}>
           <Link to={user.isLoggedIn ? "/arena/problemset" : "/signup"} className="cl-btn cl-btn-primary cl-btn-lg">
-            {user.isLoggedIn ? "Enter the Arena" : "Start free"} <Icon name="arrowRight" size={14} />
+            {user.isLoggedIn ? "Continue learning" : "Start free"} <Icon name="arrowRight" size={14} />
           </Link>
           <Link to="/arena/problemset" className="cl-btn cl-btn-ghost cl-btn-lg">Browse problems</Link>
           <div style={{ marginLeft: 12, display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--text-mute)" }}>
             <Icon name="check" size={14} style={{ color: "var(--easy)" }} /> No credit card
-          </div>
-        </div>
-        <div style={{ marginTop: 48, display: "flex", alignItems: "center", gap: 18 }}>
-          <span className="cl-eyebrow">trusted by engineers at</span>
-          <div style={{ display: "flex", gap: 22, color: "var(--text-mute)", fontSize: 13, fontWeight: 500 }}>
-            <span>Google</span><span>·</span><span>Meta</span><span>·</span><span>Amazon</span><span>·</span><span>Atlassian</span><span>·</span><span>Stripe</span>
           </div>
         </div>
       </div>
@@ -68,7 +62,7 @@ const CodeLine = ({ n, children, caret }) => (
 );
 
 const EditorCard = () => (
-  <div style={{ position: "relative", background: "var(--bg-1)", border: "1px solid var(--stroke-2)", borderRadius: 14, boxShadow: "0 40px 80px -20px rgba(0,0,0,.6)", overflow: "hidden" }}>
+  <div aria-hidden="true" style={{ position: "relative", background: "var(--bg-1)", border: "1px solid var(--stroke-2)", borderRadius: 14, boxShadow: "0 40px 80px -20px rgba(0,0,0,.6)", overflow: "hidden" }}>
     <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", background: "var(--bg-2)", borderBottom: "1px solid var(--stroke)" }}>
       <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#FB7185" }} />
       <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#FCD34D" }} />
@@ -86,32 +80,14 @@ const EditorCard = () => (
       <CodeLine n={7} caret>    <span style={{ color: "var(--text-mute)" }}># O(n) · single pass</span></CodeLine>
     </div>
     <div style={{ display: "flex", gap: 10, padding: "12px 16px", borderTop: "1px solid var(--stroke)", background: "var(--bg-0)", alignItems: "center" }}>
-      <button className="cl-btn cl-btn-subtle cl-btn-sm">Run</button>
-      <button className="cl-btn cl-btn-primary cl-btn-sm">Submit <Icon name="play" size={10} /></button>
+      <span className="cl-btn cl-btn-subtle cl-btn-sm">Run</span>
+      <span className="cl-btn cl-btn-primary cl-btn-sm">Submit <Icon name="play" size={10} /></span>
       <div style={{ marginLeft: "auto", display: "flex", gap: 10, fontSize: 11, color: "var(--text-mute)", alignItems: "center" }}>
         <span className="cl-mono">✓ 58/58 tests passed</span>
-        <span className="cl-chip cl-chip-cyan"><Icon name="sparkle" size={11} /> 12ms · 98th pctl</span>
+        <span className="cl-chip cl-chip-cyan"><Icon name="sparkle" size={11} /> 12ms · nice and fast</span>
       </div>
     </div>
   </div>
-);
-
-const Stat = ({ num, label }) => (
-  <div>
-    <div style={{ fontFamily: "var(--font-display)", fontSize: 36, fontWeight: 600, letterSpacing: "-0.03em" }}>{num}</div>
-    <div className="cl-eyebrow" style={{ marginTop: 4 }}>{label}</div>
-  </div>
-);
-
-const StatsBar = () => (
-  <section style={{ borderTop: "1px solid var(--stroke)", borderBottom: "1px solid var(--stroke)", padding: "24px 0" }}>
-    <div className="cl-container" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 40 }}>
-      <Stat num="1,412" label="problems" />
-      <Stat num="14" label="languages" />
-      <Stat num="82k" label="engineers" />
-      <Stat num="2.1M" label="submissions" />
-    </div>
-  </section>
 );
 
 const Feature = ({ eyebrow, title, body, visual }) => (
@@ -128,20 +104,20 @@ const Feature = ({ eyebrow, title, body, visual }) => (
 const Features = () => (
   <section style={{ padding: "100px 0" }}>
     <div className="cl-container">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 48 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 48, flexWrap: "wrap", gap: 24 }}>
         <div>
           <div className="cl-eyebrow" style={{ marginBottom: 10 }}>the craft</div>
-          <h2 className="cl-h2">Every rep feels deliberate.</h2>
+          <h2 className="cl-h2">Everything here helps you learn.</h2>
         </div>
         <p className="cl-lede" style={{ fontSize: 15, maxWidth: 420 }}>
-          We obsess over the small stuff — keyboard flow, clean diagnostics, honest feedback —
-          so you can obsess over the problem.
+          We sweat the small stuff — smooth keyboard flow, clear error messages, honest
+          feedback — so you can focus on understanding, not fighting the tools.
         </p>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr", gap: 20 }}>
-        <Feature eyebrow="01 · editor" title="An editor you'd actually pick." body="Monaco-powered, shortcut-first, with language-aware diagnostics, test runners, and a focus mode that actually focuses." visual={<EditorVis />} />
-        <Feature eyebrow="02 · progress" title="See your own shape." body="Topic heatmaps, complexity trends, and submission history that reveal where you're sharp — and where you're bluffing." visual={<DonutVis />} />
-        <Feature eyebrow="03 · paths" title="Structured learning tracks." body="Curated routes through DP, graphs, recursion and more. Opinionated order, bite-sized milestones." visual={<PathVis />} />
+      <div className="cl-features-grid">
+        <Feature eyebrow="01 · editor" title="An editor you'd actually pick." body="Monaco-powered, with clear error messages, one-click test runs, and a focus mode that keeps things calm — so the tool never gets in your way." visual={<EditorVis />} />
+        <Feature eyebrow="02 · progress" title="Watch yourself improve." body="Topic heatmaps, progress over time, and your full history — so you can see what's clicking and what to practice next." visual={<DonutVis />} />
+        <Feature eyebrow="03 · paths" title="Never wonder what to solve next." body="Guided routes through arrays, recursion, graphs, dynamic programming and more — a sensible order, one small step at a time." visual={<PathVis />} />
       </div>
     </div>
   </section>
@@ -199,7 +175,7 @@ const LangsStrip = () => (
     <div className="cl-container" style={{ textAlign: "center" }}>
       <div className="cl-eyebrow">write in what you love</div>
       <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap", marginTop: 20 }}>
-        {["Python", "JavaScript", "TypeScript", "Go", "Rust", "Java", "C++", "C#", "Kotlin", "Swift", "Ruby", "Scala", "PHP", "Elixir"].map((l) => (
+        {["Python", "JavaScript", "Java", "C++", "C", "Go", "Rust"].map((l) => (
           <span key={l} className="cl-chip cl-chip-mono" style={{ padding: "8px 14px", fontSize: 12 }}>{l}</span>
         ))}
       </div>
@@ -210,23 +186,24 @@ const LangsStrip = () => (
 const ProblemShowcase = () => (
   <section style={{ padding: "80px 0", borderTop: "1px solid var(--stroke)" }}>
     <div className="cl-container">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 28 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
         <div>
           <div className="cl-eyebrow" style={{ marginBottom: 10 }}>today's fresh squeeze</div>
           <h2 className="cl-h2">Start with a problem.</h2>
+          <p className="cl-text-dim" style={{ marginTop: 10, fontSize: 14 }}>New here? These are a friendly place to begin.</p>
         </div>
-        <Link to="/arena/problemset" className="cl-btn cl-btn-ghost cl-btn-sm">See all 1,412 <Icon name="arrowRight" size={12} /></Link>
+        <Link to="/arena/problemset" className="cl-btn cl-btn-ghost cl-btn-sm">See all problems <Icon name="arrowRight" size={12} /></Link>
       </div>
-      <div className="cl-card">
-        <table className="cl-tbl">
+      <div className="cl-card" style={{ overflowX: "auto" }}>
+        <table className="cl-tbl" style={{ minWidth: 520 }}>
           <thead><tr><th style={{ width: 60 }}>#</th><th>Title</th><th style={{ width: 180 }}>Acceptance</th><th style={{ width: 100 }}>Difficulty</th><th style={{ width: 100 }}>Topics</th></tr></thead>
           <tbody>
             {[
               { id: 1, t: "Two Sum", a: 52, d: "easy", k: "Array" },
-              { id: 53, t: "Maximum Subarray", a: 51, d: "medium", k: "DP" },
-              { id: 124, t: "Binary Tree Maximum Path Sum", a: 41, d: "hard", k: "Tree" },
-              { id: 200, t: "Number of Islands", a: 59, d: "medium", k: "Graph" },
-              { id: 322, t: "Coin Change", a: 45, d: "medium", k: "DP" },
+              { id: 20, t: "Valid Parentheses", a: 41, d: "easy", k: "Stack" },
+              { id: 21, t: "Merge Two Sorted Lists", a: 64, d: "easy", k: "Linked List" },
+              { id: 121, t: "Best Time to Buy and Sell Stock", a: 54, d: "easy", k: "Array" },
+              { id: 53, t: "Maximum Subarray", a: 51, d: "medium", k: "Array" },
             ].map((p) => (
               <tr key={p.id}>
                 <td className="cl-mono cl-text-mute">{String(p.id).padStart(4, "0")}</td>
@@ -255,11 +232,11 @@ const CTA = ({ user }) => (
       <p className="cl-lede" style={{ margin: "20px auto 32px" }}>
         A lightweight daily habit. 15 minutes · 1 problem · compounding returns.
       </p>
-      <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+      <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
         <Link to={user.isLoggedIn ? "/arena/problemset" : "/signup"} className="cl-btn cl-btn-primary cl-btn-lg">
-          {user.isLoggedIn ? "Go to Arena" : "Create your account"} <Icon name="arrowRight" size={14} />
+          {user.isLoggedIn ? "Continue learning" : "Start free"} <Icon name="arrowRight" size={14} />
         </Link>
-        <a href="#" className="cl-btn cl-btn-ghost cl-btn-lg"><Icon name="code" size={14} /> View source on GitHub</a>
+        <a href="https://github.com/manishdasa100/CLFrontend" target="_blank" rel="noreferrer noopener" className="cl-btn cl-btn-ghost cl-btn-lg"><Icon name="code" size={14} /> View source on GitHub</a>
       </div>
     </div>
   </section>

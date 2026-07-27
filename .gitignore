@@ -25,3 +25,9 @@ dist-ssr
 
 # mock data for development
 db.json
+
+# impeccable design tooling & local project context (dev-only, not committed)
+.impeccable/
+CLAUDE.md
+PRODUCT.md
+.claude/settings.json

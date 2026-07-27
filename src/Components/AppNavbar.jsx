@@ -11,17 +11,25 @@ export default function AppNavbar() {
   const { user, clearUser } = useUser();
   const loggedIn = !!user;
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
   const dropdownRef = useRef(null);
+  const navRef = useRef(null);
 
   // reset the broken-image fallback whenever the picture URL changes
   useEffect(() => { setAvatarError(false); }, [user?.profilePictureUrl]);
 
   useEffect(() => {
-    const handler = (e) => { if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setDropdownOpen(false); };
+    const handler = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setDropdownOpen(false);
+      if (navRef.current && !navRef.current.contains(e.target)) setMenuOpen(false);
+    };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  // close the mobile menu after navigating to a new route
+  useEffect(() => { setMenuOpen(false); }, [pathname]);
 
   const handleLogout = () => {
     localStorage.removeItem("jwtToken");
@@ -38,18 +46,16 @@ export default function AppNavbar() {
   const initials = `${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`.toUpperCase();
 
   return (
-    <nav className="cl-nav">
+    <nav className="cl-nav" ref={navRef}>
       <div className="cl-nav-inner">
         <BrandLogo />
         <div className="cl-nav-links">
           <Link to="/arena/problemset" className={`cl-nav-link ${isActive("arena") ? "active" : ""}`}>Arena</Link>
           <Link to="/arena/learn" className="cl-nav-link">Learn</Link>
           <Link to="/arena/study-plans" className="cl-nav-link">Study Plans</Link>
-          <a href="#" className="cl-nav-link">Contest</a>
-          <a href="#" className="cl-nav-link">Discuss</a>
         </div>
         <div style={{ flex: 1 }} />
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div className="cl-nav-actions">
           {loggedIn ? (
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: 6 }}>
               <span className="cl-chip cl-chip-cyan"><Icon name="fire" size={12} /> 12d</span>
@@ -107,8 +113,35 @@ export default function AppNavbar() {
           ) : (
             <>
               <Link to="/login" className="cl-btn cl-btn-ghost cl-btn-sm">Sign in</Link>
-              <Link to="/signup" className="cl-btn cl-btn-primary cl-btn-sm">Create account</Link>
+              <Link to="/signup" className="cl-btn cl-btn-primary cl-btn-sm">Start free</Link>
             </>
+          )}
+        </div>
+        <button
+          className="cl-nav-toggle cl-btn-icon"
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((o) => !o)}
+        >
+          <Icon name={menuOpen ? "x" : "menu"} size={18} />
+        </button>
+      </div>
+      <div className={`cl-nav-mobile ${menuOpen ? "is-open" : ""}`}>
+        <div className="cl-nav-mobile-inner">
+          <Link to="/arena/problemset" className={`cl-nav-mobile-link ${isActive("arena") ? "active" : ""}`}>Arena</Link>
+          <Link to="/arena/learn" className="cl-nav-mobile-link">Learn</Link>
+          <Link to="/arena/study-plans" className="cl-nav-mobile-link">Study Plans</Link>
+          <div className="cl-nav-mobile-divider" />
+          {loggedIn ? (
+            <>
+              <Link to={`/profile/${user?.username}`} className="cl-nav-mobile-link"><Icon name="user" size={15} /> Profile</Link>
+              <button onClick={handleLogout} className="cl-nav-mobile-link" style={{ color: "var(--hard)" }}><Icon name="logout" size={15} /> Log out</button>
+            </>
+          ) : (
+            <div style={{ display: "flex", gap: 10, padding: "8px 4px" }}>
+              <Link to="/login" className="cl-btn cl-btn-ghost" style={{ flex: 1 }}>Sign in</Link>
+              <Link to="/signup" className="cl-btn cl-btn-primary" style={{ flex: 1 }}>Start free</Link>
+            </div>
           )}
         </div>
       </div>

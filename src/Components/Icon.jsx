@@ -34,6 +34,7 @@ const PATHS = {
   grid: <><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /></>,
   logout: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></>,
   x:         <path d="M6 6l12 12M18 6 6 18" />,
+  menu:      <path d="M4 6h16M4 12h16M4 18h16" />,
   edit:      <><path d="M14 3l7 7-11 11H3v-7L14 3z" /><path d="m12 5 7 7" /></>,
   pin:       <><path d="M12 22s8-6.5 8-13a8 8 0 1 0-16 0c0 6.5 8 13 8 13z" /><circle cx="12" cy="9" r="2.5" /></>,
   pin2:      <><path d="M9 4h6l-1 6 3 3v2H7v-2l3-3-1-6z" /><path d="M12 15v5" /></>,

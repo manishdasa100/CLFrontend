@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import BrandLogo from "../Components/BrandLogo";
 import Icon from "../Components/Icon";
 import Toast from "../Components/Toast";
@@ -15,10 +15,15 @@ function AuthShell({ mode }) {
   const navigate = useNavigate();
 
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const { setUser } = useUser();
   const loginMut = useLoginMutation();
   const registerMut = useRegisterMutation();
   const isPending = loginMut.isLoading || registerMut.isLoading;
+
+  // Where the visitor was headed before ProtectedRoute sent them here, and why.
+  const from = location.state?.from?.pathname || "/arena/problemset";
+  const reason = location.state?.reason;
 
   useEffect(() => {
     const err = searchParams.get("error");
@@ -27,7 +32,7 @@ function AuthShell({ mode }) {
 
   const onAuthSuccess = (data) => {
     localStorage.setItem("jwtToken", data.jwtToken);
-    getMe().then((me) => { setUser(me); navigate("/arena/problemset"); }).catch(() => navigate("/arena/problemset"));
+    getMe().then((me) => { setUser(me); navigate(from); }).catch(() => navigate(from));
   };
 
   const set = (k) => (e) => setFields((f) => ({ ...f, [k]: e.target.value }));
@@ -102,9 +107,20 @@ function AuthShell({ mode }) {
           <h1 style={{ fontFamily: "var(--font-display)", fontSize: 36, fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 10px" }}>
             {mode === "login" ? "Sign in to continue." : "Create your account."}
           </h1>
-          <p className="cl-text-dim" style={{ fontSize: 14, marginBottom: 28 }}>
+          <p className="cl-text-dim" style={{ fontSize: 14, marginBottom: reason ? 20 : 28 }}>
             {mode === "login" ? "Pick up where you left off — your streak is waiting." : "Free forever for the core problem set. No card needed."}
           </p>
+
+          {reason && (
+            <div style={{
+              display: "flex", alignItems: "center", gap: 9,
+              padding: "10px 13px", marginBottom: 24,
+              background: "rgba(34,211,238,.08)", border: "1px solid rgba(34,211,238,.25)",
+              borderRadius: "var(--radius-sm)", fontSize: 13, color: "var(--cyan-soft)"
+            }}>
+              <Icon name="lock" size={14} /> {reason}
+            </div>
+          )}
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 24 }}>
             <a href="http://localhost:3000/oauth2/authorization/github" className="cl-btn cl-btn-ghost" style={{ height: 40, gap: 10, textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -184,7 +200,7 @@ function AuthShell({ mode }) {
 
           <p style={{ marginTop: 24, fontSize: 13, color: "var(--text-dim)", textAlign: "center" }}>
             {mode === "login" ? "Don't have an account? " : "Already have an account? "}
-            <Link to={mode === "login" ? "/signup" : "/login"} style={{ color: "var(--cyan)" }}>
+            <Link to={mode === "login" ? "/signup" : "/login"} state={location.state} style={{ color: "var(--cyan)" }}>
               {mode === "login" ? "Sign up" : "Sign in"}
             </Link>
           </p>
