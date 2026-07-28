@@ -35,4 +35,8 @@ export function UserProvider({ children }) {
   );
 }
 
-export const useUser = () => useContext(UserContext);
+// Falls back to a logged-out shape rather than null, so components that render
+// outside the provider (notably the route errorElement, which replaces <App/>
+// and therefore its providers) degrade instead of throwing.
+const LOGGED_OUT = { user: null, setUser: () => {}, clearUser: () => {} };
+export const useUser = () => useContext(UserContext) ?? LOGGED_OUT;

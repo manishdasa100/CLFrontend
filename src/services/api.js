@@ -24,7 +24,14 @@ axiosInstance.interceptors.response.use(
         const isAuthEndpoint = error.config?.url?.startsWith("auth/")
         if (error.response?.status === 401 && !isAuthEndpoint) {
             localStorage.removeItem("jwtToken")
-            window.location.href = "/login"
+            // Full reload (not a router navigate) so every cached query is dropped
+            // with the token — but carry where they were and why, so the login page
+            // can explain itself and send them back, same as ProtectedRoute does.
+            const here = window.location.pathname + window.location.search
+            const onAuthPage = /^\/(login|signup)\b/.test(window.location.pathname)
+            window.location.href = onAuthPage
+                ? "/login"
+                : `/login?next=${encodeURIComponent(here)}&reason=expired`
         }
         return Promise.reject(error)
     }
@@ -92,11 +99,20 @@ export const getProblemById = async(id) => {
     return axiosInstance.get(`problem/${id}`).then((response) => (response.data))
 }
 
+// Picks a genuinely random problem out of the real catalog: one unfiltered row
+// tells us how many there are, then we fetch a single row at a random offset.
+// (It used to return Math.random()*10, which ignored the catalog entirely and
+// could land on an id that doesn't exist.)
+const NO_FILTERS = { difficulty: new Set(), topics: new Set(), companies: new Set() }
+
 export const getARandomProblemId = async() => {
-    const randomId = Math.floor(Math.random() * 10) + 1
-    return new Promise((resolve, reject) => {
-        setTimeout(()=> resolve(randomId), 2000)
-    })
+    const first = await getProblems(1, 1, NO_FILTERS)
+    const total = first?.total ?? 0
+    if (total < 1) return null
+
+    const page = Math.floor(Math.random() * total) + 1
+    const picked = page === 1 ? first : await getProblems(page, 1, NO_FILTERS)
+    return picked?.entities?.[0]?.id ?? null
 }
 
 export const getProblemOfTheDay = async() => {

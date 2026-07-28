@@ -21,9 +21,12 @@ function AuthShell({ mode }) {
   const registerMut = useRegisterMutation();
   const isPending = loginMut.isLoading || registerMut.isLoading;
 
-  // Where the visitor was headed before ProtectedRoute sent them here, and why.
-  const from = location.state?.from?.pathname || "/arena/problemset";
-  const reason = location.state?.reason;
+  // Where the visitor was headed before they landed here, and why. ProtectedRoute
+  // passes this as router state; the 401 interceptor can't (it hard-reloads), so it
+  // passes the same thing as query params instead.
+  const REASONS = { expired: "Your session expired. Sign in to pick up where you left off." };
+  const from = location.state?.from?.pathname || searchParams.get("next") || "/arena/problemset";
+  const reason = location.state?.reason || REASONS[searchParams.get("reason")];
 
   useEffect(() => {
     const err = searchParams.get("error");
@@ -70,16 +73,11 @@ function AuthShell({ mode }) {
   };
 
   return (
-    <div className="cl-page" style={{ display: "flex", minHeight: "100vh" }}>
+    <div className="cl-page cl-auth-shell">
       {toast && <Toast message={toast} state="failure" onClose={() => setToast(null)} />}
 
-      <aside style={{
-        flex: "1 1 45%",
-        display: "flex", flexDirection: "column", justifyContent: "space-between",
-        padding: "40px 48px",
+      <aside className="cl-auth-aside" style={{
         background: "linear-gradient(165deg, rgba(34,211,238,.06), transparent 50%), linear-gradient(345deg, rgba(255,225,64,.05), transparent 50%)",
-        borderRight: "1px solid var(--stroke)",
-        position: "relative", overflow: "hidden"
       }}>
         <BrandLogo />
         <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
@@ -101,8 +99,10 @@ function AuthShell({ mode }) {
         </div>
       </aside>
 
-      <main style={{ flex: "1 1 55%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
+      <main className="cl-auth-main">
         <div style={{ width: "100%", maxWidth: 400 }}>
+          {/* The aside carries the brand on desktop; when it's hidden the form needs its own. */}
+          <div className="cl-auth-brand" style={{ marginBottom: 28 }}><BrandLogo /></div>
           <div className="cl-eyebrow" style={{ marginBottom: 10 }}>{mode === "login" ? "welcome back" : "new here"}</div>
           <h1 style={{ fontFamily: "var(--font-display)", fontSize: 36, fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 10px" }}>
             {mode === "login" ? "Sign in to continue." : "Create your account."}
@@ -141,60 +141,59 @@ function AuthShell({ mode }) {
 
           <form style={{ display: "flex", flexDirection: "column", gap: 14 }} onSubmit={submit}>
             {mode === "signup" && (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div className="cl-auth-namerow">
                 <div className="cl-field">
-                  <label className="cl-field-label">First name</label>
-                  <input className="cl-input" placeholder="John" value={fields.firstName} onChange={set("firstName")} />
+                  <label className="cl-field-label" htmlFor="firstName">First name</label>
+                  <input id="firstName" name="firstName" autoComplete="given-name" className="cl-input" placeholder="John" value={fields.firstName} onChange={set("firstName")} />
                 </div>
                 <div className="cl-field">
-                  <label className="cl-field-label">Last name</label>
-                  <input className="cl-input" placeholder="Doe" value={fields.lastName} onChange={set("lastName")} />
+                  <label className="cl-field-label" htmlFor="lastName">Last name</label>
+                  <input id="lastName" name="lastName" autoComplete="family-name" className="cl-input" placeholder="Doe" value={fields.lastName} onChange={set("lastName")} />
                 </div>
               </div>
             )}
             <div className="cl-field">
-              <label className="cl-field-label">Username</label>
+              <label className="cl-field-label" htmlFor="username">Username</label>
               <div className="cl-input-wrap">
                 <span className="cl-icon-l"><Icon name="user" size={15} /></span>
-                <input className="cl-input" type="text" placeholder="john_doe" value={fields.username} onChange={set("username")} />
+                <input id="username" name="username" autoComplete="username" className="cl-input" type="text" placeholder="john_doe" value={fields.username} onChange={set("username")} />
               </div>
             </div>
             {mode === "signup" && (
               <div className="cl-field">
-                <label className="cl-field-label">Email</label>
+                <label className="cl-field-label" htmlFor="email">Email</label>
                 <div className="cl-input-wrap">
                   <span className="cl-icon-l"><Icon name="mail" size={15} /></span>
-                  <input className="cl-input" type="email" placeholder="john@example.com" value={fields.email} onChange={set("email")} />
+                  <input id="email" name="email" autoComplete="email" className="cl-input" type="email" placeholder="john@example.com" value={fields.email} onChange={set("email")} />
                 </div>
               </div>
             )}
             <div className="cl-field">
-              <label className="cl-field-label" style={{ display: "flex", justifyContent: "space-between" }}>
-                Password
-                {mode === "login" && <a href="#" style={{ color: "var(--cyan)", fontSize: 11 }}>Forgot?</a>}
-              </label>
+              <label className="cl-field-label" htmlFor="password">Password</label>
               <div className="cl-input-wrap">
                 <span className="cl-icon-l"><Icon name="lock" size={15} /></span>
-                <input className="cl-input" type={show ? "text" : "password"} placeholder="••••••••" value={fields.password} onChange={set("password")} />
-                <span className="cl-icon-r" onClick={() => setShow((s) => !s)}>
+                <input id="password" name="password" autoComplete={mode === "login" ? "current-password" : "new-password"} className="cl-input" type={show ? "text" : "password"} placeholder="••••••••" value={fields.password} onChange={set("password")} />
+                <button type="button" className="cl-icon-r" aria-label={show ? "Hide password" : "Show password"} aria-pressed={show} aria-controls="password" onClick={() => setShow((s) => !s)}>
                   <Icon name={show ? "eyeOff" : "eye"} size={15} />
-                </span>
+                </button>
               </div>
             </div>
             {mode === "signup" && (
               <div className="cl-field">
-                <label className="cl-field-label">Confirm password</label>
+                <label className="cl-field-label" htmlFor="confirmPassword">Confirm password</label>
                 <div className="cl-input-wrap">
                   <span className="cl-icon-l"><Icon name="lock" size={15} /></span>
-                  <input className="cl-input" type={show2 ? "text" : "password"} placeholder="••••••••" value={fields.confirmPassword} onChange={set("confirmPassword")} />
-                  <span className="cl-icon-r" onClick={() => setShow2((s) => !s)}>
+                  <input id="confirmPassword" name="confirmPassword" autoComplete="new-password" className="cl-input" type={show2 ? "text" : "password"} placeholder="••••••••" value={fields.confirmPassword} onChange={set("confirmPassword")} />
+                  <button type="button" className="cl-icon-r" aria-label={show2 ? "Hide password" : "Show password"} aria-pressed={show2} aria-controls="confirmPassword" onClick={() => setShow2((s) => !s)}>
                     <Icon name={show2 ? "eyeOff" : "eye"} size={15} />
-                  </span>
+                  </button>
                 </div>
               </div>
             )}
-            <button type="submit" className="cl-btn cl-btn-primary cl-btn-lg" style={{ marginTop: 8 }}>
-              {mode === "login" ? "Sign in" : "Create account"} <Icon name="arrowRight" size={14} />
+            <button type="submit" className="cl-btn cl-btn-primary cl-btn-lg" style={{ marginTop: 8 }} disabled={isPending}>
+              {isPending
+                ? (mode === "login" ? "Signing in…" : "Creating account…")
+                : <>{mode === "login" ? "Sign in" : "Create account"} <Icon name="arrowRight" size={14} /></>}
             </button>
           </form>
 

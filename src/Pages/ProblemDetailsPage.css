@@ -1,5 +1,5 @@
-/* per-page overrides for problem details */
-.problem-details-shell { height: calc(100vh - 72px); }
+/* per-page overrides for problem details.
+   Page height lives on .cl-pd-shell in tokens.css alongside its breakpoints. */
 
 /* submission history rows — clickable through to the submission details page */
 .pd-sub-row { background: var(--bg-2); cursor: pointer; transition: background .12s ease; }

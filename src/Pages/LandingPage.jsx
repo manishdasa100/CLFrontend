@@ -79,10 +79,10 @@ const EditorCard = () => (
       <CodeLine n={6}>        seen[x] = i</CodeLine>
       <CodeLine n={7} caret>    <span style={{ color: "var(--text-mute)" }}># O(n) · single pass</span></CodeLine>
     </div>
-    <div style={{ display: "flex", gap: 10, padding: "12px 16px", borderTop: "1px solid var(--stroke)", background: "var(--bg-0)", alignItems: "center" }}>
+    <div style={{ display: "flex", gap: 10, padding: "12px 16px", borderTop: "1px solid var(--stroke)", background: "var(--bg-0)", alignItems: "center", flexWrap: "wrap" }}>
       <span className="cl-btn cl-btn-subtle cl-btn-sm">Run</span>
       <span className="cl-btn cl-btn-primary cl-btn-sm">Submit <Icon name="play" size={10} /></span>
-      <div style={{ marginLeft: "auto", display: "flex", gap: 10, fontSize: 11, color: "var(--text-mute)", alignItems: "center" }}>
+      <div style={{ marginLeft: "auto", display: "flex", gap: 10, fontSize: 11, color: "var(--text-mute)", alignItems: "center", flexWrap: "wrap", minWidth: 0 }}>
         <span className="cl-mono">✓ 58/58 tests passed</span>
         <span className="cl-chip cl-chip-cyan"><Icon name="sparkle" size={11} /> 12ms · nice and fast</span>
       </div>

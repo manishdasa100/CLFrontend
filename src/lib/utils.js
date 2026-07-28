@@ -14,6 +14,20 @@ export const languageCodes = {
     rust:"RUST"
 }
 
+// Base64 (UTF-8) → text, decoded through bytes so non-ASCII survives. Returns ""
+// on malformed input instead of throwing: a bad payload from the judge or a
+// truncated snippet must not take down the whole page.
+export const decodeBase64Utf8 = (b64) => {
+    if (!b64) return ""
+    try {
+        const bin = atob(b64)
+        const bytes = Uint8Array.from(bin, (ch) => ch.charCodeAt(0))
+        return new TextDecoder().decode(bytes)
+    } catch {
+        return ""
+    }
+}
+
 export const formatFieldName = (field) => {
     if (field === undefined) return
     return field.charAt(0).toUpperCase() + field.slice(1).toLowerCase();

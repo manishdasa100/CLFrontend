@@ -20,7 +20,7 @@ import './index.css'
 
 const router = createBrowserRouter(
     createRoutesFromElements(
-      <Route path='/' element={<App/>}>
+      <Route path='/' element={<App/>} errorElement={<ErrorPage/>}>
         <Route index element={<LandingPage/>}/>
         <Route path='signup' element={<SignUpPage/>}/>
         <Route path='login' element={<LoginPage/>}/>

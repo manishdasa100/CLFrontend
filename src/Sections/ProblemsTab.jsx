@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Spinner } from "@nextui-org/react";
 import Icon from "../Components/Icon";
 import MultiSelect from "../Components/MultiSelect";
@@ -31,7 +31,8 @@ const ProblemsTab = () => {
     difficulty: difficultySet, topics: selectedTopics, companies: selectedCompanies,
   });
 
-  const { isLoading: loadingRand, isFetching: fetchingRand, refetch: pickRandom } = useARandomProblemId((id) => navigate(`${id}`));
+  // getARandomProblemId returns null when the catalog is empty — don't navigate to /null.
+  const { isLoading: loadingRand, isFetching: fetchingRand, refetch: pickRandom } = useARandomProblemId((id) => { if (id != null) navigate(`${id}`); });
 
   const totalPages = useMemo(() => Math.max(1, Math.ceil((problemsList?.total ?? 0) / rowsPerPage)), [problemsList?.total, rowsPerPage]);
   const rowStatusClass = (s) => s === "ACC" ? "solved" : s === "ATT" ? "attempted" : "none";
@@ -62,8 +63,8 @@ const ProblemsTab = () => {
             <button className="cl-btn cl-btn-subtle cl-btn-sm" onClick={() => { setDifficulty("all"); setStatus("all"); setSelectedTopics(new Set()); setSelectedCompanies(new Set()); setPage(1); }}>
               <Icon name="reset" size={12} /> Reset
             </button>
-            <button className="cl-btn cl-btn-cyan cl-btn-sm" disabled={loadingRand || fetchingRand} onClick={pickRandom}>
-              <Icon name="dice" size={13} /> {loadingRand || fetchingRand ? "…" : "Pick one"}
+            <button className="cl-btn cl-btn-cyan cl-btn-sm" disabled={loadingRand || fetchingRand || (problemsList?.total ?? 0) < 1} onClick={pickRandom}>
+              <Icon name="dice" size={13} /> {loadingRand || fetchingRand ? "Picking…" : "Pick one"}
             </button>
           </div>
         </div>
@@ -93,23 +94,25 @@ const ProblemsTab = () => {
           </div>
         </div>
 
-        <table className="cl-tbl">
+        <table className="cl-tbl cl-tbl-problems">
           <thead>
+            {/* Column widths live in tokens.css, not inline: an inline `width`
+                out-specifies the media queries that shed columns on narrow screens. */}
             <tr>
-              <th style={{ width: 48 }}>#</th>
+              <th>#</th>
               <th>Title</th>
-              <th style={{ width: 220 }}>Acceptance</th>
-              <th style={{ width: 130 }}>Difficulty</th>
-              <th style={{ width: 130 }}>Topic</th>
-              <th style={{ width: 110 }}>Status</th>
+              <th>Acceptance</th>
+              <th>Difficulty</th>
+              <th>Topic</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody>
             {(isLoading || isFetching) && (
-              <tr><td colSpan={5} style={{ textAlign: "center", padding: 48 }}><Spinner size="sm" color="primary" /></td></tr>
+              <tr><td colSpan={6} style={{ textAlign: "center", padding: 48 }}><Spinner size="sm" color="primary" /></td></tr>
             )}
             {!(isLoading || isFetching) && rows.length === 0 && (
-              <tr><td colSpan={5} style={{ textAlign: "center", padding: 48, color: "var(--text-mute)" }}>No problems match. Try loosening a filter.</td></tr>
+              <tr><td colSpan={6} style={{ textAlign: "center", padding: 48, color: "var(--text-mute)" }}>No problems match. Try loosening a filter.</td></tr>
             )}
             {!(isLoading || isFetching) && rows.map((p) => {
               const s = rowStatusClass(p.userSubmissionStatus);
@@ -117,7 +120,11 @@ const ProblemsTab = () => {
               return (
                 <tr key={p.id} onClick={() => navigate(`${p.id}`)}>
                   <td className="cl-mono cl-text-mute">{String(p.id)}</td>
-                  <td style={{ color: "var(--text)", fontWeight: 500 }}>{p.title}</td>
+                  {/* The title is a real link so the row is reachable by keyboard and
+                      openable in a new tab; the row click stays as a mouse shortcut. */}
+                  <td style={{ color: "var(--text)", fontWeight: 500 }}>
+                    <Link to={`${p.id}`} className="cl-tbl-link" onClick={(e) => e.stopPropagation()}>{p.title}</Link>
+                  </td>
                   <td>
                     {(() => {
                       const pct = p.submissionCount > 0 ? (p.acceptedCount / p.submissionCount) * 100 : 0;
@@ -142,7 +149,7 @@ const ProblemsTab = () => {
           </tbody>
         </table>
 
-        <div style={{ padding: "14px 22px", display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--stroke)" }}>
+        <div style={{ padding: "14px 22px", display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--stroke)", flexWrap: "wrap", gap: 12 }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "0 4px 0 10px", border: "1px solid var(--stroke-1)", borderRadius: 8, height: 38, background: "var(--bg-1)" }}>
             <span style={{ fontSize: 11, color: "var(--text-mute)", textTransform: "uppercase", letterSpacing: ".1em" }}>Rows</span>
             <select
@@ -172,7 +179,7 @@ const ProblemsTab = () => {
 };
 
 const ArenaHeader = () => (
-  <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr", gap: 14, width: "100%", marginBottom: 24 }}>
+  <div className="cl-arena-cards" style={{ marginBottom: 24 }}>
     <ProblemOfTheDayCard />
     <StreakCard />
     <ProgressCard />
@@ -270,7 +277,6 @@ const StreakCard = () => {
 };
 
 const ProgressCard = () => {
-  const [tooltip, setTooltip] = useState(null);
   const { data: statusData, isLoading: loadingStatus } = useUserSubmissionStatus();
   const { data: countsData, isLoading: loadingCounts } = useProblemCounts();
   const isLoading = loadingStatus || loadingCounts;
@@ -280,14 +286,23 @@ const ProgressCard = () => {
 
   const totalSolved = solved.easy + solved.medium + solved.hard;
   const totalAll    = total.easy + total.medium + total.hard;
-  const pct = totalAll > 0 ? Math.round((totalSolved / totalAll) * 100) : 0;
+
+  // `problem/counts` and `user/submission-status` are separate endpoints and can
+  // disagree — a solved problem may no longer be in the listed catalog. That made
+  // solved > total and rendered "300% · Excellent". When the two disagree the
+  // denominator isn't trustworthy, so we show the raw counts and skip the score
+  // rather than assert a number we can't stand behind.
+  const countsUsable = totalAll > 0 && totalSolved <= totalAll;
+  const denom = Math.max(totalAll, totalSolved);
+  const share = (n) => (denom > 0 ? (n / denom) * 100 : 0);
+  const pct = Math.round(share(totalSolved));
 
   const quality = pct >= 90 ? "Excellent" : pct >= 75 ? "Advanced" : pct >= 50 ? "Proficient" : pct >= 25 ? "Intermediate" : "Beginner";
 
   const segments = [
-    { key: "easy",   color: "var(--easy)",   label: "Easy",   count: solved.easy,   pct: totalAll > 0 ? (solved.easy   / totalAll) * 100 : 0 },
-    { key: "medium", color: "var(--medium)", label: "Medium", count: solved.medium, pct: totalAll > 0 ? (solved.medium  / totalAll) * 100 : 0 },
-    { key: "hard",   color: "var(--hard)",   label: "Hard",   count: solved.hard,   pct: totalAll > 0 ? (solved.hard    / totalAll) * 100 : 0 },
+    { key: "easy",   color: "var(--easy)",   label: "Easy",   count: solved.easy,   pct: share(solved.easy) },
+    { key: "medium", color: "var(--medium)", label: "Medium", count: solved.medium, pct: share(solved.medium) },
+    { key: "hard",   color: "var(--hard)",   label: "Hard",   count: solved.hard,   pct: share(solved.hard) },
   ];
 
   return (
@@ -301,49 +316,56 @@ const ProgressCard = () => {
         <>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: 6 }}>
             <div>
-              <div style={{ fontSize: 13, color: "var(--text-mute)", marginBottom: 3 }}>Solve Quality</div>
-              <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22, letterSpacing: "-0.02em" }}>{quality}</div>
+              <div style={{ fontSize: 13, color: "var(--text-mute)", marginBottom: 3 }}>
+                {countsUsable ? "Solve Quality" : "Problems solved"}
+              </div>
+              <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22, letterSpacing: "-0.02em" }}>
+                {countsUsable ? quality : totalSolved}
+              </div>
             </div>
-            <span style={{ fontFamily: "var(--font-display)", fontWeight: 400, fontSize: 22, letterSpacing: "-0.02em" }}>{pct}%</span>
+            {countsUsable && (
+              <span style={{ fontFamily: "var(--font-display)", fontWeight: 400, fontSize: 22, letterSpacing: "-0.02em" }}>{pct}%</span>
+            )}
           </div>
 
-          <div style={{ display: "flex", gap: 4, alignItems: "stretch", height: 20 }}>
+          {/* overflow:hidden is a backstop — percentages are already clamped above,
+              but a bar that can never escape its track can never break the page. */}
+          <div style={{ display: "flex", gap: 4, alignItems: "stretch", height: 20, overflow: "hidden" }}>
             {segments.filter((seg) => seg.pct > 0).map((seg) => (
               <div
                 key={seg.key}
-                style={{ width: `${seg.pct}%`, background: seg.color, borderRadius: 5, cursor: "default", transition: "width .4s", flexShrink: 0 }}
-                onMouseEnter={(e) => setTooltip({ label: seg.label, count: seg.count, x: e.clientX, y: e.clientY })}
-                onMouseMove={(e) => setTooltip((t) => t ? { ...t, x: e.clientX, y: e.clientY } : null)}
-                onMouseLeave={() => setTooltip(null)}
+                title={`${seg.label}: ${seg.count} solved`}
+                style={{ width: `${seg.pct}%`, background: seg.color, borderRadius: 5, minWidth: 4, transition: "width .4s" }}
               />
             ))}
             {pct < 100 && (
-              <div style={{ flex: 1, background: "var(--bg-3)", borderRadius: 5 }} />
+              <div style={{ flex: 1, background: "var(--bg-3)", borderRadius: 5, minWidth: 4 }} />
             )}
           </div>
-        </>
-      )}
 
-      {tooltip && (
-        <div style={{
-          position: "fixed", left: tooltip.x + 10, top: tooltip.y - 36,
-          background: "var(--bg-3)", border: "1px solid var(--stroke-1)", borderRadius: 6,
-          padding: "4px 10px", fontSize: 12, zIndex: 9999, pointerEvents: "none", color: "var(--text)",
-        }}>
-          {tooltip.label}: <strong>{tooltip.count}</strong>
-        </div>
+          {/* Counts in text: the bar alone carries meaning by colour only, and its
+              hover tooltip was unreachable by keyboard and touch. */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 14px", marginTop: 2 }}>
+            {segments.map((seg) => (
+              <span key={seg.key} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text-dim)" }}>
+                <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: 2, background: seg.color, flexShrink: 0 }} />
+                {seg.label} <span className="cl-mono" style={{ color: "var(--text)" }}>{seg.count}</span>
+              </span>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
 };
 
 const Picker = ({ label, value, onChange, options }) => (
-  <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "0 4px 0 10px", border: "1px solid var(--stroke-1)", borderRadius: 8, height: 38, background: "var(--bg-1)" }}>
-    <span style={{ fontSize: 11, color: "var(--text-mute)", textTransform: "uppercase", letterSpacing: ".1em" }}>{label}</span>
-    <div style={{ display: "flex", gap: 2 }}>
+  <div className="cl-picker">
+    <span className="cl-picker-label">{label}</span>
+    <div style={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
       {options.map((o) => (
-        <button key={o.v} onClick={() => onChange(o.v)}
-          style={{ padding: "5px 10px", fontSize: 12, borderRadius: 6, color: value === o.v ? "var(--text)" : "var(--text-mute)", background: value === o.v ? "var(--bg-3)" : "transparent", border: "none", cursor: "pointer", fontFamily: "inherit" }}>
+        <button key={o.v} onClick={() => onChange(o.v)} aria-pressed={value === o.v}
+          style={{ padding: "5px 10px", fontSize: 12, borderRadius: 6, color: value === o.v ? "var(--text)" : "var(--text-dim)", background: value === o.v ? "var(--bg-3)" : "transparent", border: "none", cursor: "pointer", fontFamily: "inherit" }}>
           {o.l}
         </button>
       ))}

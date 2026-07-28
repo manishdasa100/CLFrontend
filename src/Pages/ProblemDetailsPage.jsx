@@ -7,8 +7,9 @@ import { useProblemByIdData, useUserLists, useAddToListMutation, useCreateListMu
 import CodeEditor from "../Components/CodeEditor";
 import Icon from "../Components/Icon";
 import Toast from "../Components/Toast";
-import { formatFieldName, timeAgo, formatSubmittedAt, SUBMISSION_STATUS } from "../lib/utils";
+import { formatFieldName, timeAgo, formatSubmittedAt, SUBMISSION_STATUS, decodeBase64Utf8 } from "../lib/utils";
 import { useUser } from "../context/UserContext";
+import useMediaQuery from "../hooks/useMediaQuery";
 import "./ProblemDetailsPage.css";
 
 const LEFT_TABS = ["Description", "Submissions"];
@@ -89,7 +90,9 @@ const SubmissionRow = ({ sub }) => {
       tabIndex={0}
       onClick={open}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } }}
-      style={{ display: "flex", alignItems: "center", gap: 14, padding: "11px 14px", borderRadius: 8, borderLeft: `3px solid ${color}` }}
+      // The status chip below already carries the verdict colour, so the row only
+      // needs a quiet tint of it — a 3px left stripe fought the rounded corner.
+      style={{ display: "flex", alignItems: "center", gap: 14, padding: "11px 14px", borderRadius: 8, border: `1px solid color-mix(in srgb, ${color} 28%, transparent)` }}
     >
       <span className={`cl-chip cl-chip-mono cl-chip-${TIER_VARIANT[meta.tier]}`} style={{ minWidth: 48, justifyContent: "center", fontWeight: 600 }}>
         {sub.status}
@@ -177,8 +180,11 @@ export default function ProblemDetailsPage() {
   const { isLoading, isFetching, data, isError, error } = useProblemByIdData(id);
   const toggleFull = () => setFullScreen((v) => !v);
 
-  const handlePending = (isRun) => setResultState({ status: "loading", isRun });
+  // On a narrow screen the results panel isn't on screen when you hit Run, so bring
+  // it forward — otherwise the verdict lands somewhere the learner can't see.
+  const handlePending = (isRun) => { setResultState({ status: "loading", isRun }); setPane("result"); };
   const handleResult = (report, isRun, errorMsg) => {
+    setPane("result");
     if (errorMsg || !report) {
       setResultState({ status: "error", message: errorMsg || "Something went wrong." });
     } else {
@@ -194,6 +200,11 @@ export default function ProblemDetailsPage() {
   const DIVIDER_H = 8;
   const [editorHeightPx, setEditorHeightPx] = useState(null);
   const rightColRef = useRef(null);
+
+  // Below this width the three panels can't usefully coexist — a 40/60 split of a
+  // phone gives a 156px description beside a 234px editor. Show one at a time instead.
+  const compact = useMediaQuery("(max-width: 1023px)");
+  const [pane, setPane] = useState("problem"); // problem | code | result
 
   useEffect(() => {
     if (rightColRef.current) {
@@ -245,13 +256,13 @@ export default function ProblemDetailsPage() {
     ? Math.round((data.acceptedCount / data.submissionCount) * 100) + "%"
     : "0";
   const codeSnippets = data.codeSnippets
-    ? Object.entries(data.codeSnippets).map(([languageCode, code]) => ({ languageCode, code: atob(code) }))
+    ? Object.entries(data.codeSnippets).map(([languageCode, code]) => ({ languageCode, code: decodeBase64Utf8(code) }))
     : [];
   const examples = data.examples || [];
   const selectedCase = examples[testcaseIdx] || null;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 72px)" }}>
+    <div className="cl-pd-shell">
       {toast && <Toast message={toast.message} state={toast.state} onClose={() => setToast(null)} />}
       {listPopupOpen && (
         <SaveToListPopup
@@ -263,7 +274,7 @@ export default function ProblemDetailsPage() {
       )}
 
       {/* ── Breadcrumb bar ── */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "25px 42px", borderBottom: "1px solid var(--stroke)", flexShrink: 0, height: 40, background: "rgba(255,255,255,0.02)" }}>
+      <div className="cl-pd-crumb">
         <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
           <Link to="/arena/problemset" style={{ color: "var(--text-mute)", textDecoration: "none" }}>arena</Link>
           <span style={{ color: "var(--stroke-2)" }}>/</span>
@@ -290,12 +301,29 @@ export default function ProblemDetailsPage() {
         </div>
       </div>
 
-      {/* ── Two-column layout ── */}
-      <div style={{ flex: 1, minHeight: 0, padding: "0 0 0 28px", display: "flex", gap: 0 }}>
+      {/* ── Narrow screens: one panel at a time ── */}
+      {compact && (
+        <div className="cl-pd-seg" role="tablist" aria-label="Problem view">
+          {[["problem", "Problem"], ["code", "Code"], ["result", "Result"]].map(([key, label]) => (
+            <button
+              key={key}
+              role="tab"
+              aria-selected={pane === key}
+              className={pane === key ? "active" : ""}
+              onClick={() => setPane(key)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* ── Two-column layout (single column when compact) ── */}
+      <div className="cl-pd-cols">
 
         {/* Left panel — open, no card */}
-        {!fullScreen && (
-          <div style={{ width: "40%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        {!fullScreen && (!compact || pane === "problem") && (
+          <div className="cl-pd-left">
 
             {/* Tab bar */}
             <div style={{ display: "flex", borderBottom: "1px solid var(--stroke)", flexShrink: 0, gap: 10 }}>
@@ -412,22 +440,39 @@ export default function ProblemDetailsPage() {
           </div>
         )}
 
-        {/* Right column: editor + testcases */}
-        <div ref={rightColRef} style={{ width: fullScreen ? "100%" : "60%", display: "flex", flexDirection: "column" }}>
-          <div style={{ height: editorHeightPx != null ? `${editorHeightPx}px` : "68%", flexShrink: 0, minHeight: MIN_EDITOR_H }}>
-            <CodeEditor codeSnippets={codeSnippets} toggleFullScreenEditor={toggleFull} onPending={handlePending} onResult={handleResult} />
-          </div>
+        {/* Right column: editor + testcases. When compact these are two separate panes. */}
+        <div
+          ref={rightColRef}
+          className={`cl-pd-right ${fullScreen ? "is-full" : ""}`}
+          style={compact && pane === "problem" ? { display: "none" } : undefined}
+        >
+          {(!compact || pane === "code") && (
+            // Compact: the editor owns the pane. Wide: it's the resizable top half.
+            <div style={compact
+              ? { flex: 1, minHeight: 0 }
+              : { height: editorHeightPx != null ? `${editorHeightPx}px` : "68%", flexShrink: 0, minHeight: MIN_EDITOR_H }}>
+              <CodeEditor codeSnippets={codeSnippets} toggleFullScreenEditor={toggleFull} onPending={handlePending} onResult={handleResult} />
+            </div>
+          )}
 
           <>
-            {/* ── Drag divider ── */}
-            <div
-              onMouseDown={onDividerMouseDown}
-              style={{ height: DIVIDER_H, flexShrink: 0, cursor: "row-resize", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg-1)", borderTop: "1px solid var(--stroke)", borderBottom: "1px solid var(--stroke)" }}
-            >
-              <div style={{ width: 36, height: 3, borderRadius: 999, background: "var(--stroke-2)" }} />
-            </div>
+            {/* ── Drag divider — pointer-only affordance, so it's wide-screen only ── */}
+            {!compact && (
+              <div
+                onMouseDown={onDividerMouseDown}
+                style={{ height: DIVIDER_H, flexShrink: 0, cursor: "row-resize", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg-1)", borderTop: "1px solid var(--stroke)", borderBottom: "1px solid var(--stroke)" }}
+              >
+                <div style={{ width: 36, height: 3, borderRadius: 999, background: "var(--stroke-2)" }} />
+              </div>
+            )}
 
-            <div className="cl-card" style={{ flex: 1, minHeight: MIN_TC_H, display: "flex", flexDirection: "column", overflow: "hidden", borderRadius: 0 }}>
+            <div
+              className="cl-card"
+              style={{
+                flex: 1, minHeight: MIN_TC_H, display: compact && pane !== "result" ? "none" : "flex",
+                flexDirection: "column", overflow: "hidden", borderRadius: 0,
+              }}
+            >
               {/* Testcases tab bar */}
               <div style={{ padding: "0 16px", borderBottom: "1px solid var(--stroke)", display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
 
@@ -653,12 +698,12 @@ const SaveToListPopup = ({ problemId, username, onClose, onToast }) => {
 
             <form onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               <div className="cl-field">
-                <label className="cl-field-label">Name</label>
-                <input className="cl-input" placeholder="e.g. Amazon Interview Prep" value={form.name} onChange={(e) => set("name")(e.target.value)} autoFocus required />
+                <label className="cl-field-label" htmlFor="newListName">Name</label>
+                <input id="newListName" name="newListName" className="cl-input" placeholder="e.g. Amazon Interview Prep" value={form.name} onChange={(e) => set("name")(e.target.value)} autoFocus required />
               </div>
               <div className="cl-field">
-                <label className="cl-field-label">Description</label>
-                <input className="cl-input" placeholder="Optional" value={form.description} onChange={(e) => set("description")(e.target.value)} />
+                <label className="cl-field-label" htmlFor="newListDescription">Description</label>
+                <input id="newListDescription" name="newListDescription" className="cl-input" placeholder="Optional" value={form.description} onChange={(e) => set("description")(e.target.value)} />
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "4px 0" }}>

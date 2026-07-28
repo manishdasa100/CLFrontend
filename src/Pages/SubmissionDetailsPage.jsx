@@ -5,24 +5,12 @@ import AppNavbar from "../Components/AppNavbar";
 import BackgroundWrapper from "../Components/BackgroundWrapper";
 import Icon from "../Components/Icon";
 import { useSubmissionDetails } from "../services/queries";
-import { SUBMISSION_STATUS, timeAgo, formatSubmittedAt } from "../lib/utils";
+import { SUBMISSION_STATUS, timeAgo, formatSubmittedAt, decodeBase64Utf8 } from "../lib/utils";
 import { langLabel, titleCase } from "../Components/profileUtils";
 import "../styles/submissiondetails.css";
 
 const TIER_COLOR = { pass: "var(--easy)", wrong: "var(--medium)", error: "var(--hard)" };
 const MONACO_LANG = { JAVA: "java", PYTHON: "python", CPP: "cpp", C: "c", GO: "go", JAVASCRIPT: "javascript", RUST: "rust" };
-
-// userCode is base64 (UTF-8) encoded; decode through bytes so non-ASCII survives.
-function decodeUserCode(b64) {
-  if (!b64) return "";
-  try {
-    const bin = atob(b64);
-    const bytes = Uint8Array.from(bin, (ch) => ch.charCodeAt(0));
-    return new TextDecoder().decode(bytes);
-  } catch {
-    return "";
-  }
-}
 
 function CodePanel({ language, code }) {
   const [copied, setCopied] = useState(false);
@@ -158,7 +146,7 @@ export default function SubmissionDetailsPage() {
   const navigate = useNavigate();
   const { data, isLoading, isError, error, refetch } = useSubmissionDetails(submissionId);
 
-  const code = useMemo(() => decodeUserCode(data?.userCode), [data?.userCode]);
+  const code = useMemo(() => decodeBase64Utf8(data?.userCode), [data?.userCode]);
 
   return (
     <BackgroundWrapper>

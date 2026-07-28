@@ -106,6 +106,13 @@ a { color: inherit; text-decoration: none; }
 .cl-btn-subtle:hover { background: var(--bg-3); color: var(--text); }
 .cl-btn-icon { width: 32px; height: 32px; padding: 0; border-radius: 8px; background: transparent; color: var(--text-dim); border: 1px solid transparent; }
 .cl-btn-icon:hover { background: var(--bg-2); color: var(--text); border-color: var(--stroke-1); }
+/* Disabled — several call sites already pass `disabled` but nothing rendered it. */
+.cl-btn:disabled { opacity: .45; cursor: not-allowed; }
+.cl-btn:disabled:hover { transform: none; }
+.cl-btn-primary:disabled:hover { background: var(--lemon); }
+.cl-btn-cyan:disabled:hover { background: rgba(34,211,238,0.12); border-color: rgba(34,211,238,0.3); }
+.cl-btn-ghost:disabled:hover, .cl-btn-subtle:disabled:hover, .cl-btn-icon:disabled:hover { background: transparent; border-color: transparent; }
+.cl-btn-subtle:disabled:hover { background: var(--bg-2); border-color: var(--stroke-1); }
 
 /* Inputs */
 .cl-input { width: 100%; height: 38px; padding: 0 12px; background: var(--bg-1); border: 1px solid var(--stroke-1); border-radius: 8px; color: var(--text); font-size: 13px; outline: none; transition: all .15s; }
@@ -118,12 +125,15 @@ a { color: inherit; text-decoration: none; }
 .cl-input-wrap .cl-input { padding-left: 38px; padding-right: 38px; }
 .cl-input-wrap .cl-icon-l, .cl-input-wrap .cl-icon-r { position: absolute; top: 50%; transform: translateY(-50%); color: var(--text-mute); display: grid; place-items: center; width: 28px; height: 28px; }
 .cl-input-wrap .cl-icon-l { left: 6px; }
-.cl-input-wrap .cl-icon-r { right: 6px; cursor: pointer; }
+/* .cl-icon-r is a real <button> (password reveal) — reset the UA chrome and give
+   it a focus ring, since it's now in the tab order. */
+.cl-input-wrap .cl-icon-r { right: 6px; cursor: pointer; background: none; border: none; padding: 0; border-radius: 6px; }
 .cl-input-wrap .cl-icon-r:hover { color: var(--text); }
+.cl-input-wrap .cl-icon-r:focus-visible { outline: 2px solid var(--cyan); outline-offset: 1px; color: var(--text); }
 
 /* Cards */
 .cl-card { background: linear-gradient(180deg, var(--bg-1), var(--bg-0)); border: 1px solid var(--stroke-1); border-radius: var(--radius-lg); box-shadow: var(--shadow-panel); }
-.cl-card-header { padding: 18px 22px; border-bottom: 1px solid var(--stroke); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.cl-card-header { padding: 18px 22px; border-bottom: 1px solid var(--stroke); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .cl-card-title { font-family: var(--font-display); font-weight: 600; font-size: 16px; letter-spacing: -0.01em; }
 .cl-card-sub { font-size: 12.5px; color: var(--text-mute); margin-top: 4px; }
 
@@ -138,8 +148,11 @@ a { color: inherit; text-decoration: none; }
 .cl-chip-dot::before { content: ''; width: 3px; height: 3px; border-radius: 50%; background: currentColor; }
 
 /* Tabs */
-.cl-tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--stroke); padding: 0; }
-.cl-tab { position: relative; padding: 14px 20px; font-size: 13.5px; font-weight: 500; color: var(--text-mute); transition: color .15s; background: transparent; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; }
+/* Tabs scroll rather than wrap — a wrapped tab strip stops reading as one control.
+   scrollbar-width:none keeps the affordance clean; the row is still swipeable. */
+.cl-tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--stroke); padding: 0; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.cl-tabs::-webkit-scrollbar { display: none; }
+.cl-tab { position: relative; padding: 14px 20px; font-size: 13.5px; font-weight: 500; color: var(--text-mute); transition: color .15s; background: transparent; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; flex-shrink: 0; }
 .cl-tab:hover { color: var(--text-dim); }
 .cl-tab.active { color: var(--text); }
 .cl-tab.active::after { content: ''; position: absolute; left: 16px; right: 16px; bottom: -1px; height: 2px; background: var(--cyan); box-shadow: 0 0 12px rgba(34,211,238,0.6); }
@@ -162,6 +175,11 @@ a { color: inherit; text-decoration: none; }
 .cl-tbl tbody tr { transition: background .1s; cursor: pointer; }
 .cl-tbl tbody tr:hover td { background: rgba(34,211,238,0.03); color: var(--text); }
 .cl-tbl tbody tr:last-child td { border-bottom: none; }
+/* The title link is what makes a clickable row reachable by keyboard, so it
+   needs a focus ring that reads against the row's own hover tint. */
+.cl-tbl-link { display: inline-block; border-radius: 3px; }
+.cl-tbl-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.cl-tbl-link:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 
 /* Monaco editor overrides */
 .monaco-editor .view-lines { padding-left: 12px; }
@@ -382,6 +400,12 @@ a { color: inherit; text-decoration: none; }
 .cl-features-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 20px; }
 .cl-footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 40px; }
 
+/* Grid and flex items default to min-width:auto, so a long word or a wide child
+   can push a track past its container instead of shrinking. Every multi-column
+   layout here opts out of that. */
+.cl-hero-grid > *, .cl-features-grid > *, .cl-footer-grid > *,
+.cl-arena-cards > *, .cl-auth-namerow > * { min-width: 0; }
+
 /* Mobile nav — hamburger toggle + drop panel, both hidden on desktop.
    Display lives on the class (not inline) so the media query below can
    flip it; an inline `display` would out-specify the query and never hide. */
@@ -394,9 +418,116 @@ a { color: inherit; text-decoration: none; }
 .cl-nav-mobile-link.active { color: var(--text); }
 .cl-nav-mobile-divider { height: 1px; background: var(--stroke); margin: 8px 0; }
 
+/* ── Auth (login / signup) ──
+   The aside is decoration: a quote and a lemon. It earns its 45% on a desktop
+   and nothing on a phone, where it was stealing a third of the screen and
+   crushing the form to 207px. Below 860 it goes away entirely. */
+.cl-auth-shell { display: flex; min-height: 100vh; min-height: 100dvh; }
+.cl-auth-aside {
+  flex: 1 1 45%;
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: 40px 48px;
+  border-right: 1px solid var(--stroke);
+  position: relative; overflow: hidden;
+}
+.cl-auth-main { flex: 1 1 55%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 24px; }
+.cl-auth-namerow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ── Arena header cards ──
+   Problem-of-the-day is the lead card, so on tablet it takes the full row and
+   the two stat cards share the one below, rather than all three shrinking. */
+.cl-arena-cards { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 14px; width: 100%; }
+
+/* ── Problem details ── */
+.cl-pd-shell { display: flex; flex-direction: column; height: calc(100vh - 72px); height: calc(100dvh - 72px); }
+.cl-pd-crumb { display: flex; align-items: center; justify-content: space-between; padding: 25px 42px; border-bottom: 1px solid var(--stroke); flex-shrink: 0; height: 40px; background: rgba(255,255,255,0.02); }
+.cl-pd-cols { flex: 1; min-height: 0; padding: 0 0 0 28px; display: flex; gap: 0; }
+.cl-pd-left { width: 40%; display: flex; flex-direction: column; overflow: hidden; }
+.cl-pd-right { width: 60%; display: flex; flex-direction: column; min-width: 0; }
+.cl-pd-right.is-full { width: 100%; }
+/* Segmented control — only rendered on narrow screens. */
+.cl-pd-seg { display: flex; gap: 2px; padding: 8px 16px 0; border-bottom: 1px solid var(--stroke); flex-shrink: 0; }
+.cl-pd-seg button {
+  flex: 1; padding: 11px 8px; font-size: 13px; font-family: inherit; font-weight: 500;
+  background: none; border: none; border-bottom: 2px solid transparent;
+  color: var(--text-dim); cursor: pointer; transition: color .15s;
+}
+.cl-pd-seg button:hover { color: var(--text); }
+.cl-pd-seg button.active { color: var(--text); border-bottom-color: var(--cyan); }
+.cl-pd-seg button:focus-visible { outline: 2px solid var(--cyan); outline-offset: -2px; border-radius: 4px; }
+
+/* ── Problems table ──
+   Six columns don't fit a phone. Rather than a horizontal scroll nobody finds,
+   shed the least useful column at each step: Topic, then Acceptance, then the id.
+   Title + Difficulty + Status survive to 320px — the three a learner scans for. */
+.cl-tbl-problems th:nth-child(1) { width: 48px; }
+.cl-tbl-problems th:nth-child(3) { width: 220px; }
+.cl-tbl-problems th:nth-child(4) { width: 130px; }
+.cl-tbl-problems th:nth-child(5) { width: 130px; }
+.cl-tbl-problems th:nth-child(6) { width: 110px; }
+.cl-tbl-problems td:nth-child(2) { max-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+@media (max-width: 1024px) {
+  .cl-tbl-problems th:nth-child(5), .cl-tbl-problems td:nth-child(5) { display: none; }
+}
+@media (max-width: 860px) {
+  .cl-tbl-problems th:nth-child(3), .cl-tbl-problems td:nth-child(3) { display: none; }
+}
+@media (max-width: 560px) {
+  .cl-tbl-problems th:nth-child(1), .cl-tbl-problems td:nth-child(1) { display: none; }
+  .cl-tbl-problems th, .cl-tbl-problems td { padding-left: 12px; padding-right: 12px; }
+  /* Shrink-to-fit the two chip columns so Title keeps whatever is left. */
+  .cl-tbl-problems th:nth-child(4), .cl-tbl-problems th:nth-child(6) { width: 1px; }
+  .cl-tbl-problems td:nth-child(4), .cl-tbl-problems td:nth-child(6) { white-space: nowrap; }
+}
+
+@media (max-width: 1024px) {
+  .cl-arena-cards { grid-template-columns: 1fr 1fr; }
+  .cl-arena-cards > *:first-child { grid-column: 1 / -1; }
+}
+
+/* Two stat cards side by side stop working around here: the streak's 3-up figure
+   row needs ~230px and the split gives it 166px. One column below this. */
+@media (max-width: 700px) {
+  .cl-arena-cards { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 900px) {
   .cl-hero-grid { grid-template-columns: 1fr; gap: 40px; }
   .cl-features-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* Problem page collapses to one panel at a time; JS picks which (see useMediaQuery). */
+@media (max-width: 1023px) {
+  .cl-pd-cols { padding: 0; flex-direction: column; }
+  .cl-pd-left, .cl-pd-right, .cl-pd-right.is-full { width: 100%; flex: 1; min-height: 0; }
+  .cl-pd-crumb { padding: 14px 20px; }
+}
+
+/* Filter pill group. Fixed height on a wide screen; wraps and goes full-width on a
+   narrow one rather than pushing the card past the viewport. */
+.cl-picker {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 0 4px 0 10px; border: 1px solid var(--stroke-1); border-radius: 8px;
+  height: 38px; background: var(--bg-1); max-width: 100%; min-width: 0;
+}
+.cl-picker-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .1em; flex-shrink: 0; }
+@media (max-width: 560px) {
+  .cl-picker { width: 100%; height: auto; min-height: 38px; flex-wrap: wrap; padding: 6px 8px; }
+}
+
+/* Brand sits in the aside on desktop, above the form once the aside is gone. */
+.cl-auth-brand { display: none; }
+
+@media (max-width: 860px) {
+  .cl-auth-aside { display: none; }
+  .cl-auth-main { flex: 1 1 100%; padding: 32px 20px; justify-content: flex-start; padding-top: 48px; }
+  .cl-auth-brand { display: block; }
+}
+
+/* Two name fields side by side stop being usable somewhere under 400px. */
+@media (max-width: 400px) {
+  .cl-auth-namerow { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 768px) {

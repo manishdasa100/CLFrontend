@@ -11,21 +11,38 @@ export default function Toast({ message, state = "failure", onClose }) {
   }, [message]);
 
   return (
-    <div style={{
-      position: "fixed", bottom: 24, right: 24, zIndex: 1000,
-      display: "flex", alignItems: "center", gap: 10,
-      background: "var(--bg-2)", border: `1px solid ${borderColor}`,
-      borderRadius: 10, padding: "12px 16px", boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
-      fontSize: 13, color: "var(--text)", maxWidth: 320,
-      animation: "toast-slide-in .3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
-    }}>
-      <span style={{ color, flexShrink: 0 }}>
+    // This carries every error in the app (login, validation, submission), so it
+    // has to be announced — a silent <div> left screen-reader users with no feedback.
+    <div
+      role={state === "failure" ? "alert" : "status"}
+      aria-live={state === "failure" ? "assertive" : "polite"}
+      style={{
+        position: "fixed", bottom: 24, right: 24, zIndex: 1000,
+        display: "flex", alignItems: "center", gap: 10,
+        background: "var(--bg-2)", border: `1px solid ${borderColor}`,
+        borderRadius: 10, padding: "12px 16px", boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+        fontSize: 13, color: "var(--text)", maxWidth: 320,
+        animation: "toast-slide-in .28s cubic-bezier(0.22, 1, 0.36, 1) forwards",
+      }}
+    >
+      <span style={{ color, flexShrink: 0 }} aria-hidden="true">
         <Icon name={state === "success" ? "check" : state === "warning" ? "dot" : "close"} size={14} />
       </span>
       {message}
-      <span style={{ marginLeft: "auto", cursor: "pointer", color: "var(--text-mute)", flexShrink: 0 }} onClick={onClose}>
+      <button
+        type="button"
+        aria-label="Dismiss"
+        onClick={onClose}
+        style={{
+          marginLeft: "auto", flexShrink: 0, display: "grid", placeItems: "center",
+          width: 22, height: 22, padding: 0, borderRadius: 5,
+          background: "none", border: "none", cursor: "pointer", color: "var(--text-mute)",
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text)")}
+        onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-mute)")}
+      >
         <Icon name="close" size={12} />
-      </span>
+      </button>
     </div>
   );
 }
