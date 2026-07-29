@@ -88,7 +88,10 @@ function AuthShell({ mode }) {
         {/* Says what the product is, in our own voice. This was a testimonial from
             "Priya S. · Senior SWE · Stripe" — an invented person at a real company. */}
         <div style={{ position: "relative", zIndex: "var(--z-raised)", marginBottom: 20, maxWidth: 400 }}>
-          <p style={{ fontFamily: "var(--font-display)", fontSize: 22, lineHeight: 1.35, letterSpacing: "-0.015em", margin: 0, color: "var(--text)" }}>
+          {/* 22 / 600 / -0.015em — the same display tier as the landing feature
+              headings. It read as a different typeface at the inherited 400, which
+              is the only weight Comme isn't used at anywhere else. */}
+          <p style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 600, lineHeight: 1.35, letterSpacing: "-0.015em", margin: 0, color: "var(--text)" }}>
             Ten minutes a day beats a weekend of panic.
           </p>
           <p style={{ fontSize: 13.5, lineHeight: 1.6, color: "var(--text-dim)", marginTop: 14, marginBottom: 0 }}>
