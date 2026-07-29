@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Spinner } from "@nextui-org/react";
+import Spinner from "../Components/Spinner";
 import { getMe } from "../services/api";
 import { useUser } from "../context/UserContext";
 
@@ -30,7 +30,7 @@ export default function OAuth2Callback() {
 
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
-      <Spinner size="md" color="primary" />
+      <Spinner size={28} label="Signing you in" />
     </div>
   );
 }

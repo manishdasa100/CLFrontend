@@ -97,7 +97,10 @@ const Feature = ({ eyebrow, title, body, visual }) => (
       <h3 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 600, letterSpacing: "-0.015em", margin: 0 }}>{title}</h3>
       <p className="cl-text-dim" style={{ fontSize: 13.5, lineHeight: 1.55, marginTop: 10 }}>{body}</p>
     </div>
-    <div style={{ marginTop: "auto", height: 220, borderTop: "1px solid var(--stroke)", background: "var(--bg-0)" }}>{visual}</div>
+    {/* Illustrations, not content: the sample code and the numbers in them are
+        invented. aria-hidden keeps them out of the accessibility tree so no one
+        is read a fabricated "248 solved" — same treatment as the hero mock. */}
+    <div aria-hidden="true" style={{ marginTop: "auto", height: 220, borderTop: "1px solid var(--stroke)", background: "var(--bg-0)" }}>{visual}</div>
   </div>
 );
 
@@ -208,7 +211,7 @@ const ProblemShowcase = () => (
               <tr key={p.id}>
                 <td className="cl-mono cl-text-mute">{String(p.id).padStart(4, "0")}</td>
                 <td style={{ color: "var(--text)", fontWeight: 500 }}>
-                  <Link to={`/arena/problemset/${p.id}`}>{p.t}</Link>
+                  <Link to={`/arena/problemset/${p.id}`} className="cl-tbl-link">{p.t}</Link>
                 </td>
                 <td><div style={{ display: "flex", gap: 8, alignItems: "center" }}><div className="cl-bar"><div className="cl-bar-fill" style={{ width: `${p.a}%` }} /></div><span className="cl-mono" style={{ fontSize: 11, color: "var(--text-mute)" }}>{p.a}%</span></div></td>
                 <td><span className={`cl-chip cl-chip-${p.d} cl-chip-dot`}>{p.d[0].toUpperCase() + p.d.slice(1)}</span></td>

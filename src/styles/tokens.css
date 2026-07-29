@@ -15,11 +15,18 @@
   --stroke-1: rgba(255, 255, 255, 0.09);
   --stroke-2: rgba(255, 255, 255, 0.14);
 
-  /* Text */
+  /* Text — four tiers, each verified against every surface above.
+     Ratios on --bg-1 / worst case --bg-3:
+       text       16.87 / 15.23
+       text-dim    8.42 /  7.60
+       text-mute   5.03 /  4.54  — floor for body copy, labels, placeholders (AA 4.5)
+       text-faint  3.34 /  3.02  — NON-TEXT only: icons, rules, code line numbers (AA 3.0)
+     text-mute was #6B7385 (3.68 on bg-3) and text-faint #454A5A (1.99); both were
+     below their bar everywhere they were used. */
   --text: #EDEFF4;
   --text-dim: #A4ABBA;
-  --text-mute: #6B7385;
-  --text-faint: #454A5A;
+  --text-mute: #798296;
+  --text-faint: #5E657A;
 
   /* Accents */
   --lemon: #FFE140;
@@ -37,6 +44,24 @@
   --shadow-lemon: 0 0 0 1px rgba(255,225,64,0.18), 0 12px 40px -12px rgba(255,225,64,0.25);
   --shadow-cyan: 0 0 0 1px rgba(34,211,238,0.20), 0 10px 32px -10px rgba(34,211,238,0.30);
   --shadow-panel: 0 30px 60px -30px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.04) inset;
+
+  /* Layering — one ordered scale, so "what sits above what" is a design decision
+     recorded here rather than a number invented at each call site. Was 19 ad-hoc
+     values spread across six files, topping out at 9999. Relative order is
+     unchanged; only the magnitudes are now meaningful.
+     Toast deliberately outranks modal: it reports run results, which can land
+     while a dialog is open. */
+  --z-behind: -1;    /* page backdrop pseudo-elements */
+  --z-base: 0;
+  --z-raised: 1;     /* lifted clear of a sibling rule or connector line */
+  --z-local: 10;     /* popovers scoped inside a card (badge / rank tooltips) */
+  --z-sticky: 30;    /* in-page sticky bars */
+  --z-nav: 40;       /* global sticky nav */
+  --z-dropdown: 50;  /* menus anchored to a control */
+  --z-backdrop: 100; /* modal scrim */
+  --z-modal: 110;
+  --z-toast: 120;
+  --z-tooltip: 130;
 
   --radius-sm: 6px;
   --radius: 10px;
@@ -62,7 +87,7 @@ a { color: inherit; text-decoration: none; }
 /* Page backdrop */
 .cl-page { min-height: 100vh; position: relative; isolation: isolate; overflow-x: hidden; }
 .cl-page::before, .cl-page::after {
-  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: -1;
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: var(--z-behind);
 }
 .cl-page::before {
   background:
@@ -78,7 +103,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* Nav */
-.cl-nav { position: sticky; top: 0; z-index: 40; backdrop-filter: blur(14px) saturate(160%); background: rgba(7, 8, 12, 0.72); border-bottom: 1px solid var(--stroke); }
+.cl-nav { position: sticky; top: 0; z-index: var(--z-nav); backdrop-filter: blur(14px) saturate(160%); background: rgba(7, 8, 12, 0.72); border-bottom: 1px solid var(--stroke); }
 .cl-nav-inner { max-width: 1200px; margin: 0 auto; padding: 14px 28px; display: flex; align-items: center; gap: 28px; }
 .cl-brand { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: 17px; letter-spacing: -0.01em; }
 .cl-brand-mark { width: 26px; height: 26px; border-radius: 50%; background: radial-gradient(circle at 30% 28%, #FFF5B0 0%, var(--lemon) 38%, #C89E00 100%); box-shadow: 0 0 0 1px rgba(255,225,64,0.35), 0 6px 14px -4px rgba(255,225,64,0.45), inset -2px -3px 5px rgba(0,0,0,0.18); position: relative; flex-shrink: 0; }
@@ -91,6 +116,20 @@ a { color: inherit; text-decoration: none; }
 .cl-nav-link:hover { color: var(--text); }
 .cl-nav-link.active { color: var(--text); }
 .cl-nav-link.active::after { content: ''; position: absolute; left: 0; right: 0; bottom: -16px; height: 2px; background: var(--cyan); border-radius: 2px; }
+
+/* Focus — one visible ring for every interactive element, so keyboard users get
+   the same signal everywhere instead of the browser default on some controls and
+   a designed ring on others. :focus-visible keeps it off mouse clicks.
+   Cyan on the dark surfaces is ≥9:1, well clear of the 3:1 required for a
+   non-text indicator. Inputs keep their own inline treatment below. */
+.cl-btn:focus-visible,
+.cl-nav-link:focus-visible,
+.cl-tab:focus-visible,
+.cl-nav-mobile-link:focus-visible,
+.cl-chip:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+}
 
 /* Buttons */
 .cl-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: var(--radius-sm); font-weight: 500; font-size: 13px; border: 1px solid transparent; transition: all .15s ease; white-space: nowrap; background: none; color: inherit; }
@@ -177,9 +216,15 @@ a { color: inherit; text-decoration: none; }
 .cl-tbl tbody tr:last-child td { border-bottom: none; }
 /* The title link is what makes a clickable row reachable by keyboard, so it
    needs a focus ring that reads against the row's own hover tint. */
-.cl-tbl-link { display: inline-block; border-radius: 3px; }
+/* Negative margin cancels the padding, so the hit area grows to the 24px minimum
+   without changing the row's visual rhythm. */
+.cl-tbl-link { display: inline-block; border-radius: 3px; padding: 4px 0; margin: -4px 0; }
 .cl-tbl-link:hover { text-decoration: underline; text-underline-offset: 3px; }
 .cl-tbl-link:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+
+/* Same treatment for the other sub-24px text links. */
+.cl-hit-24 { display: inline-flex; align-items: center; padding: 4px 0; margin: -4px 0; border-radius: 3px; }
+.cl-hit-24:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
 
 /* Monaco editor overrides */
 .monaco-editor .view-lines { padding-left: 12px; }
@@ -218,7 +263,7 @@ a { color: inherit; text-decoration: none; }
 .bdg-glow {
   position: absolute;
   inset: -22% -22% 14% -22%;
-  z-index: -1;
+  z-index: var(--z-behind);
   background:
     radial-gradient(closest-side, var(--bdg-glow) 0%, var(--bdg-glow-soft) 38%, transparent 72%);
   filter: blur(6px);
@@ -309,7 +354,7 @@ a { color: inherit; text-decoration: none; }
     inset 0 1px 0 color-mix(in srgb, white 35%, transparent),
     inset 0 -1px 0 color-mix(in srgb, black 30%, transparent),
     0 8px 14px -4px rgba(0,0,0,0.45);
-  z-index: 1;
+  z-index: var(--z-raised);
 }
 .bdg-ribbon-text {
   font-family: var(--font-display, 'Comme', sans-serif);
@@ -356,7 +401,7 @@ a { color: inherit; text-decoration: none; }
   opacity: 0;
   pointer-events: none;
   transition: opacity .18s ease, transform .18s ease;
-  z-index: 10;
+  z-index: var(--z-local);
 }
 .bdg-tip.is-open {
   opacity: 1;
@@ -387,6 +432,26 @@ a { color: inherit; text-decoration: none; }
 
 @keyframes cl-blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
 .cl-blink { animation: cl-blink 1s infinite; }
+
+/* Spinner — the one loading indicator. The app previously mixed NextUI's Spinner,
+   react-spinners' ScaleLoader and bare "Loading…" text, which meant three different
+   answers to the same question depending on which screen you were on. */
+.cl-spinner {
+  display: inline-block; flex-shrink: 0; box-sizing: border-box;
+  border-radius: 50%;
+  border: 2px solid rgba(34, 211, 238, 0.22);
+  border-top-color: var(--cyan);
+  animation: cl-spin .7s linear infinite;
+}
+@keyframes cl-spin { to { transform: rotate(360deg); } }
+
+/* The global reduced-motion rule below zeroes animation-duration, which would
+   freeze the ring mid-rotation and read as broken. Give it a designed resting
+   state instead: a complete, evenly dim ring. The role="status" label on the
+   element is what actually announces "loading" either way. */
+@media (prefers-reduced-motion: reduce) {
+  .cl-spinner { border-color: rgba(34, 211, 238, 0.45); }
+}
 
 /* ────────────────────────────────────────────────────────────
    Responsive — landing layout + shared nav.

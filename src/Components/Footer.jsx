@@ -36,8 +36,8 @@ export default function Footer() {
       </div>
       <div className="cl-container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 20, borderTop: "1px solid var(--stroke)", fontSize: 12, flexWrap: "wrap", gap: 10 }}>
         <span>© {new Date().getFullYear()} CodingLemon. Crafted with curiosity.</span>
-        <a href={GITHUB_URL} target="_blank" rel="noreferrer noopener"
-          style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--text-mute)" }}
+        <a href={GITHUB_URL} target="_blank" rel="noreferrer noopener" className="cl-hit-24"
+          style={{ gap: 6, color: "var(--text-mute)" }}
           onMouseOver={(e) => (e.currentTarget.style.color = "var(--text)")}
           onMouseOut={(e) => (e.currentTarget.style.color = "var(--text-mute)")}>
           <Icon name="github" size={13} /> Source on GitHub

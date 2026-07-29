@@ -69,7 +69,7 @@
 .pf-editbar {
   position: sticky;
   top: 64px;
-  z-index: 30;
+  z-index: var(--z-sticky);
   display: flex;
   align-items: center;
   gap: 14px;
@@ -116,7 +116,7 @@
 .pf-id {
   position: sticky;
   top: 84px;
-  z-index: 5;
+  z-index: var(--z-raised);
   background: linear-gradient(180deg, var(--bg-1), var(--bg-0));
   border: 1px solid var(--stroke-1);
   border-radius: var(--radius-lg);
@@ -238,7 +238,7 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity .18s ease, transform .18s ease;
-  z-index: 10;
+  z-index: var(--z-local);
 }
 .pf-rank-badge:hover .pf-rank-tip,
 .pf-rank-badge:focus-visible .pf-rank-tip {
@@ -293,7 +293,7 @@
 .pf-detail-main { min-width: 0; flex: 1; padding-top: 1px; }
 .pf-detail-primary { color: var(--text); font-weight: 500; font-size: 13.5px; line-height: 1.35; }
 .pf-detail-secondary { color: var(--text-mute); font-size: 12px; margin-top: 2px; }
-.pf-none { color: var(--text-faint); font-style: italic; font-size: 12.5px; }
+.pf-none { color: var(--text-mute); font-style: italic; font-size: 12.5px; }
 
 /* work experience entry */
 .pf-exp {
@@ -553,12 +553,12 @@
   color: var(--text); font-size: 13px; font-family: var(--font-sans); outline: none;
   transition: all .14s ease;
 }
-.pf-input::placeholder { color: var(--text-faint); }
+.pf-input::placeholder { color: var(--text-mute); }
 .pf-input:focus { border-color: rgba(34,211,238,0.5); box-shadow: 0 0 0 3px rgba(34,211,238,0.12); background: var(--bg-2); }
 .pf-input-sm { height: 32px; font-size: 12.5px; }
 .pf-select { cursor: pointer; }
 .pf-select option { background: var(--bg-2); color: var(--text); }
-.pf-select-empty { color: var(--text-faint); }
+.pf-select-empty { color: var(--text-mute); }
 .pf-edit-row { display: flex; gap: 8px; }
 .pf-edit-stack { display: flex; flex-direction: column; gap: 10px; }
 
@@ -608,7 +608,7 @@
 
 /* ── confirmation dialog ─────────────────────────────────────── */
 .pf-overlay {
-  position: fixed; inset: 0; z-index: 200;
+  position: fixed; inset: 0; z-index: var(--z-backdrop);
   background: rgba(4,5,9,0.7);
   backdrop-filter: blur(6px);
   display: grid; place-items: center;
@@ -623,7 +623,10 @@
   border-radius: var(--radius-lg);
   box-shadow: 0 40px 80px -20px rgba(0,0,0,0.8);
   padding: 24px;
-  animation: pf-pop .2s cubic-bezier(.2,.9,.3,1.2);
+  /* ease-out-quint, matching Toast. The previous curve ended at 1.2, so the
+     dialog overshot past full size and settled back — a pop that reads as
+     dated and works against a calm, low-pressure tone. */
+  animation: pf-pop .2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 @keyframes pf-pop { from { opacity: 0; transform: scale(.94) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 .pf-dialog-icon {
@@ -685,7 +688,7 @@
 
 /* toast */
 .pf-toast {
-  position: fixed; right: 24px; bottom: 24px; z-index: 300;
+  position: fixed; right: 24px; bottom: 24px; z-index: var(--z-toast);
   display: flex; align-items: center; gap: 11px;
   padding: 13px 18px; border-radius: 12px;
   background: linear-gradient(180deg, var(--bg-2), var(--bg-1));

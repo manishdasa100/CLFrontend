@@ -30,7 +30,7 @@ export default function MultiSelect({ label, selected, onChange, options }) {
         <Icon name="chevron" size={12} style={{ color: "var(--text-mute)" }} />
       </button>
       {open && (
-        <div style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 50, background: "var(--bg-1)", border: "1px solid var(--stroke-1)", borderRadius: 10, minWidth: 180, maxHeight: 240, overflowY: "auto", boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}>
+        <div style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: "var(--z-dropdown)", background: "var(--bg-1)", border: "1px solid var(--stroke-1)", borderRadius: 10, minWidth: 180, maxHeight: 240, overflowY: "auto", boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}>
           {options.map((o) => (
             <label
               key={o.v}

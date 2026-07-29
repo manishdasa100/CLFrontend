@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Spinner } from "@nextui-org/react";
 import Icon from "../Components/Icon";
+import Spinner from "../Components/Spinner";
 import MultiSelect from "../Components/MultiSelect";
 import ProblemOfTheDayCard from "../Components/ProblemOfTheDayCard";
 import Badge from "../Components/Badge";
@@ -109,7 +109,7 @@ const ProblemsTab = () => {
           </thead>
           <tbody>
             {(isLoading || isFetching) && (
-              <tr><td colSpan={6} style={{ textAlign: "center", padding: 48 }}><Spinner size="sm" color="primary" /></td></tr>
+              <tr><td colSpan={6} style={{ textAlign: "center", padding: 48 }}><Spinner size={20} label="Loading problems" /></td></tr>
             )}
             {!(isLoading || isFetching) && rows.length === 0 && (
               <tr><td colSpan={6} style={{ textAlign: "center", padding: 48, color: "var(--text-mute)" }}>No problems match. Try loosening a filter.</td></tr>

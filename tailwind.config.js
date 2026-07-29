@@ -1,37 +1,22 @@
-const { nextui } = require("@nextui-org/react");
-
 /** @type {import('tailwindcss').Config} */
 export default {
+  // NextUI is gone: its Spinner was the last component in use and is now
+  // .cl-spinner. Dropping the theme glob and plugin stops Tailwind generating
+  // every utility NextUI's theme package references — that alone was ~237 kB of
+  // the built stylesheet, for one spinner.
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
-    "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}"
   ],
   theme: {
     extend: {
-      fontFamily:{
+      fontFamily: {
         comme: ['Comme', 'sans-serif'],
-        geist:['Geist', 'sans-serif'],
+        geist: ['Geist', 'sans-serif'],
       },
-      colors:{
-        'stroke-gray':'#555555',
-        'text-gray':'#AAAAAA',
-        'text-gray-dark':'#787878',
-        'primary-green':'#00E89B',
-        'primary-blue': '#006FEE',
-        'ivory-blue': '#2F3E5C',
-        'app-background-color': '#05080E'
-      },
-      keyframes:{
-        reverseSpin:{
-          'to':{transform:'rotate(-360deg)'}
-        }
-      },
-      animation:{
-        reverseSpin: 'reverseSpin 1s linear infinite' 
-      }
+      // The legacy palette that used to live here was only referenced by
+      // components deleted in this pass. Colour now comes from tokens.css.
     },
   },
-  plugins: [nextui()],
+  plugins: [],
 }
-

@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { ScaleLoader } from "react-spinners";
-import { Spinner } from "@nextui-org/react";
+import Spinner from "../Components/Spinner";
 import { useQueryClient } from "react-query";
 import { useProblemByIdData, useUserLists, useAddToListMutation, useCreateListMutation, useSubmissions } from "../services/queries";
 import CodeEditor from "../Components/CodeEditor";
@@ -116,7 +115,7 @@ const SubmissionsView = ({ problemId }) => {
   if (isLoading) {
     return (
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, color: "var(--text-mute)", fontSize: 13 }}>
-        <Spinner size="sm" color="primary" /> Loading submissions…
+        <Spinner label="Loading submissions" /> Loading submissions…
       </div>
     );
   }
@@ -151,7 +150,7 @@ const SubmissionsView = ({ problemId }) => {
         <span className="cl-mono" style={{ fontSize: 13, color: "var(--text)" }}>{submissions.length}</span>
         <span style={{ fontSize: 12, color: "var(--text-mute)" }}>{submissions.length === 1 ? "submission" : "submissions"}</span>
         {accepted > 0 && <span style={{ fontSize: 11.5, color: "var(--easy)" }}>· {accepted} accepted</span>}
-        {isFetching && <Spinner size="sm" color="primary" style={{ marginLeft: 4 }} />}
+        {isFetching && <Spinner size={14} label="Refreshing" style={{ marginLeft: 4 }} />}
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -245,7 +244,7 @@ export default function ProblemDetailsPage() {
   if (isLoading || isFetching) {
     return (
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "calc(100vh - 80px)" }}>
-        <ScaleLoader loading color="#22D3EE" height={25} width={2} speedMultiplier={0.5} />
+        <Spinner size={28} label="Loading problem" />
         <div style={{ color: "var(--text-dim)", marginLeft: 12, fontSize: 14 }}>Loading problem…</div>
       </div>
     );
@@ -276,9 +275,9 @@ export default function ProblemDetailsPage() {
       {/* ── Breadcrumb bar ── */}
       <div className="cl-pd-crumb">
         <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
-          <Link to="/arena/problemset" style={{ color: "var(--text-mute)", textDecoration: "none" }}>arena</Link>
+          <Link to="/arena/problemset" className="cl-hit-24" style={{ color: "var(--text-mute)" }}>arena</Link>
           <span style={{ color: "var(--stroke-2)" }}>/</span>
-          <Link to="/arena/problemset" style={{ color: "var(--text-mute)", textDecoration: "none" }}>problemset</Link>
+          <Link to="/arena/problemset" className="cl-hit-24" style={{ color: "var(--text-mute)" }}>problemset</Link>
           <span style={{ color: "var(--stroke-2)" }}>/</span>
           <span style={{ color: "var(--text-dim)", fontFamily: "var(--font-mono)" }}>#{data.id}</span>
         </div>
@@ -513,7 +512,7 @@ export default function ProblemDetailsPage() {
                     <button style={{ background: "none", border: "none", cursor: "pointer", padding: "10px 8px", fontSize: 13, color: "var(--text-mute)" }}>+Add</button>
                     {resultState?.status === "loading" && (
                       <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6, paddingRight: 4 }}>
-                        <Spinner size="sm" color="primary" />
+                        <Spinner size={13} label={resultState.isRun ? "Running" : "Judging"} />
                         <span style={{ fontSize: 11, color: "var(--text-mute)" }}>{resultState.isRun ? "Running…" : "Judging…"}</span>
                       </span>
                     )}
@@ -525,7 +524,7 @@ export default function ProblemDetailsPage() {
               <div style={{ padding: "14px 18px", fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--text-dim)", overflowY: "auto", flex: 1 }}>
                 {resultState?.status === "loading" ? (
                   <div style={{ display: "flex", alignItems: "center", gap: 10, color: "var(--text-mute)", padding: "10px 0" }}>
-                    <Spinner size="sm" color="primary" />
+                    <Spinner label={resultState.isRun ? "Running your code" : "Judging your submission"} />
                     <span>{resultState.isRun ? "Running your code…" : "Judging your submission…"}</span>
                   </div>
                 ) : resultState?.status === "error" ? (
@@ -629,10 +628,10 @@ const SaveToListPopup = ({ problemId, username, onClose, onToast }) => {
 
   return (
     <>
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.55)" }} />
+      <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: "var(--z-backdrop)", background: "rgba(0,0,0,0.55)" }} />
 
       <div style={{
-        position: "fixed", zIndex: 1001,
+        position: "fixed", zIndex: "var(--z-modal)",
         top: "50%", left: "50%", transform: "translate(-50%, -50%)",
         background: "var(--bg-1)", border: "1px solid var(--stroke-1)",
         borderRadius: 12, padding: "20px 20px 16px", width: 320,
@@ -648,7 +647,7 @@ const SaveToListPopup = ({ problemId, username, onClose, onToast }) => {
             <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 12, maxHeight: 180, overflowY: "auto" }}>
               {isLoading ? (
                 <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 0", color: "var(--text-mute)", fontSize: 13 }}>
-                  <Spinner size="sm" color="primary" /> Loading lists…
+                  <Spinner label="Loading lists" /> Loading lists…
                 </div>
               ) : lists.length === 0 ? (
                 <div style={{ color: "var(--text-mute)", fontSize: 13, padding: "8px 0" }}>No lists yet. Create one below.</div>

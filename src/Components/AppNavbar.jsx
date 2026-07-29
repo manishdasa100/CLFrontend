@@ -80,7 +80,7 @@ export default function AppNavbar() {
                     position: "absolute", top: "calc(100% + 8px)", right: 0,
                     background: "var(--bg-2)", border: "1px solid var(--stroke)",
                     borderRadius: 10, padding: 6, minWidth: 160,
-                    boxShadow: "0 8px 24px rgba(0,0,0,0.4)", zIndex: 100,
+                    boxShadow: "0 8px 24px rgba(0,0,0,0.4)", zIndex: "var(--z-dropdown)",
                   }}>
                     <div style={{ padding: "6px 10px 8px", borderBottom: "1px solid var(--stroke)" }}>
                       <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text)" }}>{user?.firstName} {user?.lastName}</div>

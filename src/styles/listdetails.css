@@ -340,14 +340,14 @@
   width: 2px;
   transform: translateX(-1px);
   background: var(--stroke-2);
-  z-index: 0;
+  z-index: var(--z-base);
 }
 .ld-track.is-plan > li:first-child::before { top: 32px; }
 .ld-track.is-plan > li:last-child::before { bottom: calc(100% - 32px); }
 
 .ld-item {
   position: relative;
-  z-index: 1;
+  z-index: var(--z-raised);
   display: grid;
   grid-template-columns: 32px minmax(0, 1fr) auto auto;
   align-items: start;

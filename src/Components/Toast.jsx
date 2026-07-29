@@ -17,7 +17,7 @@ export default function Toast({ message, state = "failure", onClose }) {
       role={state === "failure" ? "alert" : "status"}
       aria-live={state === "failure" ? "assertive" : "polite"}
       style={{
-        position: "fixed", bottom: 24, right: 24, zIndex: 1000,
+        position: "fixed", bottom: 24, right: 24, zIndex: "var(--z-toast)",
         display: "flex", alignItems: "center", gap: 10,
         background: "var(--bg-2)", border: `1px solid ${borderColor}`,
         borderRadius: 10, padding: "12px 16px", boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
