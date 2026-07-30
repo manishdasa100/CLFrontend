@@ -167,7 +167,7 @@ export default function ProblemDetailsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useUser();
-  const [fullScreen, setFullScreen] = useState(false);
+  const [fullScreenPref, setFullScreenPref] = useState(false);
   const [liked, setLiked] = useState(false);
   const [listPopupOpen, setListPopupOpen] = useState(false);
   const [toast, setToast] = useState(null); // { message, state }
@@ -177,7 +177,7 @@ export default function ProblemDetailsPage() {
   const [runTab, setRunTab] = useState(0);
 
   const { isLoading, isFetching, data, isError, error } = useProblemByIdData(id);
-  const toggleFull = () => setFullScreen((v) => !v);
+  const toggleFull = () => setFullScreenPref((v) => !v);
 
   // On a narrow screen the results panel isn't on screen when you hit Run, so bring
   // it forward — otherwise the verdict lands somewhere the learner can't see.
@@ -204,6 +204,16 @@ export default function ProblemDetailsPage() {
   // phone gives a 156px description beside a 234px editor. Show one at a time instead.
   const compact = useMediaQuery("(max-width: 1023px)");
   const [pane, setPane] = useState("problem"); // problem | code | result
+
+  // Fullscreen is a wide-screen affordance only: once the layout collapses to one
+  // pane at a time, every pane already owns the whole screen, so there's nothing
+  // for it to expand into. Leaving it live also broke the Problem tab — the left
+  // panel renders on `!fullScreen` and the right one hides on pane === "problem",
+  // so with fullscreen on, switching to Problem hid both and left a blank screen.
+  // Deriving it here rather than clearing the state on resize means a desktop
+  // user who narrows their window can't get stuck in it either, and gets their
+  // fullscreen back when they widen again.
+  const fullScreen = fullScreenPref && !compact;
 
   useEffect(() => {
     if (rightColRef.current) {
@@ -450,7 +460,14 @@ export default function ProblemDetailsPage() {
             <div style={compact
               ? { flex: 1, minHeight: 0 }
               : { height: editorHeightPx != null ? `${editorHeightPx}px` : "68%", flexShrink: 0, minHeight: MIN_EDITOR_H }}>
-              <CodeEditor codeSnippets={codeSnippets} toggleFullScreenEditor={toggleFull} onPending={handlePending} onResult={handleResult} />
+              {/* No toggle when compact — CodeEditor drops the button entirely. */}
+              <CodeEditor
+                codeSnippets={codeSnippets}
+                toggleFullScreenEditor={compact ? null : toggleFull}
+                isFullScreen={fullScreen}
+                onPending={handlePending}
+                onResult={handleResult}
+              />
             </div>
           )}
 
@@ -478,7 +495,7 @@ export default function ProblemDetailsPage() {
                 {/* Run result: tabs with pass/fail dots */}
                 {resultState?.status === "done" && resultState.isRun ? (
                   <>
-                    <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".08em", color: "var(--text-dim)", padding: "10px 6px 10px 0", marginRight: 6 }}>TESTCASES</span>
+                    <span className="cl-picker-label" style={{ padding: "10px 6px 10px 0", marginRight: 6 }}>Testcases</span>
                     {resultState.report.testcaseResults.map((r, i) => (
                       <button key={i} onClick={() => setRunTab(i)} style={{ background: "none", border: "none", cursor: "pointer", padding: "10px 10px", fontSize: 12, display: "flex", alignItems: "center", gap: 5, color: runTab === i ? "var(--text)" : "var(--text-dim)", borderBottom: runTab === i ? "2px solid var(--cyan)" : "2px solid transparent", marginBottom: -1, fontWeight: runTab === i ? 600 : 400 }}>
                         <span style={{ fontSize: 8, color: r.status === "PASSED" ? "var(--easy)" : "var(--hard)" }}>●</span>
@@ -503,7 +520,7 @@ export default function ProblemDetailsPage() {
                 ) : (
                   /* Default + loading: normal case tabs */
                   <>
-                    <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".08em", color: "var(--text-dim)", padding: "10px 6px 10px 0", marginRight: 6 }}>TESTCASES</span>
+                    <span className="cl-picker-label" style={{ padding: "10px 6px 10px 0", marginRight: 6 }}>Testcases</span>
                     {examples.map((_, i) => (
                       <button key={i} onClick={() => setTestcaseIdx(i)} style={{ background: "none", border: "none", cursor: "pointer", padding: "10px 10px", fontSize: 12, color: testcaseIdx === i ? "var(--text)" : "var(--text-dim)", borderBottom: testcaseIdx === i ? "2px solid var(--cyan)" : "2px solid transparent", marginBottom: -1, fontWeight: testcaseIdx === i ? 600 : 400 }}>
                         Case {i + 1}

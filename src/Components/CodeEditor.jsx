@@ -7,7 +7,7 @@ import { submitCode, checkSubmission } from "../services/api";
 
 const codeKey = (id, lang) => `acecode_code_${id}_${lang}`;
 
-export default function CodeEditor({ codeSnippets, toggleFullScreenEditor, onPending, onResult }) {
+export default function CodeEditor({ codeSnippets, toggleFullScreenEditor, isFullScreen, onPending, onResult }) {
   const { id } = useParams();
 
   const initLang = codeSnippets?.[0]?.languageCode?.toLowerCase() || "java";
@@ -80,7 +80,7 @@ export default function CodeEditor({ codeSnippets, toggleFullScreenEditor, onPen
     <div className="cl-card" style={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden", borderRadius: 0 }}>
       <div style={{ display: "flex", alignItems: "center", padding: "8px 14px", borderBottom: "1px solid var(--stroke)", gap: 10, background: "var(--bg-1)" }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "0 4px 0 10px", border: "1px solid var(--stroke-1)", borderRadius: 8, height: 32, background: "var(--bg-2)" }}>
-          <span style={{ fontSize: 11, color: "var(--text-mute)", textTransform: "uppercase", letterSpacing: ".1em" }}>Language</span>
+          <span className="cl-picker-label">Language</span>
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
@@ -101,7 +101,21 @@ export default function CodeEditor({ codeSnippets, toggleFullScreenEditor, onPen
         <button className="cl-btn cl-btn-primary cl-btn-sm" onClick={() => execute(false)} disabled={!!action}>
           {action === "submit" ? "Submitting…" : "Submit"}
         </button>
-        <button className="cl-btn cl-btn-icon" onClick={toggleFullScreenEditor}><Icon name="expand" size={13} /></button>
+        {/* Omitted on narrow screens, where the caller passes no handler: the
+            editor already fills its pane there, so there is nothing to expand.
+            It was also a bare icon with no accessible name and no indication of
+            which state it was in. */}
+        {toggleFullScreenEditor && (
+          <button
+            className="cl-btn cl-btn-icon"
+            onClick={toggleFullScreenEditor}
+            aria-pressed={isFullScreen}
+            aria-label={isFullScreen ? "Exit full screen editor" : "Expand editor to full screen"}
+            title={isFullScreen ? "Exit full screen" : "Full screen editor"}
+          >
+            <Icon name={isFullScreen ? "collapse" : "expand"} size={13} />
+          </button>
+        )}
       </div>
       <div style={{ flex: 1, minHeight: 0 }}>
         <Editor

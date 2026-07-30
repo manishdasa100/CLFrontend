@@ -21,6 +21,10 @@ const PATHS = {
   eyeOff: <><path d="M3 3l18 18M10.58 10.58a3 3 0 0 0 4.24 4.24M9.88 4.24A9.6 9.6 0 0 1 12 4c6.5 0 10 8 10 8a17 17 0 0 1-3.17 4.08M6.17 6.17C3.47 7.95 2 12 2 12s3.5 8 10 8c1.56 0 3-.36 4.3-.93" /></>,
   arrowRight: <path d="M5 12h14M13 5l7 7-7 7" />,
   expand: <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />,
+  /* Same four corner brackets as expand, turned to point inward. Corners sit at
+     8/16 rather than mirroring expand's 4/20 exactly: at 13px the tighter gap
+     closed up into a blob instead of reading as four brackets. */
+  collapse: <path d="M8 3v5H3M16 3v5h5M8 21v-5H3M16 21v-5h5" />,
   close: <path d="M6 6l12 12M18 6L6 18" />,
   plus: <path d="M12 5v14M5 12h14" />,
   sparkle: <path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" />,
