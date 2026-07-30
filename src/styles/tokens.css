@@ -529,6 +529,18 @@ a { color: inherit; text-decoration: none; }
 .cl-auth-main { flex: 1 1 55%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 24px; }
 .cl-auth-namerow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
+/* ── Learn tracks grid ──
+   auto-fit rather than breakpoints: a track card needs ~240px before its title,
+   description and progress row stop fitting, and letting the browser decide how
+   many fit lands on 4-up at 1200+ (unchanged from the hardcoded repeat(4, 1fr))
+   down to 1-up on a phone, with no breakpoint to keep in sync. */
+.cl-learn-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+.cl-learn-grid > * { min-width: 0; }
+
 /* ── Arena header cards ──
    Problem-of-the-day is the lead card, so on tablet it takes the full row and
    the two stat cards share the one below, rather than all three shrinking. */

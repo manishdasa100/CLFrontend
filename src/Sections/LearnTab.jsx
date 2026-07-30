@@ -34,7 +34,10 @@ const GRADIENTS = [
 export default function LearnTab() {
   return (
     <div className="cl-container" style={{ paddingBottom: 40 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+      {/* Columns live in tokens.css — inline they were a hardcoded repeat(4, 1fr)
+          that no media query could override, so a phone got four ~75px columns
+          and "Track 01" collided with "17 problems". */}
+      <div className="cl-learn-grid">
         {TRACKS.map((c, i) => <TrackCard key={c.id} c={c} grad={GRADIENTS[i % GRADIENTS.length]} />)}
       </div>
     </div>
