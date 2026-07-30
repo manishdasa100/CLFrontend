@@ -16,13 +16,19 @@ const TRACKS = [
   { id: 12, t: "Bit Manipulation", d: "XOR tricks, subsets, packing — from party tricks to production code.", prog: 0, items: 9 },
 ];
 
+/* Four steps along the cyan → lemon axis, at roughly half the old intensity.
+   There were six gradients, and three of them spent the app's difficulty colours
+   — mint, rose, amber — on decoration, so a learner could read "easy" off a
+   Binary Search header and "hard" off a Binary Tree one. A fourth was a violet
+   the token set doesn't contain. Twelve cards over four steps still gives the
+   grid a rhythm; it just stops saying something it doesn't mean.
+   Three, not four: the grid is four columns wide, so four gradients gave every
+   column a single colour and made the columns look like they meant something.
+   Three cycles diagonally across the rows. */
 const GRADIENTS = [
-  "rgba(34,211,238,0.45) 0%, rgba(8,145,178,0.3) 100%",
-  "rgba(255,225,64,0.45) 0%, rgba(217,184,0,0.3) 100%",
-  "rgba(110,231,183,0.45) 0%, rgba(5,150,105,0.3) 100%",
-  "rgba(167,139,250,0.45) 0%, rgba(109,40,217,0.3) 100%",
-  "rgba(251,113,133,0.45) 0%, rgba(190,18,60,0.3) 100%",
-  "rgba(252,211,77,0.45) 0%, rgba(180,83,9,0.3) 100%",
+  "rgba(34,211,238,0.30) 0%, rgba(8,145,178,0.14) 100%",
+  "rgba(165,243,252,0.22) 0%, rgba(34,211,238,0.11) 100%",
+  "rgba(255,225,64,0.26) 0%, rgba(217,184,0,0.13) 100%",
 ];
 
 export default function LearnTab() {
@@ -39,10 +45,14 @@ const TrackCard = ({ c, grad }) => (
   <Link to="#" className="cl-card cl-learn-card" style={{ padding: 0, overflow: "hidden", textDecoration: "none", color: "inherit" }}>
     <div style={{ height: 90, background: `linear-gradient(135deg, ${grad})`, position: "relative" }}>
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent, rgba(7,8,12,.85))" }} />
-      <div className="cl-mono" style={{ position: "absolute", top: 12, left: 14, fontSize: 10, color: "rgba(255,255,255,.8)", letterSpacing: ".15em" }}>
-        TRACK · {String(c.id).padStart(2, "0")}
+      {/* These numbers stay. The tracks are a curriculum — Arrays before Two
+          Pointers before Binary Search — so the order is information a beginner
+          needs, which is the case the numbered-marker ban carves out. Only the
+          shouting goes: .15em tracking and full caps down to a plain label. */}
+      <div className="cl-mono" style={{ position: "absolute", top: 12, left: 14, fontSize: 10.5, color: "rgba(255,255,255,.85)", letterSpacing: ".04em" }}>
+        Track {String(c.id).padStart(2, "0")}
       </div>
-      <div className="cl-mono" style={{ position: "absolute", top: 12, right: 14, fontSize: 10, color: "rgba(255,255,255,.8)" }}>
+      <div className="cl-mono" style={{ position: "absolute", top: 12, right: 14, fontSize: 10.5, color: "rgba(255,255,255,.75)" }}>
         {c.items} problems
       </div>
     </div>

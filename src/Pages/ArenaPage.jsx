@@ -24,8 +24,9 @@ const ArenaPage = () => {
         <>
           <div className="cl-container" style={{ paddingTop: 32, width: "100%"}}>
             {/* Greeting */}
+            {/* "Your Arena" over the greeting was a third label for a page the
+                nav and the tab row already name. */}
             <div style={{ display: "flex", flexDirection: "column", marginBottom: 18}}>
-              <span className="cl-eyebrow" style={{ marginBottom: 5 }}>Your Arena</span>
               <div style={{ fontFamily: "var(--font-display)", fontSize: 30, fontWeight: 600, letterSpacing: "-0.02em" }}>
                 Good to see you, <span style={{ color: "var(--cyan)" }}>{user?.firstName ?? "..."}</span>.
               </div>

@@ -70,7 +70,7 @@ const ProblemsTab = () => {
         </div>
 
         <div style={{ padding: "14px 22px", display: "flex", gap: 10, borderBottom: "1px solid var(--stroke)", alignItems: "center", flexWrap: "wrap" }}>
-          <span style={{ fontSize: 11, color: "var(--text-mute)", textTransform: "uppercase", letterSpacing: ".1em", marginRight: 4 }}>Filters:</span>
+          <span className="cl-picker-label" style={{ marginRight: 4 }}>Filters</span>
           <Picker label="Difficulty" value={difficulty} onChange={(v) => { setDifficulty(v); setPage(1); }} options={[
             { v: "all", l: "All" }, { v: "easy", l: "Easy" }, { v: "medium", l: "Medium" }, { v: "hard", l: "Hard" },
           ]} />
@@ -151,7 +151,7 @@ const ProblemsTab = () => {
 
         <div style={{ padding: "14px 22px", display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--stroke)", flexWrap: "wrap", gap: 12 }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "0 4px 0 10px", border: "1px solid var(--stroke-1)", borderRadius: 8, height: 38, background: "var(--bg-1)" }}>
-            <span style={{ fontSize: 11, color: "var(--text-mute)", textTransform: "uppercase", letterSpacing: ".1em" }}>Rows</span>
+            <span className="cl-picker-label">Rows</span>
             <select
               className="cl-input"
               value={rowsPerPage}
@@ -330,7 +330,7 @@ const ProgressCard = () => {
 
           {/* overflow:hidden is a backstop — percentages are already clamped above,
               but a bar that can never escape its track can never break the page. */}
-          <div style={{ display: "flex", gap: 4, alignItems: "stretch", height: 20, overflow: "hidden" }}>
+          <div style={{ display: "flex", gap: 4, alignItems: "stretch", height: 10, overflow: "hidden" }}>
             {segments.filter((seg) => seg.pct > 0).map((seg) => (
               <div
                 key={seg.key}

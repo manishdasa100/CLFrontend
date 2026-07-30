@@ -18,7 +18,7 @@ export default function ProblemOfTheDayCard() {
       display: "flex",
       flexDirection: "column",
     }}>
-      <div className="cl-eyebrow" style={{fontSize: 13, color: "var(--lemon)"}}>problem of the day</div>
+      <div className="cl-eyebrow" style={{fontSize: 13, color: "var(--lemon)"}}>Problem of the day</div>
 
       <div style={{
         fontFamily: "var(--font-display)",
@@ -53,18 +53,22 @@ export default function ProblemOfTheDayCard() {
         </Link>
       )}
 
-      {/* Decorative lemon orb — vertically centred on the right */}
-      <div style={{
+      {/* Decorative lemon orb. It used to be a hard-edged 160px disc at 0.60 —
+          opaque enough to read as a mis-cropped image sitting on top of the card
+          and the single loudest thing in the Arena. Pushed further off the edge,
+          dropped to a third of the opacity and softened, it does what it was
+          meant to: tint the corner of the card. */}
+      <div aria-hidden="true" style={{
         position: "absolute",
-        right: -30,
+        right: -56,
         top: "50%",
-        transform: "translateY(-80%)",
-        width: 160,
-        height: 160,
+        transform: "translateY(-72%)",
+        width: 170,
+        height: 170,
         borderRadius: "50%",
         background: "radial-gradient(circle at 30% 28%, #FFF5B0 0%, #FFE140 40%, #C89E00 100%)",
-        opacity: 0.60,
-        filter: "blur(0px)",
+        opacity: 0.22,
+        filter: "blur(14px)",
         pointerEvents: "none",
       }} />
     </div>

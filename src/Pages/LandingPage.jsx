@@ -25,11 +25,15 @@ const Hero = ({ user }) => (
   <section style={{ padding: "80px 0 60px" }}>
     <div className="cl-container cl-hero-grid">
       <div>
-        <div className="cl-eyebrow" style={{ marginBottom: 20 }}>// when life gives you lemons</div>
+        {/* The one deliberate kicker on the site, and not interchangeable with the
+            five section eyebrows that came out around it: this is the setup and
+            the h1 is the punchline — "make lemonade" doesn't land without it.
+            It gets its own class rather than .cl-eyebrow so nothing can
+            accidentally reuse it as section furniture. */}
+        <div className="cl-hero-kicker">// when life gives you lemons</div>
         <h1 className="cl-h1">
           make lemonade<br />
           and <span style={{ color: "var(--cyan)", fontStyle: "italic" }}>code</span>
-          <span className="cl-blink" style={{ display: "inline-block", width: 14, height: 14, marginLeft: 10, borderRadius: 3, background: "var(--cyan)", boxShadow: "0 0 20px var(--cyan)", verticalAlign: "baseline" }} />
         </h1>
         <p className="cl-lede" style={{ marginTop: 28 }}>
           A calmer way to learn data structures and algorithms. Hand-picked problems across
@@ -46,10 +50,10 @@ const Hero = ({ user }) => (
           </div>
         </div>
       </div>
-      <div style={{ position: "relative" }}>
-        <div style={{ position: "absolute", inset: -30, background: "radial-gradient(circle at 50% 50%, rgba(34,211,238,.18), transparent 60%)", filter: "blur(40px)" }} />
-        <EditorCard />
-      </div>
+      {/* The cyan bloom that used to sit behind this card was the third glow in
+          the fold, on top of the page backdrop and the card's own shadow. The
+          card reads fine on its own. */}
+      <EditorCard />
     </div>
   </section>
 );
@@ -62,7 +66,7 @@ const CodeLine = ({ n, children, caret }) => (
 );
 
 const EditorCard = () => (
-  <div aria-hidden="true" style={{ position: "relative", background: "var(--bg-1)", border: "1px solid var(--stroke-2)", borderRadius: 14, boxShadow: "0 40px 80px -20px rgba(0,0,0,.6)", overflow: "hidden" }}>
+  <div aria-hidden="true" style={{ position: "relative", background: "var(--bg-1)", border: "1px solid var(--stroke-2)", borderRadius: 14, boxShadow: "var(--shadow-panel)", overflow: "hidden" }}>
     <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", background: "var(--bg-2)", borderBottom: "1px solid var(--stroke)" }}>
       <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#FB7185" }} />
       <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#FCD34D" }} />
@@ -90,10 +94,12 @@ const EditorCard = () => (
   </div>
 );
 
-const Feature = ({ eyebrow, title, body, visual }) => (
+/* Was `01 · editor / 02 · progress / 03 · paths`. These three aren't a sequence —
+   you don't do the editor before the progress — so the numbers were pure
+   scaffolding, and each label just restated its own heading a size smaller. */
+const Feature = ({ title, body, visual }) => (
   <div className="cl-card" style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
-    <div style={{ padding: "26px 26px 20px" }}>
-      <div className="cl-eyebrow" style={{ marginBottom: 14 }}>{eyebrow}</div>
+    <div style={{ padding: "28px 26px 22px" }}>
       <h3 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 600, letterSpacing: "-0.015em", margin: 0 }}>{title}</h3>
       <p className="cl-text-dim" style={{ fontSize: 13.5, lineHeight: 1.55, marginTop: 10 }}>{body}</p>
     </div>
@@ -108,19 +114,16 @@ const Features = () => (
   <section style={{ padding: "100px 0" }}>
     <div className="cl-container">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 48, flexWrap: "wrap", gap: 24 }}>
-        <div>
-          <div className="cl-eyebrow" style={{ marginBottom: 10 }}>the craft</div>
-          <h2 className="cl-h2">Everything here helps you learn.</h2>
-        </div>
+        <h2 className="cl-h2">Everything here helps you learn.</h2>
         <p className="cl-lede" style={{ fontSize: 15, maxWidth: 420 }}>
           We sweat the small stuff — smooth keyboard flow, clear error messages, honest
           feedback — so you can focus on understanding, not fighting the tools.
         </p>
       </div>
       <div className="cl-features-grid">
-        <Feature eyebrow="01 · editor" title="An editor you'd actually pick." body="Monaco-powered, with clear error messages, one-click test runs, and a focus mode that keeps things calm — so the tool never gets in your way." visual={<EditorVis />} />
-        <Feature eyebrow="02 · progress" title="Watch yourself improve." body="Topic heatmaps, progress over time, and your full history — so you can see what's clicking and what to practice next." visual={<DonutVis />} />
-        <Feature eyebrow="03 · paths" title="Never wonder what to solve next." body="Guided routes through arrays, recursion, graphs, dynamic programming and more — a sensible order, one small step at a time." visual={<PathVis />} />
+        <Feature title="An editor you'd actually pick." body="Monaco-powered, with clear error messages, one-click test runs, and a focus mode that keeps things calm — so the tool never gets in your way." visual={<EditorVis />} />
+        <Feature title="Watch yourself improve." body="Topic heatmaps, progress over time, and your full history — so you can see what's clicking and what to practice next." visual={<DonutVis />} />
+        <Feature title="Never wonder what to solve next." body="Guided routes through arrays, recursion, graphs, dynamic programming and more — a sensible order, one small step at a time." visual={<PathVis />} />
       </div>
     </div>
   </section>
@@ -147,8 +150,8 @@ const DonutVis = () => (
       <circle cx="80" cy="80" r="60" fill="none" stroke="rgba(255,255,255,.05)" strokeWidth="14" />
       <circle cx="80" cy="80" r="60" fill="none" stroke="var(--cyan)" strokeWidth="14" strokeLinecap="round" strokeDasharray="240 377" transform="rotate(-90 80 80)" />
       <circle cx="80" cy="80" r="60" fill="none" stroke="var(--lemon)" strokeWidth="14" strokeLinecap="round" strokeDasharray="90 377" strokeDashoffset="-240" transform="rotate(-90 80 80)" />
-      <text x="80" y="76" textAnchor="middle" fill="#EDEFF4" fontFamily="Comme" fontSize="28" fontWeight="600">248</text>
-      <text x="80" y="94" textAnchor="middle" fill="#6B7385" fontFamily="JetBrains Mono" fontSize="10" letterSpacing=".1em">SOLVED</text>
+      <text x="80" y="76" textAnchor="middle" fill="var(--text)" fontFamily="Comme" fontSize="28" fontWeight="600">248</text>
+      <text x="80" y="94" textAnchor="middle" fill="var(--text-mute)" fontFamily="Geist" fontSize="10.5">solved</text>
     </svg>
   </div>
 );
@@ -176,7 +179,9 @@ const PathVis = () => (
 const LangsStrip = () => (
   <section style={{ padding: "60px 0", borderTop: "1px solid var(--stroke)" }}>
     <div className="cl-container" style={{ textAlign: "center" }}>
-      <div className="cl-eyebrow">write in what you love</div>
+      {/* This strip has no heading of its own, so the line has to carry it —
+          as a sentence, not a tracked kicker. */}
+      <p style={{ margin: 0, fontSize: 14, color: "var(--text-dim)" }}>Write in whichever language you're learning.</p>
       <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap", marginTop: 20 }}>
         {["Python", "JavaScript", "Java", "C++", "C", "Go", "Rust"].map((l) => (
           <span key={l} className="cl-chip cl-chip-mono" style={{ padding: "8px 14px", fontSize: 12 }}>{l}</span>
@@ -191,7 +196,6 @@ const ProblemShowcase = () => (
     <div className="cl-container">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
         <div>
-          <div className="cl-eyebrow" style={{ marginBottom: 10 }}>today's fresh squeeze</div>
           <h2 className="cl-h2">Start with a problem.</h2>
           <p className="cl-text-dim" style={{ marginTop: 10, fontSize: 14 }}>New here? These are a friendly place to begin.</p>
         </div>
@@ -231,7 +235,9 @@ const CTA = ({ user }) => (
       <div style={{ display: "flex", justifyContent: "center", marginBottom: 32 }}>
         <div className="cl-lemon-hero"><div className="cl-lemon-leaf" /></div>
       </div>
-      <h2 className="cl-h2">Ready to squeeze<br />some <span style={{ color: "var(--cyan)", fontStyle: "italic" }}>better code</span>?</h2>
+      {/* Cyan stays, italic doesn't — the hero already spends the one italic
+          accent this page gets, and twice reads as a tic rather than a choice. */}
+      <h2 className="cl-h2">Ready to squeeze<br />some <span style={{ color: "var(--cyan)" }}>better code</span>?</h2>
       <p className="cl-lede" style={{ margin: "20px auto 32px" }}>
         A lightweight daily habit. 15 minutes · 1 problem · compounding returns.
       </p>

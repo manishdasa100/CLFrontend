@@ -41,9 +41,14 @@
   --medium: #FCD34D;
   --hard: #FB7185;
 
-  --shadow-lemon: 0 0 0 1px rgba(255,225,64,0.18), 0 12px 40px -12px rgba(255,225,64,0.25);
-  --shadow-cyan: 0 0 0 1px rgba(34,211,238,0.20), 0 10px 32px -10px rgba(34,211,238,0.30);
-  --shadow-panel: 0 30px 60px -30px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.04) inset;
+  /* Elevation, not emission. These used to spread 32–40px of coloured light
+     behind every primary button and highlighted panel; on a near-black page
+     that reads as neon signage, which is the "hacker-terminal" anti-reference,
+     not the calm tool we're after. The 1px coloured ring stays — it's what
+     actually defines the edge — and the spread becomes an ordinary shadow. */
+  --shadow-lemon: 0 0 0 1px rgba(255,225,64,0.20), 0 6px 18px -10px rgba(0,0,0,0.7);
+  --shadow-cyan: 0 0 0 1px rgba(34,211,238,0.22), 0 6px 18px -10px rgba(0,0,0,0.7);
+  --shadow-panel: 0 16px 32px -26px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.04) inset;
 
   /* Layering — one ordered scale, so "what sits above what" is a design decision
      recorded here rather than a number invented at each call site. Was 19 ad-hoc
@@ -91,8 +96,8 @@ a { color: inherit; text-decoration: none; }
 }
 .cl-page::before {
   background:
-    radial-gradient(1100px 600px at 85% -10%, rgba(34,211,238,0.10), transparent 60%),
-    radial-gradient(900px 500px at 10% 110%, rgba(255,225,64,0.08), transparent 60%);
+    radial-gradient(1100px 600px at 85% -10%, rgba(34,211,238,0.055), transparent 60%),
+    radial-gradient(900px 500px at 10% 110%, rgba(255,225,64,0.045), transparent 60%);
 }
 .cl-page::after {
   background-image:
@@ -194,13 +199,34 @@ a { color: inherit; text-decoration: none; }
 .cl-tab { position: relative; padding: 14px 20px; font-size: 13.5px; font-weight: 500; color: var(--text-mute); transition: color .15s; background: transparent; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; flex-shrink: 0; }
 .cl-tab:hover { color: var(--text-dim); }
 .cl-tab.active { color: var(--text); }
-.cl-tab.active::after { content: ''; position: absolute; left: 16px; right: 16px; bottom: -1px; height: 2px; background: var(--cyan); box-shadow: 0 0 12px rgba(34,211,238,0.6); }
+.cl-tab.active::after { content: ''; position: absolute; left: 16px; right: 16px; bottom: -1px; height: 2px; background: var(--cyan); }
 .cl-tab-count { margin-left: 6px; font-size: 11px; padding: 2px 6px; border-radius: 99px; background: var(--bg-3); color: var(--text-mute); font-family: var(--font-mono); }
 .cl-tab.active .cl-tab-count { background: rgba(34,211,238,0.12); color: var(--cyan); }
 
 /* Typography */
-.cl-eyebrow { text-transform: uppercase; letter-spacing: 0.18em; font-size: 11px; color: var(--text-mute); font-weight: 500; font-family: var(--font-mono); }
-.cl-h1 { font-family: var(--font-display); font-weight: 600; font-size: clamp(46px, 6.2vw, 84px); line-height: 0.98; letter-spacing: -0.035em; text-wrap: balance; margin: 0; }
+/* Was mono / uppercase / 0.18em — the tracked kicker. It sat above nine
+   different headings, which is the tell: a label that appears everywhere is
+   scaffolding, not voice. The section-level ones are now deleted outright; what
+   survives is the handful that name something with no heading of its own (footer
+   columns, the problem-of-the-day card). Those still want a label, just a quiet
+   one, so this is now a plain small caption in the body face. */
+.cl-eyebrow { font-size: 12px; color: var(--text-mute); font-weight: 500; letter-spacing: 0.005em; }
+
+/* The landing hero's setup line — the only kicker on the site, deliberately.
+   Mono stays: `//` is comment syntax and needs the code face to read as one.
+   Lowercase, though, and at a fifth of the tracking: it used to render as
+   `// WHEN LIFE GIVES YOU LEMONS`, and no code comment is written in tracked
+   caps, so the shouting was working against the joke it was setting up. */
+.cl-hero-kicker {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  letter-spacing: 0.035em;
+  color: var(--text-mute);
+  margin-bottom: 20px;
+}
+/* 84px was shouting at a beginner. The headline still leads the fold at 66,
+   with line-height back over 1 so the two lines don't lock together. */
+.cl-h1 { font-family: var(--font-display); font-weight: 600; font-size: clamp(40px, 5vw, 66px); line-height: 1.04; letter-spacing: -0.03em; text-wrap: balance; margin: 0; }
 .cl-h2 { font-family: var(--font-display); font-weight: 600; font-size: 36px; line-height: 1.05; letter-spacing: -0.025em; margin: 0; }
 .cl-lede { font-size: 17px; color: var(--text-dim); line-height: 1.5; max-width: 52ch; text-wrap: pretty; }
 .cl-mono { font-family: var(--font-mono); }
@@ -234,9 +260,14 @@ a { color: inherit; text-decoration: none; }
 .cl-bar-fill { height: 100%; background: linear-gradient(90deg, var(--cyan), #67E8F9); border-radius: 99px; transition: width .4s ease; }
 
 /* Lemon hero */
-.cl-lemon-hero { width: 140px; height: 140px; border-radius: 50%; background: radial-gradient(circle at 30% 28%, #FFF5B0 0%, #FFE140 40%, #C89E00 100%); box-shadow: 0 0 0 1px rgba(255,225,64,0.4), 0 30px 60px -12px rgba(255,225,64,0.35), inset -6px -10px 20px rgba(0,0,0,0.25); position: relative; }
+/* The one place the lemon gets to be the whole idea. It keeps its size and its
+   shading; only the 60px halo comes down, so it reads as an object sitting on
+   the page rather than a light source. */
+.cl-lemon-hero { width: 140px; height: 140px; border-radius: 50%; background: radial-gradient(circle at 30% 28%, #FFF5B0 0%, #FFE140 40%, #C89E00 100%); box-shadow: 0 0 0 1px rgba(255,225,64,0.4), 0 26px 50px -26px rgba(255,225,64,0.30), inset -6px -10px 20px rgba(0,0,0,0.25); position: relative; }
 .cl-lemon-hero::after { content: ''; position: absolute; top: 15%; left: 18%; width: 28%; height: 22%; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.55), transparent 70%); filter: blur(1px); }
-.cl-lemon-leaf { position: absolute; top: -14px; right: -4px; width: 40px; height: 26px; background: linear-gradient(135deg, #86EFAC, #10B981); clip-path: polygon(0% 80%, 50% 0%, 100% 80%, 50% 100%); transform: rotate(32deg); box-shadow: 0 4px 12px -2px rgba(16,185,129,0.4); }
+/* top/right are tuned so the leaf's lower tip meets the circle's edge at the
+   140px default; it used to sit ~13px clear of the fruit. */
+.cl-lemon-leaf { position: absolute; top: -4px; right: 6px; width: 40px; height: 26px; background: linear-gradient(135deg, #86EFAC, #10B981); clip-path: polygon(0% 80%, 50% 0%, 100% 80%, 50% 100%); transform: rotate(32deg); box-shadow: 0 4px 12px -2px rgba(16,185,129,0.4); }
 
 
 /* ────────────────────────────────────────────────────────────
@@ -576,7 +607,12 @@ a { color: inherit; text-decoration: none; }
   padding: 0 4px 0 10px; border: 1px solid var(--stroke-1); border-radius: 8px;
   height: 38px; background: var(--bg-1); max-width: 100%; min-width: 0;
 }
-.cl-picker-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .1em; flex-shrink: 0; }
+/* The label on a control (Filters, Rows, Difficulty, Language …). It was
+   uppercase at .1em tracking, repeated seven times across the app — five of them
+   side by side in the problems filter bar, where the labels ended up louder than
+   the values they label. A label's job is to be found, not read, so it recedes.
+   One class instead of six near-identical inline style objects. */
+.cl-picker-label { font-size: 11.5px; color: var(--text-mute); flex-shrink: 0; }
 @media (max-width: 560px) {
   .cl-picker { width: 100%; height: auto; min-height: 38px; flex-wrap: wrap; padding: 6px 8px; }
 }
@@ -608,7 +644,7 @@ a { color: inherit; text-decoration: none; }
   .cl-footer-brand { grid-column: 1 / -1; }
   .cl-container, .cl-container-narrow { padding: 0 20px; }
   .cl-nav-mobile-inner { padding-left: 20px; padding-right: 20px; }
-  .cl-h1 { font-size: clamp(36px, 12vw, 60px); }
+  .cl-h1 { font-size: clamp(33px, 9vw, 46px); }
 }
 
 @media (prefers-reduced-motion: reduce) {

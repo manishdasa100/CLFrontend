@@ -17,15 +17,20 @@
 /* ── left: metadata rail ── */
 .sd-meta { width: 380px; flex-shrink: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; padding-right: 4px; }
 
+/* The verdict carried a 3px coloured bar down its left edge — a side-stripe, and
+   the fourth thing on this card already saying the same word: the dot, the
+   heading colour and the tier chip all state the verdict too. Replaced with a
+   wash of the tier colour across the whole card, which reads at a glance instead
+   of asking you to notice an edge. */
 .sd-verdict {
   position: relative; overflow: hidden;
-  background: linear-gradient(180deg, var(--bg-1), var(--bg-0));
-  border: 1px solid var(--stroke-1); border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--tier) 9%, var(--bg-1)), var(--bg-0) 85%);
+  border: 1px solid color-mix(in srgb, var(--tier) 20%, transparent);
+  border-radius: var(--radius-lg);
   padding: 18px 20px 16px;
 }
-.sd-verdict::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--tier); }
 .sd-verdict-top { display: flex; align-items: center; gap: 11px; }
-.sd-verdict-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--tier); box-shadow: 0 0 12px var(--tier); flex-shrink: 0; }
+.sd-verdict-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--tier); flex-shrink: 0; }
 .sd-verdict-label { font-family: var(--font-display); font-weight: 600; font-size: 22px; letter-spacing: -0.01em; color: var(--tier); }
 .sd-verdict-sub { margin-top: 9px; font-size: 12.5px; color: var(--text-mute); }
 .sd-user { color: var(--text-dim); }
@@ -38,7 +43,8 @@
 .sd-problem:hover { border-color: rgba(34,211,238,0.4); background: var(--bg-3); }
 .sd-problem:hover .sd-arrow { transform: translateX(2px); }
 .sd-problem-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-.sd-problem-eyebrow { font-family: var(--font-mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-mute); }
+/* Matches .cl-eyebrow's quiet treatment — was the same tracked-mono kicker. */
+.sd-problem-eyebrow { font-size: 11.5px; color: var(--text-mute); }
 .sd-problem-title { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sd-problem-id { color: var(--text-mute); font-size: 12px; }
 .sd-arrow { color: var(--text-mute); flex-shrink: 0; transition: transform .14s; }
@@ -46,7 +52,7 @@
 .sd-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .sd-stat { background: var(--bg-2); border: 1px solid var(--stroke); border-radius: var(--radius); padding: 14px 10px; text-align: center; }
 .sd-stat-value { font-family: var(--font-mono); font-size: 15px; font-weight: 500; color: var(--text); }
-.sd-stat-label { margin-top: 6px; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-mute); }
+.sd-stat-label { margin-top: 6px; font-size: 11.5px; color: var(--text-mute); }
 
 .sd-norun { background: var(--bg-2); border: 1px solid var(--stroke); border-radius: var(--radius); padding: 14px 16px; font-size: 12.5px; color: var(--text-mute); line-height: 1.55; }
 

@@ -197,10 +197,14 @@ function MetricCard({ value, suffix, label, icon, accent }) {
 export function MetricRow({ p, solved, total, listCount, badgeCount }) {
   return (
     <div className="pf-metrics">
+      {/* Two accents, not four. These were lemon / cyan / #A78BFA / mint — a
+          purple that appears nowhere else in the token set, and four hues for a
+          split that carries no meaning. Now the brand's own pair, each used
+          twice: lemon for what you've earned, cyan for what you've done. */}
       <MetricCard value={p.score} label="Score" icon="fire" accent="var(--lemon)" />
       <MetricCard value={solved} suffix={`/ ${total}`} label="Problems solved" icon="target" accent="var(--cyan)" />
-      <MetricCard value={listCount} label="Lists curated" icon="list" accent="#A78BFA" />
-      <MetricCard value={badgeCount} label="Badges earned" icon="medal" accent="var(--easy)" />
+      <MetricCard value={listCount} label="Lists curated" icon="list" accent="var(--cyan)" />
+      <MetricCard value={badgeCount} label="Badges earned" icon="medal" accent="var(--lemon)" />
     </div>
   );
 }
@@ -225,8 +229,10 @@ function ProgressDonut({ rows, solved }) {
                   transform="rotate(-90 71 71)" style={{ transition: "stroke-dasharray .7s ease" }} />
         );
       })}
-      <text x="71" y="69" textAnchor="middle" fill="#EDEFF4" fontFamily="Comme" fontSize="30" fontWeight="600">{solved}</text>
-      <text x="71" y="88" textAnchor="middle" fill="#6B7385" fontFamily="JetBrains Mono" fontSize="9.5" letterSpacing=".18em">SOLVED</text>
+      <text x="71" y="69" textAnchor="middle" fill="var(--text)" fontFamily="Comme" fontSize="30" fontWeight="600">{solved}</text>
+      {/* Was tracked mono caps at #6B7385 — the pre-audit muted grey, 3.68:1 on
+          this surface. Tokens now, matching the landing page's donut. */}
+      <text x="71" y="88" textAnchor="middle" fill="var(--text-mute)" fontFamily="Geist" fontSize="10.5">solved</text>
     </svg>
   );
 }
@@ -259,7 +265,7 @@ export function ProgressCard({ rows, solved, total, langs }) {
       </div>
       {langs.length > 0 && (
         <div className="pf-progress-foot">
-          <span className="cl-mono" style={{ fontSize: 11, color: "var(--text-mute)", letterSpacing: ".1em", textTransform: "uppercase" }}>Languages</span>
+          <span className="cl-picker-label">Languages</span>
           {langs.map(l => (
             <span className="pf-lang-chip" key={l.key}>
               {langLabel(l.key)}
@@ -280,7 +286,7 @@ export function EarnedBadges({ groups, totalEarned, isOwner }) {
     <div className="pf-card" style={{ overflow: "visible" }}>
       <div className="pf-card-head">
         <div>
-          <div className="pf-card-title"><span className="pf-titledot" style={{ background: "var(--lemon)" }} /> Earned badges</div>
+          <div className="pf-card-title"><span className="pf-titledot" /> Earned badges</div>
           <div className="pf-card-sub">Achievements unlocked across the arena</div>
         </div>
         <span className="cl-chip cl-chip-lemon">{totalEarned} earned</span>
@@ -315,7 +321,7 @@ export function ListsCard({ lists }) {
     <div className="pf-card">
       <div className="pf-card-head">
         <div>
-          <div className="pf-card-title"><span className="pf-titledot" style={{ background: "#A78BFA" }} /> Problem lists</div>
+          <div className="pf-card-title"><span className="pf-titledot" /> Problem lists</div>
           <div className="pf-card-sub">Curated collections & interview prep</div>
         </div>
         <span className="cl-chip cl-mono">{lists.length}</span>
@@ -365,7 +371,7 @@ export function SubmissionsCard({ username, isOwner }) {
     <div className="pf-card">
       <div className="pf-card-head">
         <div>
-          <div className="pf-card-title"><span className="pf-titledot" style={{ background: "var(--easy)" }} /> Recent submissions</div>
+          <div className="pf-card-title"><span className="pf-titledot" /> Recent submissions</div>
           <div className="pf-card-sub">Your latest attempts in the arena</div>
         </div>
         {!isError && rows.length > 0 && (showAll ? (
@@ -397,11 +403,14 @@ export function SubmissionsCard({ username, isOwner }) {
         <table className="pf-subs">
           <thead>
             <tr>
-              <th style={{ width: 160 }}>Status</th>
+              {/* Widths live in profile.css, not here: an inline `style` width
+                  out-specifies the media queries that shed these columns on a
+                  phone, so the table would just overflow instead of adapting. */}
+              <th>Status</th>
               <th>Problem</th>
-              <th style={{ width: 100 }}>Difficulty</th>
-              <th style={{ width: 96 }}>Language</th>
-              <th style={{ width: 120, textAlign: "right" }}>Submitted</th>
+              <th>Difficulty</th>
+              <th>Language</th>
+              <th>Submitted</th>
             </tr>
           </thead>
           <tbody>
@@ -424,7 +433,7 @@ export function SubmissionsCard({ username, isOwner }) {
                   <td><span className="pf-sub-title">{pid != null ? `${pid}. ` : ""}{prob.title}</span></td>
                   <td>{diff && <span className={`cl-chip cl-chip-${diff} cl-chip-dot`}>{titleCase(prob.difficulty)}</span>}</td>
                   <td><span className="pf-sub-lang">{langLabel((r.language || "").toLowerCase())}</span></td>
-                  <td style={{ textAlign: "right" }}><span className="pf-sub-time">{timeAgo(r.dateOfSubmission)}</span></td>
+                  <td><span className="pf-sub-time">{timeAgo(r.dateOfSubmission)}</span></td>
                 </tr>
               );
             })}

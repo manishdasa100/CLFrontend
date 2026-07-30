@@ -82,7 +82,10 @@ function AuthShell({ mode }) {
         <BrandLogo />
         <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
           <div className="cl-lemon-hero" style={{ width: 260, height: 260, opacity: .9 }}>
-            <div className="cl-lemon-leaf" style={{ width: 68, height: 42, top: -22, right: -6 }} />
+            {/* The leaf's offsets are absolute, so scaling the lemon from 140 to
+                260 left it floating ~30px clear of the fruit. Positioned to meet
+                the circle's edge at this size. */}
+            <div className="cl-lemon-leaf" style={{ width: 68, height: 42, top: 4, right: 24 }} />
           </div>
         </div>
         {/* Says what the product is, in our own voice. This was a testimonial from
@@ -105,7 +108,8 @@ function AuthShell({ mode }) {
         <div style={{ width: "100%", maxWidth: 400 }}>
           {/* The aside carries the brand on desktop; when it's hidden the form needs its own. */}
           <div className="cl-auth-brand" style={{ marginBottom: 28 }}><BrandLogo /></div>
-          <div className="cl-eyebrow" style={{ marginBottom: 10 }}>{mode === "login" ? "welcome back" : "new here"}</div>
+          {/* "welcome back" / "new here" above "Sign in to continue." said the
+              same thing twice, one of them in tracked caps. */}
           <h1 style={{ fontFamily: "var(--font-display)", fontSize: 36, fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 10px" }}>
             {mode === "login" ? "Sign in to continue." : "Create your account."}
           </h1>
@@ -137,7 +141,7 @@ function AuthShell({ mode }) {
 
           <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "0 0 24px" }}>
             <div style={{ flex: 1, height: 1, background: "var(--stroke)" }} />
-            <span className="cl-mono" style={{ fontSize: 10, color: "var(--text-mute)", letterSpacing: ".2em" }}>OR CONTINUE WITH</span>
+            <span style={{ fontSize: 11.5, color: "var(--text-mute)" }}>or continue with</span>
             <div style={{ flex: 1, height: 1, background: "var(--stroke)" }} />
           </div>
 

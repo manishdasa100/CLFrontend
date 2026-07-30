@@ -130,10 +130,14 @@
   height: 96px;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   overflow: hidden;
+  /* The most saturated surface in the app, and half of it was violet — a hue the
+     token set doesn't contain. Same composition, brought back to the brand pair
+     and roughly half the intensity: it now sets a mood behind the avatar rather
+     than competing with the page. */
   background:
-    radial-gradient(120% 160% at 15% 0%, rgba(34,211,238,0.4), transparent 55%),
-    radial-gradient(120% 180% at 90% 10%, rgba(167,139,250,0.45), transparent 55%),
-    linear-gradient(120deg, #14304a, #2a1d4a 60%, #3a2d12);
+    radial-gradient(120% 160% at 15% 0%, rgba(34,211,238,0.22), transparent 58%),
+    radial-gradient(120% 180% at 90% 10%, rgba(255,225,64,0.14), transparent 58%),
+    linear-gradient(120deg, #101c28, #17202c 60%, #221d13);
 }
 .pf-cover::after {
   content: "";
@@ -156,7 +160,7 @@
   width: 92px; height: 92px;
   border-radius: 50%;
   padding: 3px;
-  background: conic-gradient(from 210deg, var(--lemon), var(--cyan) 140deg, #A78BFA 260deg, var(--lemon));
+  background: conic-gradient(from 210deg, var(--lemon), var(--cyan) 180deg, var(--lemon));
   box-shadow: 0 14px 34px -14px rgba(0,0,0,0.7);
 }
 .pf-avatar-inner {
@@ -274,10 +278,12 @@
   display: flex; align-items: center; justify-content: space-between;
   gap: 8px; margin-bottom: 10px;
 }
+/* profile.css had grown a second label vocabulary — mono, uppercase, 0.08–0.16em
+   tracking, across six rules — parallel to the app's own. Same treatment as
+   .cl-eyebrow now: a label is found, not read. Table headers below keep their
+   caps, because that's a table convention rather than the kicker reflex. */
 .pf-block-label {
-  font-family: var(--font-mono);
-  font-size: 10px; letter-spacing: 0.16em;
-  text-transform: uppercase; color: var(--text-mute);
+  font-size: 11.5px; color: var(--text-mute);
   display: inline-flex; align-items: center; gap: 7px;
 }
 .pf-detail-row {
@@ -370,12 +376,12 @@
   box-shadow: var(--shadow-panel);
   overflow: hidden;
 }
-.pf-metric::before {
-  content: "";
-  position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
-  background: var(--metric-accent, var(--cyan));
-  opacity: 0.85;
-}
+/* The 3px full-height coloured bar that used to run down the left edge of each
+   metric card is gone. Four cards, four different stripe colours, none of them
+   meaning anything — and a coloured side-stripe is the one card treatment that
+   always reads as decoration bolted on. The accent still identifies the metric,
+   through the icon beside its label, where it sits next to the words it belongs
+   to instead of floating at the card's edge. */
 .pf-metric-value {
   font-family: var(--font-display);
   font-weight: 600; font-size: 30px;
@@ -414,9 +420,13 @@
   display: flex; align-items: center; gap: 9px;
   white-space: nowrap;
 }
+/* One colour, not four. The marker's job is to mark a section heading; when each
+   of the four stacked cards picked its own hue it stopped being a system and
+   started being a rainbow. Cyan for all of them reads as the brand's mark. */
 .pf-card-title .pf-titledot {
-  width: 6px; height: 18px; border-radius: 3px;
-  background: var(--title-accent, var(--cyan));
+  width: 4px; height: 16px; border-radius: 2px;
+  background: var(--cyan);
+  opacity: 0.75;
 }
 .pf-card-sub { font-size: 12px; color: var(--text-mute); margin-top: 3px; }
 
@@ -448,8 +458,7 @@
 .pf-badges-wrap { padding: 24px 22px; }
 .pf-badge-group + .pf-badge-group { margin-top: 22px; }
 .pf-badge-group-label {
-  font-family: var(--font-mono); font-size: 10.5px;
-  letter-spacing: 0.14em; text-transform: uppercase;
+  font-size: 12px; font-weight: 500;
   color: var(--text-mute); margin-bottom: 16px;
   display: flex; align-items: center; gap: 10px;
 }
@@ -484,20 +493,49 @@
   font-family: var(--font-mono); font-size: 11px; color: var(--text-dim);
   display: inline-flex; align-items: center; gap: 5px;
 }
+/* Public / Private is a status chip, so it speaks the same way every other chip
+   in the app does — sentence case, not tracked mono caps. */
 .pf-vis {
-  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em;
-  text-transform: uppercase; padding: 2px 7px; border-radius: 4px;
+  font-size: 11px; font-weight: 500;
+  padding: 2px 8px; border-radius: 99px;
 }
 .pf-vis-public { background: rgba(110,231,183,0.1); color: var(--easy); border: 1px solid rgba(110,231,183,0.2); }
 .pf-vis-private { background: var(--bg-3); color: var(--text-mute); border: 1px solid var(--stroke-1); }
 .pf-pin { color: var(--lemon); display: inline-flex; }
 
 /* submissions */
-.pf-subs { width: 100%; border-collapse: collapse; font-size: 13px; }
+.pf-subs { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+
+/* Five columns don't fit a phone. The table had no scroll wrapper, so its right
+   edge was simply being clipped by .cl-page's overflow-x:hidden — Language and
+   Submitted were unreachable below ~600px with nothing to indicate they existed.
+   Same treatment as the problems table: shed the least useful column at each
+   step and let Problem ellipsize, so Status / Problem / Submitted survive to
+   320px. Widths must live here rather than inline for the queries to bite. */
+.pf-subs th:nth-child(1) { width: 160px; }
+.pf-subs th:nth-child(3) { width: 100px; }
+.pf-subs th:nth-child(4) { width: 96px; }
+.pf-subs th:nth-child(5) { width: 120px; }
+.pf-subs th:nth-child(5), .pf-subs td:nth-child(5) { text-align: right; }
+.pf-subs td:nth-child(2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+@media (max-width: 860px) {
+  .pf-subs th:nth-child(3), .pf-subs td:nth-child(3) { display: none; }
+}
+@media (max-width: 560px) {
+  .pf-subs th:nth-child(4), .pf-subs td:nth-child(4) { display: none; }
+  .pf-subs th, .pf-subs td { padding-left: 12px; padding-right: 12px; }
+  /* 88px left "22 days ago" 8px short and it broke onto three lines. The 8px
+     comes off Status, which already wraps to two either way. */
+  .pf-subs th:nth-child(1) { width: 96px; }
+  .pf-subs th:nth-child(5) { width: 96px; }
+}
 .pf-subs thead th {
+  /* Caps stay — that's the table-header convention, and .cl-tbl does the same.
+     Matched to .cl-tbl's exact treatment so the two tables stop differing. */
   text-align: left; padding: 10px 22px;
-  font-family: var(--font-mono); font-size: 10.5px; font-weight: 500;
-  letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-mute);
+  font-size: 11px; font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-mute);
   border-bottom: 1px solid var(--stroke); background: rgba(255,255,255,0.012);
 }
 .pf-subs tbody td { padding: 13px 22px; border-bottom: 1px solid var(--stroke); color: var(--text-dim); vertical-align: middle; }
@@ -543,9 +581,9 @@
 .pf-editbtn-icon { width: 26px; padding: 0; justify-content: center; }
 
 .pf-edit-field { display: flex; flex-direction: column; gap: 6px; }
+/* Matches .cl-field-label — these are form labels like every other form's. */
 .pf-edit-label {
-  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em;
-  text-transform: uppercase; color: var(--text-mute);
+  font-size: 12px; font-weight: 500; color: var(--text-dim);
 }
 .pf-input {
   width: 100%; height: 36px; padding: 0 11px; box-sizing: border-box;
@@ -594,7 +632,7 @@
 }
 .pf-exp-edit + .pf-exp-edit { margin-top: 10px; }
 .pf-exp-edit-head { display: flex; align-items: center; justify-content: space-between; }
-.pf-exp-edit-title { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-mute); }
+.pf-exp-edit-title { font-size: 12px; font-weight: 500; color: var(--text-mute); }
 
 /* dashed add button (full width) */
 .pf-add-full {
@@ -694,7 +732,10 @@
   background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
   border: 1px solid rgba(110,231,183,0.3);
   box-shadow: 0 24px 50px -16px rgba(0,0,0,0.7);
-  animation: toast-slide-in .35s cubic-bezier(.2,.9,.3,1.1);
+  /* ease-out-quint, same curve and duration as the shared Toast. This one ended
+     at 1.1, so it slid past its resting position and snapped back — the profile
+     had a bouncier toast than the rest of the app for no reason. */
+  animation: toast-slide-in .28s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .pf-toast-ico {
   width: 26px; height: 26px; border-radius: 50%;

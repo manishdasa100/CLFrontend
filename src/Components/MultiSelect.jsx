@@ -25,7 +25,7 @@ export default function MultiSelect({ label, selected, onChange, options }) {
         onClick={() => setOpen((v) => !v)}
         style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "0 10px", border: "1px solid var(--stroke-1)", borderRadius: 8, height: 38, background: "var(--bg-1)", cursor: "pointer", fontFamily: "inherit" }}
       >
-        <span style={{ fontSize: 11, color: "var(--text-mute)", textTransform: "uppercase", letterSpacing: ".1em" }}>{label}</span>
+        <span className="cl-picker-label">{label}</span>
         <span style={{ fontSize: 12, color: selected.size > 0 ? "var(--text)" : "var(--text-mute)" }}>{labelText}</span>
         <Icon name="chevron" size={12} style={{ color: "var(--text-mute)" }} />
       </button>
