@@ -89,8 +89,29 @@ a { color: inherit; text-decoration: none; }
 ::-webkit-scrollbar-thumb { background: #1a1f2e; border-radius: 99px; border: 2px solid var(--bg-0); }
 ::-webkit-scrollbar-thumb:hover { background: #262b3a; }
 
-/* Page backdrop */
-.cl-page { min-height: 100vh; position: relative; isolation: isolate; overflow-x: hidden; }
+/* Page backdrop.
+   The flex column used to be an inline style on BackgroundWrapper, which meant
+   the structural rules for every page lived in a component and couldn't be
+   overridden from here. dvh rather than vh: on a phone 100vh counts the space
+   behind the browser chrome, so the "bottom of the page" sat below the fold. */
+.cl-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  position: relative; isolation: isolate; overflow-x: hidden;
+}
+
+/* Sticky footer. .cl-page was already a flex column, but nothing in the middle
+   grew, so a short page — a not-found message, a loading state — left the footer
+   directly under the content with empty space beneath it. `margin-top: auto` on
+   the last item absorbs whatever height is left over.
+   The 80px that used to be the footer's own margin-top now sits on the element
+   above it: auto can't be a minimum, so keeping the gap there leaves auto free
+   to do the pushing while tall pages look exactly as they did. :has() scopes it
+   to pages that actually render a footer. */
+.cl-page > footer { margin-top: auto; }
+.cl-page:has(> footer) > :nth-last-child(2) { margin-bottom: 80px; }
 .cl-page::before, .cl-page::after {
   content: ''; position: fixed; inset: 0; pointer-events: none; z-index: var(--z-behind);
 }

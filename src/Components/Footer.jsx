@@ -12,9 +12,12 @@ const FooterLink = ({ to, children }) => (
   </Link>
 );
 
+// No marginTop on the <footer> below — an inline margin would out-specify the
+// `margin-top: auto` in tokens.css that pins this to the bottom of a short page.
+// The 80px gap moved to the element above it (see .cl-page:has(> footer)).
 export default function Footer() {
   return (
-    <footer style={{ borderTop: "1px solid var(--stroke)", marginTop: 80, padding: "40px 0", color: "var(--text-mute)" }}>
+    <footer style={{ borderTop: "1px solid var(--stroke)", padding: "40px 0", color: "var(--text-mute)" }}>
       <div className="cl-container cl-footer-grid" style={{ marginBottom: 32 }}>
         <div className="cl-footer-brand">
           <BrandLogo />
