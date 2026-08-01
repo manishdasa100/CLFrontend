@@ -133,10 +133,17 @@ export default function ListDetailsPage() {
 
         {isLoading && <div className="ld-state">Loading list…</div>}
 
+        {/* On a 404 we write the sentence ourselves rather than passing the
+            server's through: it comes back as "The list with name X does not
+            exist!!", and double exclamation marks are the opposite of the calm
+            this app is going for. Other failures keep the server's message,
+            which usually knows something we don't. */}
         {isError && (
           <div className="ld-state ld-state-error">
             <Icon name="warn" size={14} />
-            {error?.response?.data?.message || "Failed to load list."}
+            {error?.response?.status === 404
+              ? <>No list called “{decodedName}” here. It may have been renamed or deleted.</>
+              : (error?.response?.data?.message || "We couldn't load this list. Try again in a moment.")}
           </div>
         )}
 

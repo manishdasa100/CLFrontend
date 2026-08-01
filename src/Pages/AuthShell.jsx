@@ -33,6 +33,17 @@ function AuthShell({ mode }) {
     if (err) setToast(decodeURIComponent(err));
   }, []);
 
+  // Server messages usually beat ours — they know what actually happened. The
+  // exception is framework boilerplate that leaks straight to the user: Spring
+  // Security answers a wrong password with "Bad credentials", which is the one
+  // string a signing-in learner is most likely to see. Translate the known
+  // boilerplate, pass anything genuinely informative straight through.
+  const SERVER_JARGON = {
+    "Bad credentials": "That username and password don't match.",
+    "Unauthorized": "That username and password don't match.",
+  };
+  const humanize = (raw, fallback) => (raw && SERVER_JARGON[raw]) || raw || fallback;
+
   const onAuthSuccess = (data) => {
     localStorage.setItem("jwtToken", data.jwtToken);
     getMe().then((me) => { setUser(me); navigate(from); }).catch(() => navigate(from));
@@ -55,7 +66,7 @@ function AuthShell({ mode }) {
         { username: fields.username, firstName: fields.firstName, lastName: fields.lastName, email: fields.email, password: fields.password },
         {
           onSuccess: onAuthSuccess,
-          onError: (err) => setToast(err?.response?.data?.message || "Registration failed. Please try again."),
+          onError: (err) => setToast(humanize(err?.response?.data?.message, "We couldn't create your account. Try again in a moment.")),
         }
       );
     } else {
@@ -66,7 +77,9 @@ function AuthShell({ mode }) {
         { username: fields.username, password: fields.password },
         {
           onSuccess: onAuthSuccess,
-          onError: (err) => setToast(err?.response?.data?.message || "Invalid username or password."),
+          // Names neither field — same non-disclosure as "Invalid username or
+          // password", without opening on the word "invalid".
+          onError: (err) => setToast(humanize(err?.response?.data?.message, "That username and password don't match.")),
         }
       );
     }

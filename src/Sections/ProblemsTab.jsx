@@ -40,7 +40,9 @@ const ProblemsTab = () => {
   if (error) {
     return (
       <div className="cl-container" style={{ paddingBottom: 40 }}>
-        <div className="cl-card" style={{ padding: 40, textAlign: "center", color: "var(--text-dim)" }}>Something went wrong.</div>
+        <div className="cl-card" style={{ padding: 40, textAlign: "center", color: "var(--text-dim)" }}>
+          We couldn't load the problem list. Try again in a moment.
+        </div>
       </div>
     );
   }
@@ -210,8 +212,11 @@ const StreakCard = () => {
 
   return (
     <div className="cl-card" style={{ padding: "18px 20px", display: "flex", flexDirection: "column", gap: 16 }}>
+      {/* Named, unlike the Progress card's — that one has a heading sitting above
+          it, whereas this card renders its title only in the loaded branch, so a
+          bare "Loading…" appeared in an otherwise unlabelled box. */}
       {isLoading ? (
-        <div style={{ flex: 1, display: "flex", alignItems: "center", color: "var(--text-mute)", fontSize: 13 }}>Loading…</div>
+        <div style={{ flex: 1, display: "flex", alignItems: "center", color: "var(--text-mute)", fontSize: 13 }}>Loading your streak…</div>
       ) : (
         <>
           {/* Top — circle + title + last submission */}

@@ -18,7 +18,9 @@ export default function OAuth2Callback() {
     const error = params.get("error");
 
     if (error || !token) {
-      navigate(`/login?error=${encodeURIComponent(error || "OAuth sign-in failed.")}`, { replace: true });
+      // "OAuth" is our word, not the user's — they pressed a button labelled
+      // GitHub or Google. Name what they did, and give them the other door.
+      navigate(`/login?error=${encodeURIComponent(error || "That sign-in didn't finish. Try again, or use your username and password.")}`, { replace: true });
       return;
     }
 

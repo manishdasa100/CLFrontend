@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useQueryClient } from "react-query";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import AppNavbar from "../Components/AppNavbar";
 import Footer from "../Components/Footer";
 import BackgroundWrapper from "../Components/BackgroundWrapper";
@@ -23,7 +23,10 @@ export default function ProfilePage() {
   const { mutateAsync: uploadPic } = useUploadProfilePicMutation();
   const selectedFileRef = useRef(null);
 
-  const { data: profileData } = useProfileByUsername(username);
+  // isError was being destructured away, so a username that doesn't exist left
+  // profileData undefined forever and the "Loading profile…" branch below never
+  // exited — a permanent spinner rather than a slow error.
+  const { data: profileData, isError: profileError, error: profileErr } = useProfileByUsername(username);
   const { data: submissionStats } = useUserSubmissionStatus();
   const { data: problemCounts } = useProblemCounts();
   const { data: lists } = useUserLists(username);
@@ -50,11 +53,36 @@ export default function ProfilePage() {
   );
   const completeness = useMemo(() => evaluateCompleteness(profile || {}), [profile]);
 
+  if (profileError) {
+    const notFound = profileErr?.response?.status === 404;
+    return (
+      <BackgroundWrapper>
+        <AppNavbar />
+        <div className="pf-shell" style={{ flex: 1, display: "grid", placeItems: "center", textAlign: "center", padding: "60px 20px" }}>
+          <div>
+            <div style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 600, letterSpacing: "-0.015em", marginBottom: 8 }}>
+              {notFound ? "No profile for that username." : "We couldn't load this profile."}
+            </div>
+            <p className="cl-text-dim" style={{ fontSize: 14, lineHeight: 1.55, margin: "0 auto 24px", maxWidth: "46ch" }}>
+              {notFound
+                ? <>Nobody here goes by <span style={{ color: "var(--text)" }}>@{username}</span>. The name may have changed, or the link may have a typo.</>
+                : "That's a problem on our end, not something you did."}
+            </p>
+            <Link to="/arena/problemset" className="cl-btn cl-btn-primary">
+              Go to the arena <Icon name="arrowRight" size={13} />
+            </Link>
+          </div>
+        </div>
+        <Footer />
+      </BackgroundWrapper>
+    );
+  }
+
   if (!profile) {
     return (
       <BackgroundWrapper>
         <AppNavbar />
-        <div className="pf-shell" style={{ minHeight: "50vh", display: "grid", placeItems: "center", color: "var(--text-mute)" }}>
+        <div className="pf-shell" style={{ flex: 1, display: "grid", placeItems: "center", color: "var(--text-mute)" }}>
           Loading profile…
         </div>
         <Footer />
@@ -136,15 +164,15 @@ export default function ProfilePage() {
       showToast("Profile updated successfully");
     } else if (profileOk && !picOk) {
       const raw = picResult.reason?.response?.data;
-      const msg = (typeof raw === "string" ? raw : raw?.message) || "Profile saved, but photo upload failed.";
+      const msg = (typeof raw === "string" ? raw : raw?.message) || "Your details were saved, but the photo didn't upload. Try the photo again.";
       showToast(msg, "warning");
     } else if (!profileOk && picOk) {
       const raw = profileResult.reason?.response?.data;
-      const msg = (typeof raw === "string" ? raw : raw?.message) || "Failed to save profile changes.";
+      const msg = (typeof raw === "string" ? raw : raw?.message) || "We couldn't save your changes. Try again.";
       showToast(msg, "error");
     } else {
       const raw = profileResult?.reason?.response?.data;
-      const msg = (typeof raw === "string" ? raw : raw?.message) || "Failed to save profile changes.";
+      const msg = (typeof raw === "string" ? raw : raw?.message) || "We couldn't save your changes. Try again.";
       showToast(msg, "error");
     }
 

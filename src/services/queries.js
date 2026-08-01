@@ -16,6 +16,9 @@ export const useProblemByIdData = (id) => {
         id,
         () => getProblemById(id),
         {
+            // The don't-retry-4xx policy that used to live here is now a default on
+            // the QueryClient in App.jsx — it applies to all 18 queries, not just
+            // this one.
             keepPreviousData: true
         }
     )

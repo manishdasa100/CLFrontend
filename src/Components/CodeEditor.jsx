@@ -69,7 +69,9 @@ export default function CodeEditor({ codeSnippets, toggleFullScreenEditor, isFul
       }
     } catch (err) {
       if (!abortRef.current) {
-        onResult?.(null, isRunCode, err?.response?.data?.message || "Something went wrong.");
+        // The server's own message wins when it has one; the fallback names what
+        // failed and what to do next, instead of "Something went wrong."
+        onResult?.(null, isRunCode, err?.response?.data?.message || "We couldn't reach the code runner. Check your connection and try again.");
       }
     } finally {
       if (!abortRef.current) setAction(null);

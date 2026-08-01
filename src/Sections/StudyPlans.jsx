@@ -93,7 +93,7 @@ export default function StudyPlans() {
       {isError && (
         <div className="sp-state sp-state-error">
           <Icon name="warn" size={14} />
-          {error?.response?.data?.message || "Failed to load study plans."}
+          {error?.response?.data?.message || "We couldn't load the study plans. Try again in a moment."}
         </div>
       )}
 

@@ -29,7 +29,7 @@ export default function ProblemOfTheDayCard() {
         lineHeight: 1.2,
         maxWidth: "70%",
       }}>
-        {loading ? "Loading…" : isError ? "Couldn't load today" : data?.title || "Problem of the day"}
+        {loading ? "Loading…" : isError ? "Couldn't load today's problem" : data?.title || "Problem of the day"}
       </div>
 
       {!loading && !isError && data && (

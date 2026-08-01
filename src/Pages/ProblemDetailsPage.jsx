@@ -176,7 +176,7 @@ export default function ProblemDetailsPage() {
   const [resultState, setResultState] = useState(null); // null | {status:'loading',isRun} | {status:'done',isRun,report} | {status:'error',message}
   const [runTab, setRunTab] = useState(0);
 
-  const { isLoading, isFetching, data, isError, error } = useProblemByIdData(id);
+  const { isLoading, isFetching, data, isError, error, refetch } = useProblemByIdData(id);
   const toggleFull = () => setFullScreenPref((v) => !v);
 
   // On a narrow screen the results panel isn't on screen when you hit Run, so bring
@@ -185,7 +185,7 @@ export default function ProblemDetailsPage() {
   const handleResult = (report, isRun, errorMsg) => {
     setPane("result");
     if (errorMsg || !report) {
-      setResultState({ status: "error", message: errorMsg || "Something went wrong." });
+      setResultState({ status: "error", message: errorMsg || "We couldn't reach the code runner. Check your connection and try again." });
     } else {
       setResultState({ status: "done", isRun, report });
       setRunTab(0);
@@ -244,9 +244,32 @@ export default function ProblemDetailsPage() {
   };
 
   if (isError) {
+    // This used to render `Error: {error.message}` — and axios's .message is the
+    // literal string "Request failed with status code 404", so a learner who
+    // followed a stale link got an HTTP status and nothing else on an empty page.
+    // A missing problem and a failing server need different sentences: one is
+    // permanent and the fix is to pick another, the other is worth retrying.
+    const notFound = error?.response?.status === 404;
     return (
-      <div className="cl-container" style={{ padding: "60px 0", textAlign: "center", color: "var(--text-dim)" }}>
-        Error: {error?.message || "Something went wrong"}
+      <div className="cl-container" style={{ padding: "80px 0", textAlign: "center" }}>
+        <div style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 600, letterSpacing: "-0.015em", marginBottom: 8 }}>
+          {notFound ? "We couldn't find that problem." : "We couldn't load this problem."}
+        </div>
+        <p className="cl-text-dim" style={{ fontSize: 14, lineHeight: 1.55, margin: "0 auto 24px", maxWidth: "46ch" }}>
+          {notFound
+            ? "It may have been moved or removed since that link was made. The full list is a good place to pick another."
+            : "That's a problem on our end, not something you did. Your code is still saved in this browser."}
+        </p>
+        <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+          {!notFound && (
+            <button type="button" className="cl-btn cl-btn-subtle" onClick={() => refetch()}>
+              <Icon name="reset" size={13} /> Try again
+            </button>
+          )}
+          <Link to="/arena/problemset" className="cl-btn cl-btn-primary">
+            Browse problems <Icon name="arrowRight" size={13} />
+          </Link>
+        </div>
       </div>
     );
   }
@@ -617,7 +640,7 @@ const SaveToListPopup = ({ problemId, username, onClose, onToast }) => {
           setAddResult({ state, message: msg });
         },
         onError: (err) => {
-          setAddResult({ state: "failure", message: err?.response?.data?.message || "Failed to add problem to list." });
+          setAddResult({ state: "failure", message: err?.response?.data?.message || "We couldn't add it to that list. Try again." });
         },
       }
     );
@@ -638,7 +661,7 @@ const SaveToListPopup = ({ problemId, username, onClose, onToast }) => {
         }, 1500);
       },
       onError: (err) => {
-        setCreateResult({ success: false, message: err?.response?.data?.message || "Failed to create list." });
+        setCreateResult({ success: false, message: err?.response?.data?.message || "We couldn't create that list. Try again." });
       },
     });
   };
