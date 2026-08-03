@@ -148,12 +148,10 @@ export default function ListDetailsPage() {
         )}
 
         {!isLoading && !isError && list && (
-          <div className={`ld-layout ${isPlan && activated ? "ld-layout-3" : ""}`}>
-            {/* ── Identity rail ── */}
+          <div className="ld-layout">
+            {/* ── Supporting rail: what this is, and how far you are into it ── */}
             <aside className="ld-rail">
               <div className={`ld-panel ${isPlan ? "ld-panel-plan" : ""}`}>
-                {isPlan && <div className="ld-panel-accent"/>}
-
                 <div className="ld-kindline">
                   <div className="ld-kindline-l">
                     <span className={`ld-kind ${isPlan ? "ld-kind-plan" : "ld-kind-list"}`}>
@@ -176,20 +174,18 @@ export default function ListDetailsPage() {
                 <h1 className="ld-name">{list.name}</h1>
                 {list.description && <p className="ld-desc">{list.description}</p>}
 
-                <div className="ld-stats">
-                  <div className="ld-stat">
-                    <span className="ld-stat-num cl-mono">{list.totalProblems}</span>
-                    <span className="ld-stat-label">{list.totalProblems === 1 ? "Problem" : "Problems"}</span>
-                  </div>
+                <p className="ld-meta">
+                  <span>
+                    <span className="cl-mono">{list.totalProblems}</span>
+                    {list.totalProblems === 1 ? " problem" : " problems"}
+                  </span>
                   {isPlan && (
-                    <div className="ld-stat">
-                      <span className="ld-stat-num cl-mono">
-                        {list.timelineDays}<span className="ld-stat-unit">d</span>
-                      </span>
-                      <span className="ld-stat-label">Timeline</span>
-                    </div>
+                    <>
+                      <span className="ld-meta-sep" aria-hidden="true">·</span>
+                      <span><span className="cl-mono">{list.timelineDays}</span>-day timeline</span>
+                    </>
                   )}
-                </div>
+                </p>
 
                 {diff.total > 0 && (
                   <div className="ld-mix">
@@ -233,6 +229,91 @@ export default function ListDetailsPage() {
                   </div>
                 )}
               </div>
+
+              {/* ── Progress (study plans, once activated) ──
+                  This sat in a third column, which left the track — the content
+                  people came for — narrower than the two support panels beside
+                  it, and stranded this card mid-page at tablet widths. It lives
+                  under its own identity panel now. */}
+              {isPlan && activated && (
+                <div className="ld-pcard">
+                  <span className="ld-mix-label">Your progress</span>
+
+                  <div className="ld-pcard-main">
+                    <div className="ld-pring">
+                      <svg width="108" height="108" viewBox="0 0 108 108" style={{ transform: "rotate(-90deg)" }}>
+                        <circle cx="54" cy="54" r={RING_R} fill="none" stroke="var(--bg-3)" strokeWidth="6" />
+                        <circle cx="54" cy="54" r={RING_R} fill="none" stroke={complete ? "var(--easy)" : "var(--cyan)"}
+                          strokeWidth="6" strokeLinecap="round"
+                          strokeDasharray={`${(Math.min(Math.max(pct, 0), 100) / 100) * RING_CIRC} ${RING_CIRC}`} />
+                      </svg>
+                      <span className="ld-pring-num">{pct}<span className="ld-pring-pct">%</span></span>
+                    </div>
+                    <p className="ld-pcard-solved">
+                      <span className="cl-mono">{solvedCount}</span> of <span className="cl-mono">{totalCount}</span> solved
+                    </p>
+
+                    <dl className="ld-pcard-stats">
+                      <div className="ld-pcard-row">
+                        <dt>Time left</dt>
+                        <dd className={`ld-tone-${timeLeft.tone || "none"}`}>{timeLeft.text}</dd>
+                      </div>
+                      <div className="ld-pcard-row">
+                        <dt>Activated</dt>
+                        <dd>{formatActivationDate(progress.dateOfActivation)}</dd>
+                      </div>
+                    </dl>
+                  </div>
+
+                  <div className="ld-pcard-foot">
+                    {confirming ? (
+                      <div className="ld-confirm">
+                        <p className="ld-confirm-q">
+                          {confirming === "reset"
+                            ? "Reset progress? This clears the problems you've solved on this plan."
+                            : "Deactivate plan? Your progress will be removed."}
+                        </p>
+                        <div className="ld-confirm-row">
+                          <button className="cl-btn cl-btn-subtle" onClick={() => setConfirming(null)} disabled={!!pending}>
+                            Keep it
+                          </button>
+                          {confirming === "reset" ? (
+                            <button className="cl-btn ld-btn-warn" onClick={() => run(reset, "reset")} disabled={!!pending}>
+                              {pending === "reset" ? <><span className="ld-spin" /> Resetting…</> : "Reset progress"}
+                            </button>
+                          ) : (
+                            <button className="cl-btn ld-btn-danger" onClick={() => run(deactivate, "deactivate")} disabled={!!pending}>
+                              {pending === "deactivate" ? <><span className="ld-spin" /> Removing…</> : "Deactivate"}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="ld-action-row">
+                        <button className="cl-btn cl-btn-subtle ld-action-btn" onClick={() => openConfirm("reset")}>
+                          <Icon name="reset" size={14} /> Reset
+                        </button>
+                        <button className="cl-btn ld-btn-danger ld-action-btn" onClick={() => openConfirm("deactivate")}>
+                          <Icon name="x" size={14} /> Deactivate
+                        </button>
+                      </div>
+                    )}
+
+                    {!pending && confirming === "reset" && reset.isError && (
+                      <p className="ld-activate-err">
+                        <Icon name="warn" size={12} />
+                        {reset.error?.response?.data?.message || "Couldn't reset the plan. Try again."}
+                      </p>
+                    )}
+                    {!pending && confirming === "deactivate" && deactivate.isError && (
+                      <p className="ld-activate-err">
+                        <Icon name="warn" size={12} />
+                        {deactivate.error?.response?.data?.message || "Couldn't deactivate the plan. Try again."}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
             </aside>
 
             {/* ── Problem track ── */}
@@ -284,87 +365,6 @@ export default function ListDetailsPage() {
                 )}
               </div>
             </main>
-
-            {/* ── Progress card (study plans, once activated) ── */}
-            {isPlan && activated && (
-              <aside className="ld-progress-col">
-                <div className="ld-pcard">
-                  <span className="ld-mix-label">Your progress</span>
-
-                  <div className="ld-pring">
-                    <svg width="108" height="108" viewBox="0 0 108 108" style={{ transform: "rotate(-90deg)" }}>
-                      <circle cx="54" cy="54" r={RING_R} fill="none" stroke="var(--bg-3)" strokeWidth="6" />
-                      <circle cx="54" cy="54" r={RING_R} fill="none" stroke={complete ? "var(--easy)" : "var(--cyan)"}
-                        strokeWidth="6" strokeLinecap="round"
-                        strokeDasharray={`${(Math.min(Math.max(pct, 0), 100) / 100) * RING_CIRC} ${RING_CIRC}`} />
-                    </svg>
-                    <span className="ld-pring-num">{pct}<span className="ld-pring-pct">%</span></span>
-                  </div>
-                  <p className="ld-pcard-solved">
-                    <span className="cl-mono">{solvedCount}</span> of <span className="cl-mono">{totalCount}</span> solved
-                  </p>
-
-                  <dl className="ld-pcard-stats">
-                    <div className="ld-pcard-row">
-                      <dt>Time left</dt>
-                      <dd className={`ld-tone-${timeLeft.tone || "none"}`}>{timeLeft.text}</dd>
-                    </div>
-                    <div className="ld-pcard-row">
-                      <dt>Activated</dt>
-                      <dd>{formatActivationDate(progress.dateOfActivation)}</dd>
-                    </div>
-                  </dl>
-
-                  <div className="ld-pcard-foot">
-                    {confirming ? (
-                      <div className="ld-confirm">
-                        <p className="ld-confirm-q">
-                          {confirming === "reset"
-                            ? "Reset progress? This clears the problems you've solved on this plan."
-                            : "Deactivate plan? Your progress will be removed."}
-                        </p>
-                        <div className="ld-confirm-row">
-                          <button className="cl-btn cl-btn-subtle" onClick={() => setConfirming(null)} disabled={!!pending}>
-                            Keep it
-                          </button>
-                          {confirming === "reset" ? (
-                            <button className="cl-btn ld-btn-warn" onClick={() => run(reset, "reset")} disabled={!!pending}>
-                              {pending === "reset" ? <><span className="ld-spin" /> Resetting…</> : "Reset progress"}
-                            </button>
-                          ) : (
-                            <button className="cl-btn ld-btn-danger" onClick={() => run(deactivate, "deactivate")} disabled={!!pending}>
-                              {pending === "deactivate" ? <><span className="ld-spin" /> Removing…</> : "Deactivate"}
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="ld-action-row">
-                        <button className="cl-btn cl-btn-subtle ld-action-btn" onClick={() => openConfirm("reset")}>
-                          <Icon name="reset" size={14} /> Reset
-                        </button>
-                        <button className="cl-btn ld-btn-danger ld-action-btn" onClick={() => openConfirm("deactivate")}>
-                          <Icon name="x" size={14} /> Deactivate
-                        </button>
-                      </div>
-                    )}
-
-                    {!pending && confirming === "reset" && reset.isError && (
-                      <p className="ld-activate-err">
-                        <Icon name="warn" size={12} />
-                        {reset.error?.response?.data?.message || "Couldn't reset the plan. Try again."}
-                      </p>
-                    )}
-                    {!pending && confirming === "deactivate" && deactivate.isError && (
-                      <p className="ld-activate-err">
-                        <Icon name="warn" size={12} />
-                        {deactivate.error?.response?.data?.message || "Couldn't deactivate the plan. Try again."}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </aside>
-            )}
           </div>
         )}
       </div>

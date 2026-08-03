@@ -1,21 +1,32 @@
 /* ListDetailsPage — problem list / study plan details
-   Two-pane "curriculum" layout: a sticky identity rail + a problem track. */
+   Two panes: a supporting rail (identity + progress) and the problem track.
+
+   Vertical spacing inside the rail panel is expressed as margin-TOP only, never
+   margin-bottom. Adjacent siblings in normal flow collapse their margins, so a
+   bottom + a top between the same pair means the smaller one is dead code and
+   the real gap is whichever number happens to be larger. One margin per gap
+   also lets each gap differ, which `gap` on a flex column cannot do — and
+   varied gaps are the whole point of the grouping below. */
 
 .ld-shell {
-  padding-top: 24px;
-  padding-bottom: 56px;
+  padding-top: 20px;
+  /* No bottom padding: .cl-page already puts an 80px gap above the footer
+     (tokens.css). Adding 56px here made it 136px on this page alone. */
+  padding-bottom: 0;
 }
 
 .ld-back {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   font-size: 12.5px;
   color: var(--text-mute);
   text-decoration: none;
-  margin-top: 20px;
-  margin-bottom: 18px;
-  padding: 5px 9px 5px 6px;
+  margin-bottom: 16px;
+  /* Pulled left by its own padding so the chevron lines up with the panel edge
+     below it rather than sitting 6px inside it. */
+  margin-left: -6px;
+  padding: 6px 8px 6px 6px;
   border-radius: 6px;
   transition: background .12s ease, color .12s ease;
 }
@@ -24,31 +35,40 @@
   background: rgba(255, 255, 255, 0.04);
 }
 
-/* ── layout ── */
+/* ── layout ──
+   Two columns, always. The progress card used to be a third column, which cost
+   the track — the actual content — more width than the two support panels put
+   together (456px of 1144 at desktop), and at 1024 the "rail main / progress
+   main" area map sized row 2 off a very tall main, stranding the progress card
+   ~290px below the panel it belongs with. Both panels now share one column. */
 .ld-layout {
   display: grid;
-  grid-template-columns: 344px minmax(0, 1fr);
-  grid-template-areas: "rail main";
+  grid-template-columns: 320px minmax(0, 1fr);
   gap: 28px;
   align-items: start;
   animation: ld-rise .4s cubic-bezier(.2, .8, .2, 1) both;
 }
-.ld-layout-3 {
-  grid-template-columns: 340px minmax(0, 1fr) 292px;
-  grid-template-areas: "rail main progress";
+
+/* ── supporting rail ──
+   Not sticky. It was, briefly, with a max-height and overflow-y so a rail taller
+   than the viewport couldn't hide its own Deactivate button. But this rail runs
+   824px with a long plan description against ~792px of room on a 900px window,
+   so the guard fired in the ordinary case: a second scrollbar appeared inside
+   the page, and jumped into view the moment the confirm prompt grew the card.
+   A scroll container to rescue a pin that barely fits is the wrong trade —
+   the rail scrolls with the page, like every other panel in the app. */
+.ld-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-/* ── identity rail ── */
-.ld-rail { grid-area: rail; position: sticky; top: 90px; }
-
 .ld-panel {
-  position: relative;
-  padding: 24px 24px 26px;
+  padding: 24px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--stroke-1);
   background: linear-gradient(180deg, var(--bg-1), var(--bg-0));
   box-shadow: var(--shadow-panel);
-  overflow: hidden;
 }
 .ld-panel-plan {
   background:
@@ -56,30 +76,24 @@
     linear-gradient(180deg, var(--bg-1), var(--bg-0));
   border-color: rgba(34, 211, 238, 0.22);
 }
-.ld-panel-accent {
-  position: absolute;
-  top: 0; left: 0;
-  width: 3px; height: 100%;
-  background: linear-gradient(180deg, var(--cyan), rgba(34, 211, 238, 0));
-}
 
 .ld-kindline {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 14px;
 }
 .ld-kindline-l { display: inline-flex; align-items: center; gap: 7px; flex-wrap: wrap; }
 .ld-kindline-r { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 
+/* Sentence case, at the app's chip size. It used to be 10.5px mono caps tracked
+   to 0.12em — the same tracked-label grammar the quieter pass took out of every
+   other surface, and it made a plain badge read as a section eyebrow. */
 .ld-kind {
   display: inline-flex; align-items: center; gap: 5px;
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  padding: 4px 9px;
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 3px 9px;
   border-radius: 999px;
 }
 .ld-kind-plan {
@@ -105,79 +119,68 @@
 .ld-flag-public { color: var(--easy); background: rgba(110, 231, 183, 0.06); border-color: rgba(110, 231, 183, 0.2); }
 .ld-flag-pin { color: var(--lemon); background: rgba(255, 225, 64, 0.08); border-color: rgba(255, 225, 64, 0.22); }
 
+/* Grouping, not an even drip. Title sits close to its own description and its
+   own count line; the difficulty mix and the CTA are separate thoughts and get
+   a full step of air. Every gap in this panel used to be 23px, which read as
+   five peer blocks rather than "what this is" / "what's in it" / "start". */
 .ld-name {
   font-family: var(--font-display);
   font-size: 25px;
   font-weight: 600;
   line-height: 1.12;
   letter-spacing: -0.02em;
-  margin-top: 23px;
+  margin-top: 16px;
   color: var(--text);
+  text-wrap: balance;
 }
 
 .ld-desc {
   font-size: 13px;
   line-height: 1.6;
   color: var(--text-dim);
-  margin-top: 10px;
+  margin-top: 8px;
+  /* Only bites once the rail unstacks to full width below 900px — a 700px-wide
+     line of 13px prose is about 95 characters, well past comfortable. */
+  max-width: 68ch;
+  text-wrap: pretty;
 }
 
-/* stat tiles */
-.ld-stats {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
-  gap: 10px;
-  margin-top: 23px;
-  margin-bottom: 18px;
-}
-.ld-stat {
+/* Count + timeline as one quiet line. These were two bordered, filled tiles
+   with 24px/700 numbers sitting directly under a 25px/600 title — a nested card
+   grid that also out-shouted the page's own name at a 1.04:1 size ratio. */
+.ld-meta {
   display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: 12px 14px;
-  border-radius: var(--radius);
-  background: var(--bg-2);
-  border: 1px solid var(--stroke-1);
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--text-dim);
 }
-.ld-stat-num {
-  font-family: var(--font-display);
-  font-size: 24px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.02em;
-  color: var(--text);
-}
-.ld-stat-unit { font-size: 14px; color: var(--text-mute); margin-left: 3px; }
-.ld-stat-label {
-  font-size: 10.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--text-mute);
-  font-family: var(--font-mono);
-}
+.ld-meta .cl-mono { color: var(--text); font-weight: 600; }
+.ld-meta-sep { color: var(--text-faint); }
 
 /* difficulty mix meter */
 .ld-mix {
-  margin-top: 23px;
-  margin-bottom: 0;
+  margin-top: 24px;
 }
 .ld-mix-label {
   display: block;
-  font-size: 10.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.005em;
   color: var(--text-mute);
-  font-family: var(--font-mono);
-  margin-bottom: 9px;
+  margin-bottom: 8px;
 }
 .ld-meter {
   display: flex;
   gap: 3px;
   height: 8px;
-  margin-bottom: 11px;
+  margin-bottom: 10px;
 }
-.ld-meter-seg { border-radius: 99px; min-width: 5px; transition: width .4s ease; }
+/* No width transition: segments mount at their final width and the data behind
+   them doesn't change while the page is open, so it only ever animated nothing. */
+.ld-meter-seg { border-radius: 99px; min-width: 5px; }
 .ld-legend {
   display: flex;
   flex-wrap: wrap;
@@ -191,7 +194,7 @@
 
 /* action area */
 .ld-actions {
-  margin-top: 22px;
+  margin-top: 24px;
 }
 .ld-activate {
   width: 100%;
@@ -199,7 +202,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 9px;
+  gap: 8px;
   border-radius: var(--radius);
   font-family: var(--font-display);
   font-weight: 600;
@@ -246,15 +249,15 @@
 .cl-btn.ld-btn-warn:disabled,
 .cl-btn.ld-btn-danger:disabled { opacity: 0.55; cursor: default; }
 
-/* inline confirm for destructive actions */
+/* Inline confirm for destructive actions. Separated by a rule rather than by a
+   bordered, filled box — it lives inside .ld-pcard, and a card inside a card is
+   one border too many for something this small. */
 .ld-confirm {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 14px;
-  border-radius: var(--radius);
-  background: var(--bg-2);
-  border: 1px solid var(--stroke-1);
+  padding-top: 14px;
+  border-top: 1px solid var(--stroke);
 }
 .ld-confirm-q { margin: 0; font-size: 12.5px; line-height: 1.55; color: var(--text-dim); }
 .ld-confirm-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -265,7 +268,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 9px;
+  gap: 8px;
   height: 46px;
   font-size: 12.5px;
   color: var(--text-mute);
@@ -286,7 +289,7 @@
 .ld-pcard-row dd.ld-tone-done { color: var(--easy); }
 
 /* ── problem track ── */
-.ld-main { grid-area: main; min-width: 0; }
+.ld-main { min-width: 0; }
 .ld-track-head {
   display: flex;
   align-items: center;
@@ -331,7 +334,7 @@
 
 /* connecting spine — only for sequenced study plans.
    Node center sits at 34px from the left (18px padding + 16px half-node)
-   and 32px from the top (16px padding + 16px half-node). */
+   and 30px from the top (14px padding + 16px half-node). */
 .ld-track.is-plan > li::before {
   content: "";
   position: absolute;
@@ -342,8 +345,8 @@
   background: var(--stroke-2);
   z-index: var(--z-base);
 }
-.ld-track.is-plan > li:first-child::before { top: 32px; }
-.ld-track.is-plan > li:last-child::before { bottom: calc(100% - 32px); }
+.ld-track.is-plan > li:first-child::before { top: 30px; }
+.ld-track.is-plan > li:last-child::before { bottom: calc(100% - 30px); }
 
 .ld-item {
   position: relative;
@@ -352,7 +355,7 @@
   grid-template-columns: 32px minmax(0, 1fr) auto auto;
   align-items: start;
   column-gap: 14px;
-  padding: 16px 18px;
+  padding: 14px 18px;
   text-decoration: none;
   transition: background .12s ease;
 }
@@ -371,7 +374,9 @@
   color: var(--text-mute);
   background: var(--bg-2);
   border: 1px solid var(--stroke-1);
-  transition: all .14s ease;
+  /* Named properties, not `all` — the node's width and height are layout, and
+     `all` put them on a transition they never needed. */
+  transition: background .14s ease, color .14s ease, border-color .14s ease, box-shadow .14s ease;
 }
 .ld-node-plan {
   color: var(--cyan);
@@ -386,11 +391,27 @@
 }
 .ld-item:hover .ld-node:not(.ld-node-plan) { color: var(--text); border-color: var(--stroke-2); }
 
-.ld-item-body { display: flex; flex-direction: column; gap: 27px; min-width: 0; padding-top: 6px; }
+/* Title and topics on one line, wrapping to the next only when they don't fit.
+   They used to be stacked with a 27px gap between them — 111–144px per row, and
+   the chips floated nearer the row below than the title they describe. Now the
+   row is the width of its content, and the track shows twice as many problems
+   per screen. The padding-top is an optical nudge, centring the 20px title line
+   against the 32px node beside it; it survives wrapping, which centring on the
+   grid would not (the node belongs to the first line, not to the block). */
+.ld-item-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 6px;
+  min-width: 0;
+  padding-top: 6px;
+}
 .ld-item-title {
   font-size: 14px;
   font-weight: 500;
   color: var(--text);
+  min-width: 0;
   transition: color .12s ease;
 }
 .ld-item:hover .ld-item-title { color: var(--cyan); }
@@ -417,7 +438,7 @@
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  padding: 52px 18px;
+  padding: 48px 18px;
   text-align: center;
   color: var(--text-mute);
   font-size: 13px;
@@ -427,7 +448,7 @@
 
 /* states */
 .ld-state {
-  padding: 36px 18px;
+  padding: 32px 18px;
   text-align: center;
   font-size: 13px;
   color: var(--text-mute);
@@ -446,10 +467,7 @@
   width: 100%;
 }
 
-/* ── progress card (third column, study plans once activated) ── */
-.ld-progress-col { grid-area: progress; }
-.ld-layout-3 .ld-progress-col { position: sticky; top: 90px; }
-
+/* ── progress card (in the rail, study plans once activated) ── */
 .ld-pcard {
   padding: 20px 20px 18px;
   border-radius: var(--radius-lg);
@@ -489,14 +507,13 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 11px 0;
+  padding: 12px 0;
   border-top: 1px solid var(--stroke);
 }
 .ld-pcard-row dt {
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.005em;
   color: var(--text-mute);
 }
 .ld-pcard-row dd { margin: 0; font-size: 13px; color: var(--text-dim); }
@@ -509,26 +526,38 @@
 }
 
 /* ── responsive ── */
-@media (max-width: 1080px) {
-  .ld-layout-3 {
-    grid-template-columns: 320px minmax(0, 1fr);
-    grid-template-areas:
-      "rail main"
-      "progress main";
-  }
-  .ld-layout-3 .ld-rail,
-  .ld-layout-3 .ld-progress-col { position: static; }
+@media (max-width: 900px) {
+  .ld-layout { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .ld-rail { gap: 16px; }
 }
+
+/* Stacked, the rail is everything standing between a phone user and the track
+   they opened the page for. The progress card turns side-on here: ring beside
+   its own numbers rather than above them, which halves its height. */
 @media (max-width: 760px) {
-  .ld-layout { grid-template-columns: 1fr; grid-template-areas: "rail" "main"; gap: 20px; }
-  .ld-layout-3 { grid-template-columns: 1fr; grid-template-areas: "rail" "progress" "main"; }
-  .ld-rail { position: static; }
-  .ld-stats { grid-auto-columns: minmax(0, 200px); justify-content: start; }
+  .ld-pcard-main {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: 20px;
+  }
+  .ld-pring { grid-row: span 2; margin: 4px 0; }
+  .ld-pcard-solved { text-align: left; margin: 0; }
+  .ld-pcard-stats { margin-top: 8px; }
+  .ld-pcard-row { padding: 7px 0; }
+  .ld-pcard-row:first-child { border-top: none; }
 }
+
 @media (max-width: 560px) {
-  .ld-item { grid-template-columns: 28px minmax(0, 1fr) auto; column-gap: 12px; padding: 14px; }
+  .ld-item { grid-template-columns: 28px minmax(0, 1fr) auto; column-gap: 12px; padding: 12px 14px; }
   .ld-item-go { display: none; }
+  /* The node has to shrink with its grid track, or it overflows into the title. */
+  .ld-node { width: 28px; height: 28px; }
+  .ld-item-body { padding-top: 4px; }
   .ld-track.is-plan > li::before { left: 28px; }
+  .ld-track.is-plan > li:first-child::before { top: 26px; }
+  .ld-track.is-plan > li:last-child::before { bottom: calc(100% - 26px); }
+  .ld-panel { padding: 20px; }
 }
 
 /* solved stations — the node becomes a green check.
