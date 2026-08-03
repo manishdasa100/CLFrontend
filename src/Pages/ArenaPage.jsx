@@ -22,7 +22,9 @@ const ArenaPage = () => {
       <AppNavbar />
       {!isProblemDetails ? (
         <>
-          <div className="cl-container" style={{ paddingTop: 32, width: "100%"}}>
+          {/* The width:100% that used to be here is now on .cl-container itself —
+              it was a local patch for a shell-wide bug (see tokens.css). */}
+          <div className="cl-container" style={{ paddingTop: 32 }}>
             {/* Greeting */}
             {/* "Your Arena" over the greeting was a third label for a page the
                 nav and the tab row already name. */}

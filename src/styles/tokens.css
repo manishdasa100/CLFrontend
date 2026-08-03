@@ -99,7 +99,13 @@ a { color: inherit; text-decoration: none; }
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  position: relative; isolation: isolate; overflow-x: hidden;
+  position: relative; isolation: isolate;
+  /* clip, not hidden. `overflow-x: hidden` forces overflow-y to `auto`, which
+     makes this element a scroll container — and every `position: sticky`
+     descendant then sticks to a scrollport that never scrolls, so it silently
+     does nothing. That was quietly disabling the sticky navbar and the list
+     rail. `clip` still crops horizontal overflow but creates no scrollport. */
+  overflow-x: clip;
 }
 
 /* Sticky footer. .cl-page was already a flex column, but nothing in the middle
@@ -479,8 +485,15 @@ a { color: inherit; text-decoration: none; }
 .cl-kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); background: var(--bg-2); border: 1px solid var(--stroke-1); border-radius: 4px; }
 
 /* Container */
-.cl-container { max-width: 1200px; margin: 0 auto; padding: 0 28px; }
-.cl-container-narrow { max-width: 860px; margin: 0 auto; padding: 0 28px; }
+/* width:100% is load-bearing, not belt-and-braces. .cl-page is a flex column, and
+   a flex item with `margin: 0 auto` opts out of cross-axis stretch — so without
+   an explicit width these shrink-to-fit their content instead of filling up to
+   max-width. A page whose content happened to be wide looked fine; one that got
+   narrower quietly pulled its own gutters in with it.
+   box-sizing keeps the 28px gutters inside that width rather than adding 56px
+   of overflow (there's no global border-box reset in this project). */
+.cl-container { width: 100%; box-sizing: border-box; max-width: 1200px; margin: 0 auto; padding: 0 28px; }
+.cl-container-narrow { width: 100%; box-sizing: border-box; max-width: 860px; margin: 0 auto; padding: 0 28px; }
 
 @keyframes cl-blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
 .cl-blink { animation: cl-blink 1s infinite; }
@@ -539,7 +552,11 @@ a { color: inherit; text-decoration: none; }
    The aside is decoration: a quote and a lemon. It earns its 45% on a desktop
    and nothing on a phone, where it was stealing a third of the screen and
    crushing the form to 207px. Below 860 it goes away entirely. */
-.cl-auth-shell { display: flex; min-height: 100vh; min-height: 100dvh; }
+/* flex-direction is explicit because this shell also carries .cl-page, and
+   .cl-page sets `column` for the nav/content/footer stack. `display: flex` here
+   didn't override that — direction is a separate property — so the aside and
+   the form stacked into two rows. */
+.cl-auth-shell { display: flex; flex-direction: row; min-height: 100vh; min-height: 100dvh; }
 .cl-auth-aside {
   flex: 1 1 45%;
   display: flex; flex-direction: column; justify-content: space-between;

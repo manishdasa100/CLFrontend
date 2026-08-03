@@ -507,7 +507,7 @@
 .pf-subs { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
 
 /* Five columns don't fit a phone. The table had no scroll wrapper, so its right
-   edge was simply being clipped by .cl-page's overflow-x:hidden — Language and
+   edge was simply being clipped by .cl-page's overflow-x — Language and
    Submitted were unreachable below ~600px with nothing to indicate they existed.
    Same treatment as the problems table: shed the least useful column at each
    step and let Problem ellipsize, so Status / Problem / Submitted survive to
