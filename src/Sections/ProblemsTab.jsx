@@ -141,9 +141,12 @@ const ProblemsTab = () => {
                   <td><span className={`cl-chip cl-chip-${diff}`}>{formatFieldName(p.difficulty)}</span></td>
                   <td>{p.topics?.[0] && <span className="cl-chip">{p.topics[0]}</span>}</td>
                   <td>
-                    {s === "solved" && <span className="cl-chip" style={{ background: "rgba(110,231,183,.1)", color: "var(--easy)", borderColor: "rgba(110,231,183,.2)" }}><Icon name="check" size={11} />Solved</span>}
-                    {s === "attempted" && <span className="cl-chip cl-chip-dot" style={{ background: "rgba(252,211,77,.08)", color: "var(--medium)", borderColor: "rgba(252,211,77,.2)" }}>Tried</span>}
-                    {s === "none" && <span style={{ color: "var(--text-mute)", borderColor: "var(--stroke-1)" }}>-</span>}
+                    {/* The chip modifiers already are these colours; the inline
+                        overrides here were a weaker copy of them plus a border
+                        that .cl-chip no longer draws. */}
+                    {s === "solved" && <span className="cl-chip cl-chip-success"><Icon name="check" size={11} />Solved</span>}
+                    {s === "attempted" && <span className="cl-chip cl-chip-dot cl-chip-warning">Tried</span>}
+                    {s === "none" && <span style={{ color: "var(--text-mute)" }}>-</span>}
                   </td>
                 </tr>
               );
@@ -152,13 +155,13 @@ const ProblemsTab = () => {
         </table>
 
         <div style={{ padding: "14px 22px", display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--stroke)", flexWrap: "wrap", gap: 12 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "0 4px 0 10px", border: "1px solid var(--stroke-1)", borderRadius: 8, height: 38, background: "var(--bg-1)" }}>
+          <div className="cl-picker" style={{ width: "auto" }}>
             <span className="cl-picker-label">Rows</span>
             <select
               className="cl-input"
               value={rowsPerPage}
               onChange={(e) => { setRowsPerPage(Number(e.target.value)); setPage(1); }}
-              style={{ width: "auto", height: 28, fontSize: 12, padding: "0 24px 0 6px", border: "none", background: "var(--bg-3)", borderRadius: 6 }}
+              style={{ width: "auto", height: 28, fontSize: 12, padding: "0 24px 0 6px", border: "none", background: "rgba(255,255,255,0.09)", borderRadius: 6 }}
             >
               {[5, 10, 20, 50].map((n) => <option key={n} value={n}>{n}</option>)}
             </select>
@@ -168,8 +171,11 @@ const ProblemsTab = () => {
             {Array.from({ length: totalPages }).slice(0, 5).map((_, i) => {
               const n = i + 1;
               return (
+                // Cyan, not a neutral fill: --surface-hi is exactly what an icon
+                // button now shows on hover, so a neutral current-page marker
+                // would be indistinguishable from whichever one you're pointing at.
                 <button key={n} className="cl-btn cl-btn-icon" onClick={() => setPage(n)}
-                  style={{ background: page === n ? "var(--bg-3)" : undefined, color: page === n ? "var(--text)" : undefined, borderColor: page === n ? "var(--stroke-2)" : "transparent" }}>{n}</button>
+                  style={{ background: page === n ? "rgba(34,211,238,0.18)" : undefined, color: page === n ? "var(--cyan)" : undefined }}>{n}</button>
               );
             })}
             <button className="cl-btn cl-btn-icon" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}><Icon name="chevronRight" size={14} /></button>
@@ -223,7 +229,9 @@ const StreakCard = () => {
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <div style={{ position: "relative", width: 64, height: 64, flexShrink: 0 }}>
               <svg width="64" height="64" viewBox="0 0 64 64" style={{ transform: "rotate(-90deg)" }}>
-                <circle cx="32" cy="32" r={radius} fill="none" stroke="var(--bg-3)" strokeWidth="5" />
+                {/* Translucent, like every other track — the card fill it sits on
+                    has risen to meet --bg-3, so an opaque track vanished into it. */}
+                <circle cx="32" cy="32" r={radius} fill="none" stroke="rgba(255,255,255,0.09)" strokeWidth="5" />
                 <circle cx="32" cy="32" r={radius} fill="none" stroke={streakColor} strokeWidth="5"
                   strokeLinecap="round" strokeDasharray={`${dash} ${circ}`} />
               </svg>
@@ -344,7 +352,7 @@ const ProgressCard = () => {
               />
             ))}
             {pct < 100 && (
-              <div style={{ flex: 1, background: "var(--bg-3)", borderRadius: 5, minWidth: 4 }} />
+              <div style={{ flex: 1, background: "rgba(255,255,255,0.09)", borderRadius: 5, minWidth: 4 }} />
             )}
           </div>
 
@@ -370,7 +378,7 @@ const Picker = ({ label, value, onChange, options }) => (
     <div style={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
       {options.map((o) => (
         <button key={o.v} onClick={() => onChange(o.v)} aria-pressed={value === o.v}
-          style={{ padding: "5px 10px", fontSize: 12, borderRadius: 6, color: value === o.v ? "var(--text)" : "var(--text-dim)", background: value === o.v ? "var(--bg-3)" : "transparent", border: "none", cursor: "pointer", fontFamily: "inherit" }}>
+          style={{ padding: "5px 10px", fontSize: 12, borderRadius: 6, color: value === o.v ? "var(--text)" : "var(--text-dim)", background: value === o.v ? "rgba(255,255,255,0.11)" : "transparent", border: "none", cursor: "pointer", fontFamily: "inherit" }}>
           {o.l}
         </button>
       ))}

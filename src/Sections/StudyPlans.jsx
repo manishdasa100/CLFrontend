@@ -15,7 +15,6 @@ function StudyPlanCard({ plan, onOpen }) {
   const tier = TIER_META[plan.difficultyTier] || TIER_META.MIXED;
   return (
     <div className="sp-card sp-plan">
-      <div className="sp-plan-accent" />
       {plan.isPinned && (
         <div className="sp-pin"><Icon name="pin2" size={12} /> Pinned</div>
       )}

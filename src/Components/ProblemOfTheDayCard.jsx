@@ -14,7 +14,11 @@ export default function ProblemOfTheDayCard() {
       padding: "24px 28px",
       position: "relative",
       overflow: "hidden",
-      background: "linear-gradient(135deg, rgba(255,225,64,0.12) 0%, var(--bg-1) 70%)",
+      // Two layers, because this inline background overrides .cl-card's and
+      // would otherwise be the one translucent card left in the app: the lemon
+      // wash on top, an opaque base beneath it. The wash ends on `transparent`
+      // rather than a colour so the base is what shows through.
+      background: "linear-gradient(135deg, rgba(255,225,64,0.16) 0%, transparent 70%), var(--surface-solid)",
       display: "flex",
       flexDirection: "column",
     }}>

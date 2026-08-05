@@ -310,15 +310,17 @@ export function ConfirmExitDialog({ onSave, onDiscard, onCancel }) {
 }
 
 /* ── toast ───────────────────────────────────────────────────── */
+/* `surface` replaces the tinted 1px border each state used to carry — same
+   signal, cast across the fill instead of drawn around it. Matches Toast.jsx. */
 const TOAST_STYLES = {
-  success: { border: "rgba(110,231,183,.3)",  ico: { bg: "rgba(110,231,183,0.15)", color: "var(--easy)"   }, icon: "check" },
-  warning: { border: "rgba(252,211,77,.3)",   ico: { bg: "rgba(252,211,77,0.15)",  color: "var(--medium)" }, icon: "warn"  },
-  error:   { border: "rgba(251,113,133,.3)",  ico: { bg: "rgba(251,113,133,0.15)", color: "var(--hard)"   }, icon: "close" },
+  success: { tint: "var(--easy)",   ico: { bg: "rgba(110,231,183,0.2)", color: "var(--easy)"   }, icon: "check" },
+  warning: { tint: "var(--medium)", ico: { bg: "rgba(252,211,77,0.2)",  color: "var(--medium)" }, icon: "warn"  },
+  error:   { tint: "var(--hard)",   ico: { bg: "rgba(251,113,133,0.2)", color: "var(--hard)"   }, icon: "close" },
 };
 export function Toast({ message, type = "success" }) {
   const s = TOAST_STYLES[type] || TOAST_STYLES.success;
   return (
-    <div className="pf-toast" style={{ borderColor: s.border }}>
+    <div className="pf-toast" style={{ background: `color-mix(in srgb, ${s.tint} 13%, var(--bg-4))` }}>
       <span className="pf-toast-ico" style={{ background: s.ico.bg, color: s.ico.color }}>
         <Icon name={s.icon} size={15} />
       </span>

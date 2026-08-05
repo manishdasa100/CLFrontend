@@ -66,8 +66,8 @@ const CodeLine = ({ n, children, caret }) => (
 );
 
 const EditorCard = () => (
-  <div aria-hidden="true" style={{ position: "relative", background: "var(--bg-1)", border: "1px solid var(--stroke-2)", borderRadius: 14, boxShadow: "var(--shadow-panel)", overflow: "hidden" }}>
-    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", background: "var(--bg-2)", borderBottom: "1px solid var(--stroke)" }}>
+  <div aria-hidden="true" style={{ position: "relative", background: "var(--surface-solid)", borderRadius: 14, boxShadow: "var(--shadow-panel)", overflow: "hidden" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", background: "rgba(255,255,255,0.04)", borderBottom: "1px solid var(--stroke)" }}>
       <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#FB7185" }} />
       <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#FCD34D" }} />
       <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#6EE7B7" }} />
@@ -83,7 +83,7 @@ const EditorCard = () => (
       <CodeLine n={6}>        seen[x] = i</CodeLine>
       <CodeLine n={7} caret>    <span style={{ color: "var(--text-mute)" }}># O(n) · single pass</span></CodeLine>
     </div>
-    <div style={{ display: "flex", gap: 10, padding: "12px 16px", borderTop: "1px solid var(--stroke)", background: "var(--bg-0)", alignItems: "center", flexWrap: "wrap" }}>
+    <div style={{ display: "flex", gap: 10, padding: "12px 16px", borderTop: "1px solid var(--stroke)", alignItems: "center", flexWrap: "wrap" }}>
       <span className="cl-btn cl-btn-subtle cl-btn-sm">Run</span>
       <span className="cl-btn cl-btn-primary cl-btn-sm">Submit <Icon name="play" size={10} /></span>
       <div style={{ marginLeft: "auto", display: "flex", gap: 10, fontSize: 11, color: "var(--text-mute)", alignItems: "center", flexWrap: "wrap", minWidth: 0 }}>
@@ -164,7 +164,7 @@ const PathVis = () => (
       { label: "Binary Search", val: 66, active: true },
       { label: "Dynamic Programming", val: 0, locked: true },
     ].map((p, i) => (
-      <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", borderRadius: 8, background: p.active ? "rgba(34,211,238,.06)" : "transparent", border: p.active ? "1px solid rgba(34,211,238,.25)" : "1px solid transparent" }}>
+      <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", borderRadius: 8, background: p.active ? "rgba(34,211,238,.16)" : "transparent" }}>
         <div style={{ width: 18, height: 18, borderRadius: "50%", background: p.done ? "var(--cyan)" : p.locked ? "var(--bg-3)" : "transparent", border: p.done ? "none" : "1.5px solid " + (p.active ? "var(--cyan)" : "var(--stroke-2)"), display: "grid", placeItems: "center", color: "#0A0B10" }}>
           {p.done && <Icon name="check" size={10} />}
           {p.locked && <Icon name="lock" size={9} style={{ color: "var(--text-mute)" }} />}

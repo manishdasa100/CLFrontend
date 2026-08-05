@@ -22,10 +22,12 @@
    heading colour and the tier chip all state the verdict too. Replaced with a
    wash of the tier colour across the whole card, which reads at a glance instead
    of asking you to notice an edge. */
+/* The wash no longer fades out to var(--bg-0): with the tier-tinted outline gone
+   that bottom stop was the page colour, so the card ended in mid-air. It bottoms
+   out on the shared card fill instead, and the tier reads harder at the top. */
 .sd-verdict {
   position: relative; overflow: hidden;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--tier) 9%, var(--bg-1)), var(--bg-0) 85%);
-  border: 1px solid color-mix(in srgb, var(--tier) 20%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--tier) 18%, transparent), transparent 85%), var(--surface-solid);
   border-radius: var(--radius-lg);
   padding: 18px 20px 16px;
 }
@@ -37,10 +39,10 @@
 
 .sd-problem {
   display: flex; align-items: center; gap: 12px; padding: 14px 16px;
-  background: var(--bg-2); border: 1px solid var(--stroke); border-radius: var(--radius);
-  color: var(--text); transition: border-color .14s, background .14s;
+  background: var(--surface-solid); border-radius: var(--radius);
+  color: var(--text); transition: background .14s;
 }
-.sd-problem:hover { border-color: rgba(34,211,238,0.4); background: var(--bg-3); }
+.sd-problem:hover { background: linear-gradient(rgba(34,211,238,0.13), rgba(34,211,238,0.13)), var(--surface-solid); }
 .sd-problem:hover .sd-arrow { transform: translateX(2px); }
 .sd-problem-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 /* Matches .cl-eyebrow's quiet treatment — was the same tracked-mono kicker. */
@@ -50,11 +52,11 @@
 .sd-arrow { color: var(--text-mute); flex-shrink: 0; transition: transform .14s; }
 
 .sd-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.sd-stat { background: var(--bg-2); border: 1px solid var(--stroke); border-radius: var(--radius); padding: 14px 10px; text-align: center; }
+.sd-stat { background: var(--surface-solid); border-radius: var(--radius); padding: 14px 10px; text-align: center; }
 .sd-stat-value { font-family: var(--font-mono); font-size: 15px; font-weight: 500; color: var(--text); }
 .sd-stat-label { margin-top: 6px; font-size: 11.5px; color: var(--text-mute); }
 
-.sd-norun { background: var(--bg-2); border: 1px solid var(--stroke); border-radius: var(--radius); padding: 14px 16px; font-size: 12.5px; color: var(--text-mute); line-height: 1.55; }
+.sd-norun { background: var(--surface-solid); border-radius: var(--radius); padding: 14px 16px; font-size: 12.5px; color: var(--text-mute); line-height: 1.55; }
 
 .sd-details { display: flex; flex-direction: column; }
 .sd-detail { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 4px; border-bottom: 1px solid var(--stroke); }
@@ -65,10 +67,11 @@
 /* ── right: code artifact ── */
 .sd-code {
   flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden;
-  background: linear-gradient(180deg, var(--bg-1), var(--bg-0));
-  border: 1px solid var(--stroke-1); border-radius: var(--radius-lg);
+  background: var(--surface-solid); border-radius: var(--radius-lg);
 }
-.sd-code-bar { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px 10px 16px; border-bottom: 1px solid var(--stroke); background: var(--bg-1); flex-shrink: 0; }
+/* Transparent, not --bg-1: the bar sits on the code card's own fill, and an
+   opaque panel colour underneath a translucent one shows as a seam. */
+.sd-code-bar { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px 10px 16px; border-bottom: 1px solid var(--stroke); flex-shrink: 0; }
 .sd-code-lang { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text-dim); font-family: var(--font-mono); }
 .sd-code-body { flex: 1; min-height: 0; }
 

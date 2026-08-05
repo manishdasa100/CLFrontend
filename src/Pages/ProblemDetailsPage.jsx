@@ -16,7 +16,7 @@ const LEFT_TABS = ["Description", "Submissions"];
 const ResultField = ({ label, value, valueColor }) => (
   <div style={{ marginBottom: 10 }}>
     <div style={{ color: "var(--text-mute)", fontSize: 11, marginBottom: 4 }}>{label} =</div>
-    <div style={{ background: "var(--bg-2)", borderRadius: 6, padding: "6px 10px", whiteSpace: "pre-wrap", color: valueColor || "var(--text-dim)" }}>{value}</div>
+    <div style={{ background: "rgba(255,255,255,0.06)", borderRadius: 6, padding: "6px 10px", whiteSpace: "pre-wrap", color: valueColor || "var(--text-dim)" }}>{value}</div>
   </div>
 );
 
@@ -49,7 +49,7 @@ const SubmitResultView = ({ report }) => {
       </div>
       <div style={{ display: "flex", gap: 16, marginBottom: 14 }}>
         {[["Runtime", `${report.runtimeMs} ms`], ["Memory", `${report.memoryMb} MB`]].map(([l, v]) => (
-          <div key={l} style={{ background: "var(--bg-2)", borderRadius: 8, padding: "8px 14px", textAlign: "center" }}>
+          <div key={l} style={{ background: "rgba(255,255,255,0.06)", borderRadius: 8, padding: "8px 14px", textAlign: "center" }}>
             <div style={{ fontSize: 10, color: "var(--text-mute)", marginBottom: 3 }}>{l}</div>
             <div style={{ fontWeight: 600, fontSize: 13 }}>{v}</div>
           </div>
@@ -91,7 +91,8 @@ const SubmissionRow = ({ sub }) => {
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } }}
       // The status chip below already carries the verdict colour, so the row only
       // needs a quiet tint of it — a 3px left stripe fought the rounded corner.
-      style={{ display: "flex", alignItems: "center", gap: 14, padding: "11px 14px", borderRadius: 8, border: `1px solid color-mix(in srgb, ${color} 28%, transparent)` }}
+      // The tint is a fill now rather than a 1px ring, like every other object.
+      style={{ display: "flex", alignItems: "center", gap: 14, padding: "11px 14px", borderRadius: 8, background: `color-mix(in srgb, ${color} 11%, transparent)` }}
     >
       <span className={`cl-chip cl-chip-mono cl-chip-${TIER_VARIANT[meta.tier]}`} style={{ minWidth: 48, justifyContent: "center", fontWeight: 600 }}>
         {sub.status}
@@ -577,7 +578,7 @@ export default function ProblemDetailsPage() {
                   Object.entries(selectedCase).filter(([k]) => k !== "explanation").map(([k, v]) => (
                     <div key={k} style={{ marginBottom: 10 }}>
                       <div style={{ color: "var(--text-mute)", fontSize: 11, marginBottom: 4 }}>{formatFieldName(k)} =</div>
-                      <div style={{ background: "var(--bg-2)", borderRadius: 6, padding: "6px 10px", whiteSpace: "pre-wrap" }}>{v}</div>
+                      <div style={{ background: "rgba(255,255,255,0.06)", borderRadius: 6, padding: "6px 10px", whiteSpace: "pre-wrap" }}>{v}</div>
                     </div>
                   ))
                 ) : (
@@ -673,9 +674,9 @@ const SaveToListPopup = ({ problemId, username, onClose, onToast }) => {
       <div style={{
         position: "fixed", zIndex: "var(--z-modal)",
         top: "50%", left: "50%", transform: "translate(-50%, -50%)",
-        background: "var(--bg-1)", border: "1px solid var(--stroke-1)",
+        background: "var(--bg-4)",
         borderRadius: 12, padding: "20px 20px 16px", width: 320,
-        boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
+        boxShadow: "0 20px 60px rgba(0,0,0,0.7)",
       }}>
         {view === "list" ? (
           <>
@@ -699,16 +700,16 @@ const SaveToListPopup = ({ problemId, username, onClose, onToast }) => {
                   style={{
                     display: "flex", alignItems: "center", gap: 10,
                     padding: "10px 12px", borderRadius: 8, width: "100%",
-                    background: "transparent", border: "1px solid var(--stroke)",
+                    background: "rgba(255,255,255,0.05)", border: "none",
                     cursor: "pointer", textAlign: "left",
                     color: "var(--text)", fontSize: 13, fontFamily: "inherit",
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-3)"}
-                  onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                  onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
                 >
                   <Icon name="bookmark" size={13} style={{ color: "var(--text-mute)", flexShrink: 0 }} />
                   <span style={{ flex: 1 }}>{list.name}</span>
-                  <span style={{ fontSize: 10, color: "var(--text-mute)", border: "1px solid var(--stroke)", borderRadius: 4, padding: "1px 5px" }}>
+                  <span style={{ fontSize: 10, color: "var(--text-dim)", background: "rgba(255,255,255,0.08)", borderRadius: 4, padding: "1px 5px" }}>
                     {list.isPublic ? "public" : "private"}
                   </span>
                 </button>

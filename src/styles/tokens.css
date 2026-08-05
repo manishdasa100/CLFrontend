@@ -9,8 +9,12 @@
   --bg-1: #0B0D14;
   --bg-2: #0F121B;
   --bg-3: #151926;
+  /* Floating surfaces only — menus, dropdowns, tooltips. One step above the
+     ramp's old ceiling because these have to separate from arbitrary content
+     underneath them, and they used to do it with a 1px outline. */
+  --bg-4: #1B1F2A;
 
-  /* Borders */
+  /* Borders — separators and form fields only now; see the note on --surface. */
   --stroke: rgba(255, 255, 255, 0.06);
   --stroke-1: rgba(255, 255, 255, 0.09);
   --stroke-2: rgba(255, 255, 255, 0.14);
@@ -41,14 +45,41 @@
   --medium: #FCD34D;
   --hard: #FB7185;
 
-  /* Elevation, not emission. These used to spread 32–40px of coloured light
-     behind every primary button and highlighted panel; on a near-black page
-     that reads as neon signage, which is the "hacker-terminal" anti-reference,
-     not the calm tool we're after. The 1px coloured ring stays — it's what
-     actually defines the edge — and the spread becomes an ordinary shadow. */
-  --shadow-lemon: 0 0 0 1px rgba(255,225,64,0.20), 0 6px 18px -10px rgba(0,0,0,0.7);
-  --shadow-cyan: 0 0 0 1px rgba(34,211,238,0.22), 0 6px 18px -10px rgba(0,0,0,0.7);
-  --shadow-panel: 0 16px 32px -26px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.04) inset;
+  /* Object fills. Nothing in this app is outlined any more — no button, chip or
+     card draws a 1px edge — so the fill is the only thing saying "this is a
+     thing". Two consequences it has to satisfy:
+       · it must differ from the page at EVERY edge, which a gradient ending in
+         var(--bg-0) does not: such a card's bottom edge simply isn't there;
+       · it must composite correctly whether it sits on the page or nested in
+         another surface, which a fixed hex does not.
+     Hence translucent white rather than a --bg-* step. */
+  --surface: rgba(255, 255, 255, 0.045);
+  --surface-hi: rgba(255, 255, 255, 0.075);  /* hover, and controls that lead */
+  /* Opaque twins of the two above: the exact colours they composite to over
+     --bg-0, frozen. A translucent card lets .cl-page's fixed backdrop through —
+     the 44px grid and the two radial glows — so grid lines run underneath the
+     content. Cards use these; the wash versions above stay on buttons, chips
+     and anything nested INSIDE a card, where being translucent is the feature:
+     they land on the right colour at any depth without being told what they
+     sit on, and with the card underneath them now opaque nothing bleeds. */
+  --surface-solid: #121317;
+  --surface-solid-hi: #1A1B1E;
+
+  /* Elevation, not emission. This used to spread 32–40px of coloured light
+     behind every primary button; on a near-black page that reads as neon
+     signage, which is the "hacker-terminal" anti-reference, not the calm tool
+     we're after. The 1px coloured ring that headed it is gone too — a 0-blur
+     0-offset 1px spread is a border by another property name, and it survived
+     the border pass only because it was spelled `box-shadow`.
+     Was --shadow-lemon and --shadow-cyan. Once the rings went, the two were the
+     same declaration under two names, which is a trap: change one and the other
+     silently doesn't follow. A drop shadow on a near-black page has no hue to
+     carry anyway. */
+  --shadow-raise: 0 6px 18px -10px rgba(0,0,0,0.7);
+  /* The inset hairline is the one edge treatment that stays: it's a top-lit
+     bevel on the object's own fill, not an outline drawn around it. On a
+     borderless card it's what keeps the top edge crisp. */
+  --shadow-panel: 0 16px 32px -26px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.05) inset;
 
   /* Layering — one ordered scale, so "what sits above what" is a design decision
      recorded here rather than a number invented at each call site. Was 19 ad-hoc
@@ -164,26 +195,34 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* Buttons */
+/* Every variant used to be a translucent fill inside a 1px ring of the same hue.
+   With the ring gone the fill is the whole button, so each one steps up roughly
+   50% — a 0.12 wash that read as a tint behind a border reads as nothing at all
+   without one. Ghost, which was transparent + border, needs a fill outright.
+   The `1px solid transparent` stays: it isn't drawn, it holds the 38px metric
+   the whole app's rows are built on. Delete it and every button in the product
+   loses 2px of height. */
 .cl-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: var(--radius-sm); font-weight: 500; font-size: 13px; border: 1px solid transparent; transition: all .15s ease; white-space: nowrap; background: none; color: inherit; }
 .cl-btn-sm { height: 30px; padding: 0 11px; font-size: 12px; }
 .cl-btn-lg { height: 44px; padding: 0 20px; font-size: 14px; border-radius: 8px; }
-.cl-btn-primary { background: var(--lemon); color: #1A1400; box-shadow: var(--shadow-lemon); }
+.cl-btn-primary { background: var(--lemon); color: #1A1400; box-shadow: var(--shadow-raise); }
 .cl-btn-primary:hover { background: #FFE966; transform: translateY(-1px); }
-.cl-btn-cyan { background: rgba(34,211,238,0.12); color: var(--cyan); border-color: rgba(34,211,238,0.3); }
-.cl-btn-cyan:hover { background: rgba(34,211,238,0.2); border-color: rgba(34,211,238,0.5); }
-.cl-btn-ghost { background: transparent; color: var(--text); border-color: var(--stroke-2); }
-.cl-btn-ghost:hover { background: var(--bg-2); }
-.cl-btn-subtle { background: var(--bg-2); color: var(--text-dim); border-color: var(--stroke-1); }
-.cl-btn-subtle:hover { background: var(--bg-3); color: var(--text); }
+.cl-btn-cyan { background: rgba(34,211,238,0.18); color: var(--cyan); }
+.cl-btn-cyan:hover { background: rgba(34,211,238,0.28); }
+.cl-btn-ghost { background: var(--surface-hi); color: var(--text); }
+.cl-btn-ghost:hover { background: rgba(255,255,255,0.12); }
+.cl-btn-subtle { background: var(--surface); color: var(--text-dim); }
+.cl-btn-subtle:hover { background: rgba(255,255,255,0.085); color: var(--text); }
 .cl-btn-icon { width: 32px; height: 32px; padding: 0; border-radius: 8px; background: transparent; color: var(--text-dim); border: 1px solid transparent; }
-.cl-btn-icon:hover { background: var(--bg-2); color: var(--text); border-color: var(--stroke-1); }
+.cl-btn-icon:hover { background: var(--surface-hi); color: var(--text); }
 /* Disabled — several call sites already pass `disabled` but nothing rendered it. */
 .cl-btn:disabled { opacity: .45; cursor: not-allowed; }
 .cl-btn:disabled:hover { transform: none; }
 .cl-btn-primary:disabled:hover { background: var(--lemon); }
-.cl-btn-cyan:disabled:hover { background: rgba(34,211,238,0.12); border-color: rgba(34,211,238,0.3); }
-.cl-btn-ghost:disabled:hover, .cl-btn-subtle:disabled:hover, .cl-btn-icon:disabled:hover { background: transparent; border-color: transparent; }
-.cl-btn-subtle:disabled:hover { background: var(--bg-2); border-color: var(--stroke-1); }
+.cl-btn-cyan:disabled:hover { background: rgba(34,211,238,0.18); }
+.cl-btn-ghost:disabled:hover { background: var(--surface-hi); }
+.cl-btn-icon:disabled:hover { background: transparent; }
+.cl-btn-subtle:disabled:hover { background: var(--surface); }
 
 /* Inputs */
 .cl-input { width: 100%; height: 38px; padding: 0 12px; background: var(--bg-1); border: 1px solid var(--stroke-1); border-radius: 8px; color: var(--text); font-size: 13px; outline: none; transition: all .15s; }
@@ -203,19 +242,27 @@ a { color: inherit; text-decoration: none; }
 .cl-input-wrap .cl-icon-r:focus-visible { outline: 2px solid var(--cyan); outline-offset: 1px; color: var(--text); }
 
 /* Cards */
-.cl-card { background: linear-gradient(180deg, var(--bg-1), var(--bg-0)); border: 1px solid var(--stroke-1); border-radius: var(--radius-lg); box-shadow: var(--shadow-panel); }
+/* The gradient this replaces ran var(--bg-1) → var(--bg-0), i.e. it ended on
+   exactly the page colour: with the border removed the card's lower half simply
+   dissolved. A flat translucent fill sits above the page at every edge. */
+.cl-card { background: var(--surface-solid); border-radius: var(--radius-lg); box-shadow: var(--shadow-panel); }
 .cl-card-header { padding: 18px 22px; border-bottom: 1px solid var(--stroke); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .cl-card-title { font-family: var(--font-display); font-weight: 600; font-size: 16px; letter-spacing: -0.01em; }
 .cl-card-sub { font-size: 12.5px; color: var(--text-mute); margin-top: 4px; }
 
 /* Chips */
-.cl-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 99px; font-size: 11.5px; font-weight: 500; background: var(--bg-3); color: var(--text-dim); border: 1px solid var(--stroke-1); white-space: nowrap; }
+/* Chips are a solid tint and nothing else — no outline. The old recipe was a
+   ~0.09 fill inside a 1px border of the same hue, which is the shape every
+   generated dark UI reaches for; twelve of them across four stylesheets read as
+   a formula rather than a decision. The fill carries the whole chip now, so it
+   roughly doubles (0.09 -> 0.16) to keep the edge legible without drawing one. */
+.cl-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 99px; font-size: 11.5px; font-weight: 500; background: rgba(255,255,255,0.06); color: var(--text-dim); border: none; white-space: nowrap; }
 .cl-chip-mono { font-family: var(--font-mono); font-size: 11px; }
-.cl-chip-easy, .cl-chip-success { background: rgba(110,231,183,0.09); color: var(--easy); border-color: rgba(110,231,183,0.2); }
-.cl-chip-medium, .cl-chip-warning { background: rgba(252,211,77,0.09); color: var(--medium); border-color: rgba(252,211,77,0.22); }
-.cl-chip-hard, .cl-chip-danger { background: rgba(251,113,133,0.09); color: var(--hard); border-color: rgba(251,113,133,0.22); }
-.cl-chip-cyan { background: rgba(34,211,238,0.10); color: var(--cyan); border-color: rgba(34,211,238,0.25); }
-.cl-chip-lemon { background: rgba(255,225,64,0.10); color: var(--lemon); border-color: rgba(255,225,64,0.25); }
+.cl-chip-easy, .cl-chip-success { background: rgba(110,231,183,0.16); color: var(--easy); }
+.cl-chip-medium, .cl-chip-warning { background: rgba(252,211,77,0.16); color: var(--medium); }
+.cl-chip-hard, .cl-chip-danger { background: rgba(251,113,133,0.16); color: var(--hard); }
+.cl-chip-cyan { background: rgba(34,211,238,0.16); color: var(--cyan); }
+.cl-chip-lemon { background: rgba(255,225,64,0.16); color: var(--lemon); }
 .cl-chip-dot::before { content: ''; width: 3px; height: 3px; border-radius: 50%; background: currentColor; }
 
 /* Tabs */
@@ -227,7 +274,7 @@ a { color: inherit; text-decoration: none; }
 .cl-tab:hover { color: var(--text-dim); }
 .cl-tab.active { color: var(--text); }
 .cl-tab.active::after { content: ''; position: absolute; left: 16px; right: 16px; bottom: -1px; height: 2px; background: var(--cyan); }
-.cl-tab-count { margin-left: 6px; font-size: 11px; padding: 2px 6px; border-radius: 99px; background: var(--bg-3); color: var(--text-mute); font-family: var(--font-mono); }
+.cl-tab-count { margin-left: 6px; font-size: 11px; padding: 2px 6px; border-radius: 99px; background: rgba(255,255,255,0.06); color: var(--text-dim); font-family: var(--font-mono); }
 .cl-tab.active .cl-tab-count { background: rgba(34,211,238,0.12); color: var(--cyan); }
 
 /* Typography */
@@ -283,7 +330,11 @@ a { color: inherit; text-decoration: none; }
 .monaco-editor .view-lines { padding-left: 12px; }
 
 /* Progress bar */
-.cl-bar { position: relative; width: 120px; height: 4px; background: var(--bg-3); border-radius: 99px; overflow: hidden; }
+/* Translucent, not --bg-3. Every bar track in the app sits inside a card, and
+   the card fill has just gone up — an opaque #151926 track is now within a
+   percent or two of the surface holding it, so the empty half of the bar
+   disappeared. A white wash stays one step above whatever it's dropped into. */
+.cl-bar { position: relative; width: 120px; height: 4px; background: rgba(255,255,255,0.09); border-radius: 99px; overflow: hidden; }
 .cl-bar-fill { height: 100%; background: linear-gradient(90deg, var(--cyan), #67E8F9); border-radius: 99px; transition: width .4s ease; }
 
 /* Lemon hero */
@@ -445,12 +496,11 @@ a { color: inherit; text-decoration: none; }
   width: max-content;
   max-width: 260px;
   padding: 10px 14px;
-  background: #11141C;
-  border: 1px solid rgba(255,255,255,0.10);
+  /* Lighter than the old #11141C: it used to be read against a 1px outline, and
+     a tooltip has to separate from whatever it happens to float over. */
+  background: var(--bg-4);
   border-radius: 10px;
-  box-shadow:
-    0 20px 38px -14px rgba(0,0,0,0.7),
-    0 0 0 1px var(--bdg-glow-soft);
+  box-shadow: 0 20px 38px -14px rgba(0,0,0,0.8);
   color: #C8CCD6;
   font-size: 12.5px;
   line-height: 1.5;
@@ -472,9 +522,7 @@ a { color: inherit; text-decoration: none; }
   width: 9px;
   height: 9px;
   transform: translateX(-50%) rotate(45deg);
-  background: #11141C;
-  border-right: 1px solid rgba(255,255,255,0.10);
-  border-bottom: 1px solid rgba(255,255,255,0.10);
+  background: var(--bg-4);
 }
 
 
@@ -482,7 +530,7 @@ a { color: inherit; text-decoration: none; }
 @keyframes toast-slide-in { from { transform: translateX(calc(100% + 24px)); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
 /* Kbd */
-.cl-kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); background: var(--bg-2); border: 1px solid var(--stroke-1); border-radius: 4px; }
+.cl-kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); background: rgba(255,255,255,0.09); border-radius: 4px; }
 
 /* Container */
 /* width:100% is load-bearing, not belt-and-braces. .cl-page is a flex column, and
@@ -652,10 +700,14 @@ a { color: inherit; text-decoration: none; }
 
 /* Filter pill group. Fixed height on a wide screen; wraps and goes full-width on a
    narrow one rather than pushing the card past the viewport. */
+/* Outlined until now, on the grounds that it's a form control. It isn't — it's a
+   label wrapped around a row of buttons, and once every real button on the page
+   went borderless these groups were the only ruled objects left on it. Text
+   inputs keep their outline; a thing you type into should look like one. */
 .cl-picker {
   display: inline-flex; align-items: center; gap: 8px;
-  padding: 0 4px 0 10px; border: 1px solid var(--stroke-1); border-radius: 8px;
-  height: 38px; background: var(--bg-1); max-width: 100%; min-width: 0;
+  padding: 0 4px 0 10px; border-radius: 8px;
+  height: 38px; background: var(--surface); max-width: 100%; min-width: 0;
 }
 /* The label on a control (Filters, Rows, Difficulty, Language …). It was
    uppercase at .1em tracking, repeated seven times across the app — five of them

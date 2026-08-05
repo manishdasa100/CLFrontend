@@ -29,7 +29,7 @@ export default function ErrorPage() {
           style={{
             width: 52, height: 52, margin: "0 auto 24px", borderRadius: "50%",
             display: "grid", placeItems: "center",
-            background: "rgba(34,211,238,.08)", border: "1px solid rgba(34,211,238,.22)",
+            background: "rgba(34,211,238,.18)",
             color: "var(--cyan)",
           }}
         >
@@ -57,7 +57,7 @@ export default function ErrorPage() {
             className="cl-mono"
             style={{
               marginTop: 40, padding: "12px 16px", textAlign: "left",
-              background: "var(--bg-1)", border: "1px solid var(--stroke-1)", borderRadius: 8,
+              background: "var(--surface-solid)", borderRadius: 8,
               fontSize: 12, color: "var(--text-dim)", overflowX: "auto", whiteSpace: "pre-wrap",
             }}
           >

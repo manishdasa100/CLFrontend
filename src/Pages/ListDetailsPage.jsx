@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import AppNavbar from "../Components/AppNavbar";
 import Footer from "../Components/Footer";
@@ -26,9 +26,12 @@ const DIFF_SEGMENTS = [
   { key: "HARD",   label: "Hard",   color: "var(--hard)"   },
 ];
 
-// completion ring geometry (progress card)
-const RING_R = 46;
-const RING_CIRC = 2 * Math.PI * RING_R;
+// Completion ring. Stroke is ~11% of the diameter — thin enough to read as a
+// gauge, thick enough that the rounded caps are the shape you notice first.
+const RING_BOX = 152;
+const RING_STROKE = 16;
+const RING_R = (RING_BOX - RING_STROKE) / 2;
+const RING_C = 2 * Math.PI * RING_R;
 
 function formatDifficulty(d) {
   if (!d) return "";
@@ -77,6 +80,9 @@ export default function ListDetailsPage() {
 
   const [confirming, setConfirming] = useState(null); // null | "reset" | "deactivate"
   const [pending, setPending] = useState(null);       // null | "activate" | "reset" | "deactivate"
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+  const menuBtnRef = useRef(null);
 
   const activated = !!progress;
   const solvedSet = useMemo(() => new Set(progress?.solvedProblemIds || []), [progress]);
@@ -98,7 +104,7 @@ export default function ListDetailsPage() {
 
   const timeLeft = useMemo(() => {
     if (!activated) return null;
-    if (complete) return { text: "Plan complete", tone: "done" };
+    if (complete) return { text: "Complete", tone: "done" };
     const left = (list.timelineDays ?? 0) - daysSince(progress.dateOfActivation);
     if (left > 1)   return { text: `${left} days left`, tone: "" };
     if (left === 1) return { text: "1 day left", tone: "warn" };
@@ -120,8 +126,27 @@ export default function ListDetailsPage() {
   const openConfirm = (action) => {
     reset.reset();
     deactivate.reset();
+    setMenuOpen(false);
     setConfirming(action);
   };
+
+  // Escape and outside-click close the plan menu. Escape hands focus back to the
+  // trigger rather than dropping a keyboard user at the top of the document.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onPointerDown = (e) => {
+      if (!menuRef.current?.contains(e.target) && !menuBtnRef.current?.contains(e.target)) setMenuOpen(false);
+    };
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") { setMenuOpen(false); menuBtnRef.current?.focus(); }
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [menuOpen]);
 
   return (
     <BackgroundWrapper>
@@ -151,7 +176,7 @@ export default function ListDetailsPage() {
           <div className="ld-layout">
             {/* ── Supporting rail: what this is, and how far you are into it ── */}
             <aside className="ld-rail">
-              <div className={`ld-panel ${isPlan ? "ld-panel-plan" : ""}`}>
+              <div className="ld-panel">
                 <div className="ld-kindline">
                   <div className="ld-kindline-l">
                     <span className={`ld-kind ${isPlan ? "ld-kind-plan" : "ld-kind-list"}`}>
@@ -236,33 +261,57 @@ export default function ListDetailsPage() {
                   it, and stranded this card mid-page at tablet widths. It lives
                   under its own identity panel now. */}
               {isPlan && activated && (
-                <div className="ld-pcard">
-                  <span className="ld-mix-label">Your progress</span>
+                <section className="ld-pcard" aria-label="Your progress on this plan">
+                  <div className="ld-pcard-top">
+                    <span className="ld-pcard-since">Started {formatActivationDate(progress.dateOfActivation)}</span>
 
-                  <div className="ld-pcard-main">
-                    <div className="ld-pring">
-                      <svg width="108" height="108" viewBox="0 0 108 108" style={{ transform: "rotate(-90deg)" }}>
-                        <circle cx="54" cy="54" r={RING_R} fill="none" stroke="var(--bg-3)" strokeWidth="6" />
-                        <circle cx="54" cy="54" r={RING_R} fill="none" stroke={complete ? "var(--easy)" : "var(--cyan)"}
-                          strokeWidth="6" strokeLinecap="round"
-                          strokeDasharray={`${(Math.min(Math.max(pct, 0), 100) / 100) * RING_CIRC} ${RING_CIRC}`} />
-                      </svg>
-                      <span className="ld-pring-num">{pct}<span className="ld-pring-pct">%</span></span>
+                    {/* Reset and Deactivate live behind this rather than sitting
+                        in the card as two permanent buttons. They're rare and
+                        destructive; a card about progress shouldn't lead with
+                        two ways to throw it away. */}
+                    <div className="ld-menu-wrap">
+                      <button
+                        ref={menuBtnRef}
+                        type="button"
+                        className="ld-menu-btn"
+                        aria-haspopup="menu"
+                        aria-expanded={menuOpen}
+                        aria-label="Plan options"
+                        onClick={() => setMenuOpen((o) => !o)}
+                      >
+                        <Icon name="moreVertical" size={16} />
+                      </button>
+                      {menuOpen && (
+                        <div className="ld-menu" role="menu" ref={menuRef}>
+                          <button type="button" role="menuitem" className="ld-menu-item" onClick={() => openConfirm("reset")}>
+                            <Icon name="reset" size={14} /> Reset progress
+                          </button>
+                          <button type="button" role="menuitem" className="ld-menu-item ld-menu-item-danger" onClick={() => openConfirm("deactivate")}>
+                            <Icon name="x" size={14} /> Deactivate plan
+                          </button>
+                        </div>
+                      )}
                     </div>
-                    <p className="ld-pcard-solved">
-                      <span className="cl-mono">{solvedCount}</span> of <span className="cl-mono">{totalCount}</span> solved
-                    </p>
+                  </div>
 
-                    <dl className="ld-pcard-stats">
-                      <div className="ld-pcard-row">
-                        <dt>Time left</dt>
-                        <dd className={`ld-tone-${timeLeft.tone || "none"}`}>{timeLeft.text}</dd>
-                      </div>
-                      <div className="ld-pcard-row">
-                        <dt>Activated</dt>
-                        <dd>{formatActivationDate(progress.dateOfActivation)}</dd>
-                      </div>
-                    </dl>
+                  <div className="ld-ring" role="progressbar"
+                       aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}
+                       aria-valuetext={`${pct}% — ${solvedCount} of ${totalCount} problems solved`}>
+                    <svg width={RING_BOX} height={RING_BOX} viewBox={`0 0 ${RING_BOX} ${RING_BOX}`} aria-hidden="true">
+                      {/* -90° so the arc starts at twelve o'clock and sweeps clockwise */}
+                      <g transform={`rotate(-90 ${RING_BOX / 2} ${RING_BOX / 2})`}>
+                        <circle className="ld-ring-track" cx={RING_BOX / 2} cy={RING_BOX / 2} r={RING_R}
+                                fill="none" strokeWidth={RING_STROKE} />
+                        <circle className="ld-ring-value" cx={RING_BOX / 2} cy={RING_BOX / 2} r={RING_R}
+                                fill="none" strokeWidth={RING_STROKE} strokeLinecap="round"
+                                strokeDasharray={`${(Math.min(Math.max(pct, 0), 100) / 100) * RING_C} ${RING_C}`} />
+                      </g>
+                    </svg>
+                    {/* aria-hidden: the progressbar role above already announces all of it */}
+                    <div className="ld-ring-text" aria-hidden="true">
+                      <span className="ld-ring-pct">{pct}%</span>
+                      <span className="ld-ring-count">{solvedCount} / {totalCount}</span>
+                    </div>
                   </div>
 
                   <div className="ld-pcard-foot">
@@ -289,13 +338,11 @@ export default function ListDetailsPage() {
                         </div>
                       </div>
                     ) : (
-                      <div className="ld-action-row">
-                        <button className="cl-btn cl-btn-subtle ld-action-btn" onClick={() => openConfirm("reset")}>
-                          <Icon name="reset" size={14} /> Reset
-                        </button>
-                        <button className="cl-btn ld-btn-danger ld-action-btn" onClick={() => openConfirm("deactivate")}>
-                          <Icon name="x" size={14} /> Deactivate
-                        </button>
+                      <div className="ld-pcard-footrow">
+                        {/* "Time left" against a "Complete" pill would be two
+                            different questions on one row. */}
+                        <span className="ld-pcard-foot-label">{complete ? "Status" : "Time left"}</span>
+                        <span className={`ld-pill ld-tone-${timeLeft.tone || "none"}`}>{timeLeft.text}</span>
                       </div>
                     )}
 
@@ -312,7 +359,7 @@ export default function ListDetailsPage() {
                       </p>
                     )}
                   </div>
-                </div>
+                </section>
               )}
             </aside>
 

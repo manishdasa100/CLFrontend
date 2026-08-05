@@ -78,9 +78,9 @@ export default function AppNavbar() {
                 {dropdownOpen && (
                   <div style={{
                     position: "absolute", top: "calc(100% + 8px)", right: 0,
-                    background: "var(--bg-2)", border: "1px solid var(--stroke)",
+                    background: "var(--bg-4)",
                     borderRadius: 10, padding: 6, minWidth: 160,
-                    boxShadow: "0 8px 24px rgba(0,0,0,0.4)", zIndex: "var(--z-dropdown)",
+                    boxShadow: "0 20px 40px -16px rgba(0,0,0,0.95)", zIndex: "var(--z-dropdown)",
                   }}>
                     <div style={{ padding: "6px 10px 8px", borderBottom: "1px solid var(--stroke)" }}>
                       <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text)" }}>{user?.firstName} {user?.lastName}</div>
@@ -91,7 +91,7 @@ export default function AppNavbar() {
                       padding: "8px 10px", borderRadius: 6, fontSize: 13,
                       color: "var(--text)", textDecoration: "none", marginTop: 4,
                     }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-3)"}
+                      onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.07)"}
                       onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                     >
                       <Icon name="user" size={13} /> Profile

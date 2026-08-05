@@ -3,7 +3,9 @@ import Icon from "./Icon";
 
 export default function Toast({ message, state = "failure", onClose }) {
   const color = state === "success" ? "var(--easy)" : state === "warning" ? "var(--medium)" : "var(--hard)";
-  const borderColor = state === "success" ? "rgba(110,231,183,.3)" : state === "warning" ? "rgba(252,211,77,.3)" : "rgba(251,113,133,.3)";
+  // The state used to be spelled out by a tinted 1px border. Same information,
+  // moved into the surface: a failure toast is cast red rather than outlined red.
+  const surface = `color-mix(in srgb, ${color} 13%, var(--bg-4))`;
 
   useEffect(() => {
     const t = setTimeout(onClose, 3500);
@@ -19,8 +21,8 @@ export default function Toast({ message, state = "failure", onClose }) {
       style={{
         position: "fixed", bottom: 24, right: 24, zIndex: "var(--z-toast)",
         display: "flex", alignItems: "center", gap: 10,
-        background: "var(--bg-2)", border: `1px solid ${borderColor}`,
-        borderRadius: 10, padding: "12px 16px", boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+        background: surface,
+        borderRadius: 10, padding: "12px 16px", boxShadow: "0 24px 50px -16px rgba(0,0,0,0.8)",
         fontSize: 13, color: "var(--text)", maxWidth: 320,
         animation: "toast-slide-in .28s cubic-bezier(0.22, 1, 0.36, 1) forwards",
       }}

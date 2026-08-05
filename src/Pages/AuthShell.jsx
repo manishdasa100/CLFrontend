@@ -134,7 +134,7 @@ function AuthShell({ mode }) {
             <div style={{
               display: "flex", alignItems: "center", gap: 9,
               padding: "10px 13px", marginBottom: 24,
-              background: "rgba(34,211,238,.08)", border: "1px solid rgba(34,211,238,.25)",
+              background: "rgba(34,211,238,.16)",
               borderRadius: "var(--radius-sm)", fontSize: 13, color: "var(--cyan-soft)"
             }}>
               <Icon name="lock" size={14} /> {reason}

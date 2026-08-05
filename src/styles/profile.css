@@ -25,8 +25,8 @@
   padding: 18px 22px;
   border-radius: var(--radius-lg);
   background:
-    linear-gradient(110deg, rgba(255,225,64,0.10), rgba(34,211,238,0.06) 60%, transparent);
-  border: 1px solid rgba(255,225,64,0.22);
+    linear-gradient(110deg, rgba(255,225,64,0.10), rgba(34,211,238,0.06) 60%, transparent),
+    var(--surface-solid);
   box-shadow: 0 18px 40px -24px rgba(255,225,64,0.4);
 }
 .pf-banner::before {
@@ -75,10 +75,11 @@
   gap: 14px;
   padding: 12px 18px;
   border-radius: var(--radius-lg);
-  background: rgba(15, 18, 27, 0.86);
+  /* Cyan-cast rather than neutral: the bar used to be a neutral panel inside a
+     cyan border, and the border was the only thing marking edit mode. */
+  background: rgba(24, 40, 48, 0.92);
   backdrop-filter: blur(16px) saturate(150%);
-  border: 1px solid rgba(34,211,238,0.3);
-  box-shadow: 0 18px 44px -20px rgba(0,0,0,0.7), var(--shadow-cyan);
+  box-shadow: 0 18px 44px -20px rgba(0,0,0,0.7);
 }
 .pf-editbar-pulse {
   width: 9px; height: 9px; border-radius: 50%;
@@ -117,12 +118,17 @@
   position: sticky;
   top: 84px;
   z-index: var(--z-raised);
-  background: linear-gradient(180deg, var(--bg-1), var(--bg-0));
-  border: 1px solid var(--stroke-1);
+  background: var(--surface-solid);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-panel);
 }
-.pf-id.is-editing { border-color: rgba(34,211,238,0.28); }
+/* Editing was signalled by a cyan border. Same signal, carried by the fill:
+   the card takes on the cyan the toolbar above it is already wearing. Written
+   as a tint layer over the opaque base rather than a flat hex, so the cyan and
+   its strength stay legible instead of being pre-multiplied into one number. */
+.pf-id.is-editing {
+  background: linear-gradient(rgba(34,211,238,0.12), rgba(34,211,238,0.12)), var(--surface-solid);
+}
 
 /* cover */
 .pf-cover {
@@ -229,12 +235,9 @@
   width: max-content;
   max-width: 220px;
   padding: 9px 13px;
-  background: #11141C;
-  border: 1px solid rgba(255,255,255,0.10);
+  background: var(--bg-4);
   border-radius: 10px;
-  box-shadow:
-    0 20px 38px -14px rgba(0,0,0,0.7),
-    0 0 0 1px rgba(255,225,64,0.12);
+  box-shadow: 0 20px 38px -14px rgba(0,0,0,0.8);
   color: #EDEFF4;
   font-size: 12.5px; font-weight: 600;
   line-height: 1.5;
@@ -255,15 +258,12 @@
   bottom: -5px;
   width: 9px; height: 9px;
   transform: translateX(-50%) rotate(45deg);
-  background: #11141C;
-  border-right: 1px solid rgba(255,255,255,0.10);
-  border-bottom: 1px solid rgba(255,255,255,0.10);
+  background: var(--bg-4);
 }
 .pf-occ {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 3px 10px; border-radius: 99px;
-  background: rgba(34,211,238,0.10);
-  border: 1px solid rgba(34,211,238,0.25);
+  padding: 4px 11px; border-radius: 99px;
+  background: rgba(34,211,238,0.16);
   color: var(--cyan-soft);
   font-size: 12px; font-weight: 500;
   margin-top: 12px;
@@ -292,7 +292,7 @@
 }
 .pf-detail-ico {
   width: 30px; height: 30px; border-radius: 8px;
-  background: var(--bg-2); border: 1px solid var(--stroke-1);
+  background: rgba(255,255,255,0.06);
   display: grid; place-items: center; color: var(--text-mute);
   flex-shrink: 0;
 }
@@ -312,7 +312,6 @@
   width: 34px; height: 34px; border-radius: 8px;
   background: #fff; flex-shrink: 0;
   display: grid; place-items: center; overflow: hidden;
-  border: 1px solid var(--stroke-1);
 }
 .pf-exp-logo img { width: 22px; height: 22px; object-fit: contain; }
 .pf-exp-logo-fallback {
@@ -336,9 +335,8 @@
   display: inline-flex; align-items: center; gap: 6px;
   padding: 5px 10px; border-radius: 6px;
   font-size: 11.5px; font-weight: 500;
-  background: rgba(34,211,238,0.07);
+  background: rgba(34,211,238,0.16);
   color: var(--cyan-soft);
-  border: 1px solid rgba(34,211,238,0.18);
 }
 .pf-skill-dot {
   width: 5px; height: 5px; border-radius: 50%;
@@ -350,14 +348,16 @@
 .pf-social {
   width: 38px; height: 38px; border-radius: 9px;
   display: grid; place-items: center;
-  background: var(--bg-2); border: 1px solid var(--stroke-1);
-  color: var(--text-dim); transition: all .15s ease;
+  background: var(--surface); color: var(--text-dim);
+  transition: transform .15s ease, background .15s ease, color .15s ease;
 }
-.pf-social:hover { transform: translateY(-2px); color: var(--text); border-color: var(--stroke-2); background: var(--bg-3); }
+/* Each network used to tint its own border on hover. The tint moves to the
+   fill, which is now the only surface the button has. */
+.pf-social:hover { transform: translateY(-2px); color: var(--text); background: var(--surface-hi); }
 .pf-social.is-github:hover { color: #fff; }
-.pf-social.is-linkedin:hover { color: #7FB8FF; border-color: rgba(127,184,255,0.4); }
-.pf-social.is-twitter:hover { color: #fff; border-color: rgba(255,255,255,0.25); }
-.pf-social.is-mail:hover { color: var(--cyan); border-color: rgba(34,211,238,0.35); }
+.pf-social.is-linkedin:hover { color: #7FB8FF; background: rgba(127,184,255,0.18); }
+.pf-social.is-twitter:hover { color: #fff; background: rgba(255,255,255,0.14); }
+.pf-social.is-mail:hover { color: var(--cyan); background: rgba(34,211,238,0.18); }
 
 /* ════════════════════════════════════════════════════════════════
    RIGHT — metric cards
@@ -371,8 +371,7 @@
   position: relative;
   padding: 16px 18px;
   border-radius: var(--radius-lg);
-  background: linear-gradient(180deg, var(--bg-1), var(--bg-0));
-  border: 1px solid var(--stroke-1);
+  background: var(--surface-solid);
   box-shadow: var(--shadow-panel);
   overflow: hidden;
 }
@@ -402,8 +401,7 @@
 
 /* generic content card */
 .pf-card {
-  background: linear-gradient(180deg, var(--bg-1), var(--bg-0));
-  border: 1px solid var(--stroke-1);
+  background: var(--surface-solid);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-panel);
 }
@@ -436,7 +434,7 @@
 .pf-diff-row { display: flex; align-items: center; gap: 12px; }
 .pf-diff-swatch { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
 .pf-diff-label { width: 60px; font-size: 13px; color: var(--text-dim); }
-.pf-diff-bar { flex: 1; height: 6px; border-radius: 99px; background: var(--bg-3); overflow: hidden; }
+.pf-diff-bar { flex: 1; height: 6px; border-radius: 99px; background: rgba(255,255,255,0.09); overflow: hidden; }
 .pf-diff-fill { height: 100%; border-radius: 99px; transition: width .6s cubic-bezier(.2,.8,.2,1); }
 .pf-diff-counts { font-family: var(--font-mono); font-size: 12px; min-width: 56px; text-align: right; color: var(--text); }
 .pf-diff-counts .total { color: var(--text-mute); }
@@ -451,7 +449,7 @@
   font-family: var(--font-mono); font-size: 12px;
   color: var(--text-dim);
 }
-.pf-lang-bar { width: 60px; height: 5px; border-radius: 99px; background: var(--bg-3); overflow: hidden; }
+.pf-lang-bar { width: 60px; height: 5px; border-radius: 99px; background: rgba(255,255,255,0.09); overflow: hidden; }
 .pf-lang-bar i { display: block; height: 100%; background: var(--cyan); border-radius: 99px; }
 
 /* earned badges */
@@ -480,14 +478,19 @@
 .pf-list-card {
   position: relative;
   padding: 14px 16px; border-radius: 12px;
-  background: var(--bg-2); border: 1px solid var(--stroke-1);
-  transition: all .15s ease; cursor: pointer;
+  background: rgba(255,255,255,0.055);
+  transition: transform .15s ease, background .15s ease; cursor: pointer;
   display: flex; flex-direction: column; gap: 8px;
 }
-.pf-list-card:hover { border-color: rgba(34,211,238,0.3); transform: translateY(-2px); background: var(--bg-3); }
+.pf-list-card:hover { transform: translateY(-2px); background: rgba(34,211,238,0.13); }
 .pf-list-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .pf-list-name { font-weight: 500; font-size: 13.5px; color: var(--text); line-height: 1.3; }
-.pf-list-desc { font-size: 12px; color: var(--text-mute); line-height: 1.45; min-height: 17px; }
+/* --text-dim, not --text-mute. This card is nested inside .pf-card, so its fill
+   composites to rgb(31,32,36) — lighter than --bg-3, which is the lightest
+   surface --text-mute was ever verified against (see tokens.css). It measured
+   4.26:1 here, under AA. The mute tier is at its floor by design; on anything
+   above bg-3 the next tier up is the only honest choice. */
+.pf-list-desc { font-size: 12px; color: var(--text-dim); line-height: 1.45; min-height: 17px; }
 .pf-list-foot { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
 .pf-list-count {
   font-family: var(--font-mono); font-size: 11px; color: var(--text-dim);
@@ -497,10 +500,10 @@
    in the app does — sentence case, not tracked mono caps. */
 .pf-vis {
   font-size: 11px; font-weight: 500;
-  padding: 2px 8px; border-radius: 99px;
+  padding: 3px 9px; border-radius: 99px;
 }
-.pf-vis-public { background: rgba(110,231,183,0.1); color: var(--easy); border: 1px solid rgba(110,231,183,0.2); }
-.pf-vis-private { background: var(--bg-3); color: var(--text-mute); border: 1px solid var(--stroke-1); }
+.pf-vis-public { background: rgba(110,231,183,0.16); color: var(--easy); }
+.pf-vis-private { background: rgba(255,255,255,0.06); color: var(--text-dim); }
 .pf-pin { color: var(--lemon); display: inline-flex; }
 
 /* submissions */
@@ -553,7 +556,7 @@
 .pf-sub-time { color: var(--text-mute); font-family: var(--font-mono); font-size: 11.5px; }
 .pf-sub-lang {
   font-family: var(--font-mono); font-size: 11.5px; padding: 3px 8px; border-radius: 4px;
-  background: var(--bg-2); border: 1px solid var(--stroke-1); color: var(--text-dim);
+  background: rgba(255,255,255,0.06); color: var(--text-dim);
 }
 .pf-subs-msg { display: flex; align-items: center; padding: 22px; font-size: 13px; color: var(--text-mute); }
 .pf-subs-empty { padding: 30px 22px; text-align: center; }
@@ -567,17 +570,17 @@
   display: inline-flex; align-items: center; gap: 5px;
   height: 26px; padding: 0 9px; border-radius: 6px;
   font-size: 11.5px; font-weight: 500;
-  background: rgba(34,211,238,0.1); color: var(--cyan);
-  border: 1px solid rgba(34,211,238,0.28); cursor: pointer;
-  transition: all .14s ease; white-space: nowrap;
+  background: rgba(34,211,238,0.18); color: var(--cyan);
+  border: none; cursor: pointer;
+  transition: background .14s ease, color .14s ease; white-space: nowrap;
 }
-.pf-editbtn:hover { background: rgba(34,211,238,0.18); border-color: rgba(34,211,238,0.5); }
-.pf-editbtn-ghost {
-  background: transparent; color: var(--text-mute); border-color: var(--stroke-2);
-}
-.pf-editbtn-ghost:hover { color: var(--text); background: var(--bg-2); border-color: var(--text-faint); }
-.pf-editbtn-danger { background: rgba(251,113,133,0.1); color: var(--hard); border-color: rgba(251,113,133,0.28); }
-.pf-editbtn-danger:hover { background: rgba(251,113,133,0.18); border-color: rgba(251,113,133,0.5); }
+.pf-editbtn:hover { background: rgba(34,211,238,0.28); }
+/* --text-dim, not --text-mute: 4.9:1 on the page was fine inside a border that
+   said "control"; with only a 0.045 fill to go on, the label is the affordance. */
+.pf-editbtn-ghost { background: var(--surface); color: var(--text-dim); }
+.pf-editbtn-ghost:hover { color: var(--text); background: var(--surface-hi); }
+.pf-editbtn-danger { background: rgba(251,113,133,0.16); color: var(--hard); }
+.pf-editbtn-danger:hover { background: rgba(251,113,133,0.26); }
 .pf-editbtn-icon { width: 26px; padding: 0; justify-content: center; }
 
 .pf-edit-field { display: flex; flex-direction: column; gap: 6px; }
@@ -605,8 +608,7 @@
   display: inline-flex; align-items: center; gap: 7px;
   padding: 5px 7px 5px 10px; border-radius: 6px;
   font-size: 11.5px; font-weight: 500;
-  background: rgba(34,211,238,0.07); color: var(--cyan-soft);
-  border: 1px solid rgba(34,211,238,0.18);
+  background: rgba(34,211,238,0.16); color: var(--cyan-soft);
 }
 .pf-skill-x {
   width: 16px; height: 16px; border-radius: 4px; display: grid; place-items: center;
@@ -618,31 +620,31 @@
   display: inline-flex; align-items: center; gap: 5px;
   padding: 5px 10px; border-radius: 6px;
   font-size: 11.5px; font-weight: 500;
-  background: transparent; color: var(--text-mute);
-  border: 1px dashed var(--stroke-2); cursor: pointer;
+  background: var(--surface); color: var(--text-dim); border: none; cursor: pointer;
 }
-.pf-addchip:hover { color: var(--cyan); border-color: rgba(34,211,238,0.4); }
+.pf-addchip:hover { color: var(--cyan); background: rgba(34,211,238,0.16); }
 
 /* edit experience block */
 .pf-exp-edit {
   padding: 12px; border-radius: 10px;
-  background: var(--bg-1); border: 1px solid var(--stroke-1);
+  background: rgba(255,255,255,0.04);
   display: flex; flex-direction: column; gap: 9px;
   position: relative;
 }
 .pf-exp-edit + .pf-exp-edit { margin-top: 10px; }
 .pf-exp-edit-head { display: flex; align-items: center; justify-content: space-between; }
-.pf-exp-edit-title { font-size: 12px; font-weight: 500; color: var(--text-mute); }
+/* Same reason as .pf-list-desc — this sits on a nested edit block. */
+.pf-exp-edit-title { font-size: 12px; font-weight: 500; color: var(--text-dim); }
 
 /* dashed add button (full width) */
 .pf-add-full {
   width: 100%; padding: 11px; border-radius: 9px;
-  background: transparent; color: var(--text-mute);
-  border: 1px dashed var(--stroke-2); cursor: pointer;
+  background: var(--surface); color: var(--text-dim); border: none; cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-  font-size: 12.5px; font-weight: 500; transition: all .14s ease;
+  font-size: 12.5px; font-weight: 500;
+  transition: background .14s ease, color .14s ease;
 }
-.pf-add-full:hover { color: var(--cyan); border-color: rgba(34,211,238,0.4); background: rgba(34,211,238,0.04); }
+.pf-add-full:hover { color: var(--cyan); background: rgba(34,211,238,0.13); }
 
 /* ── confirmation dialog ─────────────────────────────────────── */
 .pf-overlay {
@@ -656,8 +658,7 @@
 @keyframes pf-fade { from { opacity: 0; } to { opacity: 1; } }
 .pf-dialog {
   width: 100%; max-width: 420px;
-  background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
-  border: 1px solid var(--stroke-2);
+  background: var(--bg-4);
   border-radius: var(--radius-lg);
   box-shadow: 0 40px 80px -20px rgba(0,0,0,0.8);
   padding: 24px;
@@ -670,8 +671,7 @@
 .pf-dialog-icon {
   width: 44px; height: 44px; border-radius: 12px;
   display: grid; place-items: center; margin-bottom: 14px;
-  background: rgba(252,211,77,0.12); color: var(--medium);
-  border: 1px solid rgba(252,211,77,0.25);
+  background: rgba(252,211,77,0.18); color: var(--medium);
 }
 .pf-dialog-title { font-family: var(--font-display); font-weight: 600; font-size: 18px; color: var(--text); }
 .pf-dialog-body { font-size: 13.5px; color: var(--text-dim); line-height: 1.55; margin-top: 8px; }
@@ -688,7 +688,6 @@
   overflow: hidden;
   background: #08090c;
   margin-top: 16px;
-  border: 1px solid var(--stroke-2);
 }
 .pf-zoom-row {
   display: flex;
@@ -729,9 +728,8 @@
   position: fixed; right: 24px; bottom: 24px; z-index: var(--z-toast);
   display: flex; align-items: center; gap: 11px;
   padding: 13px 18px; border-radius: 12px;
-  background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
-  border: 1px solid rgba(110,231,183,0.3);
-  box-shadow: 0 24px 50px -16px rgba(0,0,0,0.7);
+  background: var(--bg-4);
+  box-shadow: 0 24px 50px -16px rgba(0,0,0,0.8);
   /* ease-out-quint, same curve and duration as the shared Toast. This one ended
      at 1.1, so it slid past its resting position and snapped back — the profile
      had a bouncier toast than the rest of the app for no reason. */

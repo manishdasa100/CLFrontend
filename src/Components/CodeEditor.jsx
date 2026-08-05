@@ -81,12 +81,12 @@ export default function CodeEditor({ codeSnippets, toggleFullScreenEditor, isFul
   return (
     <div className="cl-card" style={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden", borderRadius: 0 }}>
       <div style={{ display: "flex", alignItems: "center", padding: "8px 14px", borderBottom: "1px solid var(--stroke)", gap: 10, background: "var(--bg-1)" }}>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "0 4px 0 10px", border: "1px solid var(--stroke-1)", borderRadius: 8, height: 32, background: "var(--bg-2)" }}>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "0 4px 0 10px", borderRadius: 8, height: 32, background: "var(--surface)" }}>
           <span className="cl-picker-label">Language</span>
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
-            style={{ height: 24, fontSize: 12, padding: "0 20px 0 4px", border: "none", background: "var(--bg-3)", borderRadius: 6, color: "var(--text)", cursor: "pointer", outline: "none", fontFamily: "inherit" }}
+            style={{ height: 24, fontSize: 12, padding: "0 20px 0 4px", border: "none", background: "rgba(255,255,255,0.09)", borderRadius: 6, color: "var(--text)", cursor: "pointer", outline: "none", fontFamily: "inherit" }}
           >
             {codeSnippets?.map((s) => (
               <option key={s.languageCode} value={s.languageCode.toLowerCase()}>{formatFieldName(s.languageCode)}</option>

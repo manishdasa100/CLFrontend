@@ -23,20 +23,20 @@ export default function MultiSelect({ label, selected, onChange, options }) {
     <div ref={ref} style={{ position: "relative", display: "inline-flex" }}>
       <button
         onClick={() => setOpen((v) => !v)}
-        style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "0 10px", border: "1px solid var(--stroke-1)", borderRadius: 8, height: 38, background: "var(--bg-1)", cursor: "pointer", fontFamily: "inherit" }}
+        style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "0 10px", border: "none", borderRadius: 8, height: 38, background: "var(--surface)", cursor: "pointer", fontFamily: "inherit" }}
       >
         <span className="cl-picker-label">{label}</span>
         <span style={{ fontSize: 12, color: selected.size > 0 ? "var(--text)" : "var(--text-mute)" }}>{labelText}</span>
         <Icon name="chevron" size={12} style={{ color: "var(--text-mute)" }} />
       </button>
       {open && (
-        <div style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: "var(--z-dropdown)", background: "var(--bg-1)", border: "1px solid var(--stroke-1)", borderRadius: 10, minWidth: 180, maxHeight: 240, overflowY: "auto", boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}>
+        <div style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: "var(--z-dropdown)", background: "var(--bg-4)", borderRadius: 10, minWidth: 180, maxHeight: 240, overflowY: "auto", boxShadow: "0 20px 40px -16px rgba(0,0,0,0.95)" }}>
           {options.map((o) => (
             <label
               key={o.v}
               onClick={() => toggle(o.v)}
               style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 14px", cursor: "pointer", fontSize: 13, color: selected.has(o.v) ? "var(--text)" : "var(--text-dim)" }}
-              onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-2)"}
+              onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.07)"}
               onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
             >
               <span style={{

@@ -26,6 +26,7 @@
   /* Pulled left by its own padding so the chevron lines up with the panel edge
      below it rather than sitting 6px inside it. */
   margin-left: -6px;
+  margin-top: 15px;
   padding: 6px 8px 6px 6px;
   border-radius: 6px;
   transition: background .12s ease, color .12s ease;
@@ -60,21 +61,22 @@
 .ld-rail {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  /* 28 rather than 20: the panel above has no padding of its own now, so this
+     gap is the entire separation between its last line and the card below. */
+  gap: 28px;
 }
 
+/* No surface at all — no fill, no border, no shadow, no padding. The list's
+   identity reads as the page's own heading rather than as a card sitting on the
+   page, so its content aligns to the container edge like the Back link above it.
+   The plan-vs-list distinction that the panel's cyan tint used to carry now
+   rests entirely on the "Study Plan" chip, which already said it in words. */
 .ld-panel {
-  padding: 24px;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--stroke-1);
-  background: linear-gradient(180deg, var(--bg-1), var(--bg-0));
-  box-shadow: var(--shadow-panel);
-}
-.ld-panel-plan {
-  background:
-    radial-gradient(120% 80% at 100% 0%, rgba(34, 211, 238, 0.10), transparent 55%),
-    linear-gradient(180deg, var(--bg-1), var(--bg-0));
-  border-color: rgba(34, 211, 238, 0.22);
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+  margin-bottom: 20px;
 }
 
 .ld-kindline {
@@ -97,27 +99,25 @@
   border-radius: 999px;
 }
 .ld-kind-plan {
-  background: rgba(34, 211, 238, 0.10);
+  background: rgba(34, 211, 238, 0.16);
   color: var(--cyan);
-  border: 1px solid rgba(34, 211, 238, 0.25);
 }
 .ld-kind-list {
-  background: rgba(255, 255, 255, 0.03);
-  color: var(--text-mute);
-  border: 1px solid var(--stroke-1);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-dim);
 }
 
 .ld-flag {
   display: inline-flex; align-items: center; gap: 5px;
   font-size: 11px;
-  padding: 3px 8px;
+  padding: 4px 9px;
   border-radius: 999px;
-  color: var(--text-mute);
-  border: 1px solid var(--stroke-1);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-dim);
   white-space: nowrap;
 }
-.ld-flag-public { color: var(--easy); background: rgba(110, 231, 183, 0.06); border-color: rgba(110, 231, 183, 0.2); }
-.ld-flag-pin { color: var(--lemon); background: rgba(255, 225, 64, 0.08); border-color: rgba(255, 225, 64, 0.22); }
+.ld-flag-public { color: var(--easy); background: rgba(110, 231, 183, 0.16); }
+.ld-flag-pin { color: var(--lemon); background: rgba(255, 225, 64, 0.16); }
 
 /* Grouping, not an even drip. Title sits close to its own description and its
    own count line; the difficulty mix and the CTA are separate thoughts and get
@@ -178,8 +178,9 @@
   height: 8px;
   margin-bottom: 10px;
 }
-/* No width transition: segments mount at their final width and the data behind
-   them doesn't change while the page is open, so it only ever animated nothing. */
+/* Segments mount at their final size and the data behind them doesn't change
+   while the page is open, so the animation that used to sit here on the sizing
+   property only ever animated nothing. */
 .ld-meter-seg { border-radius: 99px; min-width: 5px; }
 .ld-legend {
   display: flex;
@@ -210,8 +211,7 @@
   letter-spacing: -0.01em;
   color: #06262C;
   background: linear-gradient(180deg, #5DE3F7, var(--cyan));
-  border: 1px solid rgba(34, 211, 238, 0.5);
-  box-shadow: var(--shadow-cyan);
+  box-shadow: var(--shadow-raise);
   transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
 }
 .ld-activate:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.05); }
@@ -230,34 +230,28 @@
 }
 @keyframes ld-spin { to { transform: rotate(360deg); } }
 
-/* reset / deactivate */
-.ld-action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.cl-btn.ld-action-btn { width: 100%; height: 42px; }
+/* reset / deactivate — only ever seen inside the confirm now.
+   Fills stepped up to the borderless button standard (see .cl-btn-cyan). */
 .cl-btn.ld-btn-warn {
-  background: rgba(252, 211, 77, 0.08);
+  background: rgba(252, 211, 77, 0.16);
   color: var(--medium);
-  border: 1px solid rgba(252, 211, 77, 0.28);
 }
-.cl-btn.ld-btn-warn:hover { background: rgba(252, 211, 77, 0.14); border-color: rgba(252, 211, 77, 0.45); }
+.cl-btn.ld-btn-warn:hover { background: rgba(252, 211, 77, 0.26); }
 .cl-btn.ld-btn-danger {
-  background: rgba(251, 113, 133, 0.08);
+  background: rgba(251, 113, 133, 0.16);
   color: var(--hard);
-  border: 1px solid rgba(251, 113, 133, 0.26);
 }
-.cl-btn.ld-btn-danger:hover { background: rgba(251, 113, 133, 0.15); border-color: rgba(251, 113, 133, 0.5); }
-.cl-btn.ld-action-btn:disabled,
+.cl-btn.ld-btn-danger:hover { background: rgba(251, 113, 133, 0.26); }
 .cl-btn.ld-btn-warn:disabled,
 .cl-btn.ld-btn-danger:disabled { opacity: 0.55; cursor: default; }
 
-/* Inline confirm for destructive actions. Separated by a rule rather than by a
-   bordered, filled box — it lives inside .ld-pcard, and a card inside a card is
-   one border too many for something this small. */
+/* Inline confirm for destructive actions. No border or fill of its own — it
+   replaces the card's footer row, which already sits below a divider, and a card
+   inside a card is one border too many for something this small. */
 .ld-confirm {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding-top: 14px;
-  border-top: 1px solid var(--stroke);
 }
 .ld-confirm-q { margin: 0; font-size: 12.5px; line-height: 1.55; color: var(--text-dim); }
 .ld-confirm-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -272,7 +266,7 @@
   height: 46px;
   font-size: 12.5px;
   color: var(--text-mute);
-  border: 1px dashed var(--stroke-1);
+  background: var(--surface-solid);
   border-radius: var(--radius);
 }
 
@@ -284,10 +278,6 @@
   font-size: 12px;
   color: var(--hard);
 }
-.ld-pcard-row dd.ld-tone-warn { color: var(--medium); }
-.ld-pcard-row dd.ld-tone-over { color: var(--hard); }
-.ld-pcard-row dd.ld-tone-done { color: var(--easy); }
-
 /* ── problem track ── */
 .ld-main { min-width: 0; }
 .ld-track-head {
@@ -310,17 +300,15 @@
 .ld-main-title svg { color: var(--cyan); }
 .ld-main-count {
   font-size: 11px;
-  padding: 2px 9px;
+  padding: 3px 9px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--text-mute);
-  border: 1px solid var(--stroke-1);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-dim);
 }
 
 .ld-track-card {
-  border: 1px solid var(--stroke-1);
   border-radius: var(--radius-lg);
-  background: linear-gradient(180deg, var(--bg-1), var(--bg-0));
+  background: var(--surface-solid);
   box-shadow: var(--shadow-panel);
   overflow: hidden;
 }
@@ -372,24 +360,25 @@
   font-size: 12px;
   font-weight: 500;
   color: var(--text-mute);
-  background: var(--bg-2);
-  border: 1px solid var(--stroke-1);
+  /* Lighter than the track card it sits on, not darker. It used to be an opaque
+     --bg-2 disc held together by its outline; --bg-2 is below the card's own
+     composited value, so without the outline it read as a hole punched in the
+     row rather than a station on the line. */
+  background: rgba(255, 255, 255, 0.07);
   /* Named properties, not `all` — the node's width and height are layout, and
      `all` put them on a transition they never needed. */
-  transition: background .14s ease, color .14s ease, border-color .14s ease, box-shadow .14s ease;
+  transition: background .14s ease, color .14s ease, box-shadow .14s ease;
 }
 .ld-node-plan {
   color: var(--cyan);
-  background: rgba(34, 211, 238, 0.08);
-  border-color: rgba(34, 211, 238, 0.4);
+  background: rgba(34, 211, 238, 0.18);
 }
 .ld-item:hover .ld-node-plan {
   background: var(--cyan);
   color: #06262C;
-  border-color: var(--cyan);
   box-shadow: 0 0 14px rgba(34, 211, 238, 0.5);
 }
-.ld-item:hover .ld-node:not(.ld-node-plan) { color: var(--text); border-color: var(--stroke-2); }
+.ld-item:hover .ld-node:not(.ld-node-plan) { color: var(--text); background: rgba(255, 255, 255, 0.12); }
 
 /* Title and topics on one line, wrapping to the next only when they don't fit.
    They used to be stacked with a 27px gap between them — 111–144px per row, and
@@ -417,11 +406,11 @@
 .ld-item:hover .ld-item-title { color: var(--cyan); }
 
 .ld-topics { display: flex; flex-wrap: wrap; gap: 6px; }
+/* Size only — the fill and text colour come from .cl-chip. The old override put
+   --text-mute on a 0.03 fill, which lands at 4.3:1 once the fill goes up. */
 .ld-topic {
-  padding: 2px 8px;
+  padding: 3px 9px;
   font-size: 10.5px;
-  color: var(--text-mute);
-  background: rgba(255, 255, 255, 0.03);
 }
 
 .ld-item-diff { flex-shrink: 0; margin-top: 5px; }
@@ -452,14 +441,12 @@
   text-align: center;
   font-size: 13px;
   color: var(--text-mute);
-  border: 1px dashed var(--stroke-1);
   border-radius: var(--radius-lg);
-  background: var(--bg-0);
+  background: var(--surface-solid);
 }
 .ld-state-error {
   color: var(--hard);
-  border-color: rgba(251, 113, 133, 0.3);
-  background: rgba(251, 113, 133, 0.04);
+  background: linear-gradient(rgba(251, 113, 133, 0.10), rgba(251, 113, 133, 0.10)), var(--surface-solid);
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -467,58 +454,156 @@
   width: 100%;
 }
 
-/* ── progress card (in the rail, study plans once activated) ── */
+/* ── progress card (in the rail, study plans once activated) ──
+   Date and menu across the top, the count as the headline, a labelled bar, then
+   a divider and the deadline. The light comes in from the top-right corner and
+   falls off across the card, so the top-right reads lit and the bottom-left
+   stays near the page background. */
 .ld-pcard {
-  padding: 20px 20px 18px;
+  padding: 16px 20px 16px;
   border-radius: var(--radius-lg);
-  border: 1px solid rgba(34, 211, 238, 0.22);
+  /* Reaches further and lands harder than it did. The corner peak is capped at
+     0.40 rather than pushed higher: past that the menu glyph sitting in it drops
+     under 3:1, and most of the extra presence comes from the wider radius and
+     the later transparent stop anyway — more lit area, same safe peak. */
   background:
-    radial-gradient(130% 70% at 50% 0%, rgba(34, 211, 238, 0.09), transparent 62%),
-    linear-gradient(180deg, var(--bg-1), var(--bg-0));
+    radial-gradient(130% 110% at 100% 0%, rgba(34, 211, 238, 0.40), rgba(34, 211, 238, 0.15) 45%, transparent 78%),
+    linear-gradient(50deg, var(--bg-2), var(--surface-solid));
   box-shadow: var(--shadow-panel);
 }
 
-/* big completion ring — the hero of this card */
-.ld-pring { position: relative; width: 108px; height: 108px; margin: 14px auto 2px; }
-.ld-pring svg { display: block; }
-.ld-pring circle:last-child { transition: stroke-dasharray .5s ease; }
-.ld-pring-num {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-display); font-weight: 700; font-size: 30px; letter-spacing: -0.02em;
-  line-height: 1;
-  color: var(--text);
-  /* digits carry no descender, so optical centre sits ~2px below the line-box centre */
-  transform: translateY(2px);
-}
-.ld-pring-pct { font-size: 14px; font-weight: 600; color: var(--text-mute); align-self: center; }
-
-.ld-pcard-solved {
-  margin: 10px 0 0;
-  text-align: center;
-  font-size: 13px;
-  color: var(--text-mute);
-}
-.ld-pcard-solved .cl-mono { color: var(--text); font-weight: 600; }
-
-.ld-pcard-stats { margin: 18px 0 0; }
-.ld-pcard-row {
+.ld-pcard-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 12px 0;
+  gap: 12px;
+}
+.ld-pcard-since { font-size: 12.5px; color: var(--text-dim); }
+
+/* ── completion ring ──
+   --easy is the app's only green, so it's the palette's answer to the reference.
+   It doubles as the Easy-difficulty colour, which is a real overlap: the chips
+   in the track alongside carry the same hue. It reads as distinct here because
+   nothing else in this card is coloured and the ring is 152px of it. */
+.ld-ring {
+  position: relative;
+  width: 152px;
+  height: 152px;
+  margin: 22px auto 0;
+}
+.ld-ring svg { display: block; }
+/* The reference draws no track, but the full circle is worth keeping: it shows
+   how much is left, not just how much is done, and it stops a plan at 0% from
+   rendering as a lone green dot. Kept at 0.055 — enough to read as a ring on the
+   card's dark side, faint enough to sit under the glow on its lit side. */
+.ld-ring-track { stroke: rgba(255, 255, 255, 0.055); }
+.ld-ring-value { stroke: var(--easy); }
+
+.ld-ring-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+.ld-ring-pct {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.025em;
+  color: var(--text);
+}
+/* Not mono: at 13px the mono space advance opened "5 / 12" into three islands. */
+.ld-ring-count { font-size: 13px; color: var(--text-dim); }
+
+.ld-pcard-foot {
+  margin-top: 22px;
+  padding-top: 14px;
   border-top: 1px solid var(--stroke);
 }
-.ld-pcard-row dt {
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.005em;
-  color: var(--text-mute);
+.ld-pcard-footrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
-.ld-pcard-row dd { margin: 0; font-size: 13px; color: var(--text-dim); }
+.ld-pcard-foot-label { font-size: 12.5px; color: var(--text-mute); }
 
-.ld-pcard-foot { margin-top: 16px; }
+/* deadline pill — neutral until the deadline actually means something */
+.ld-pill {
+  padding: 8px 14px;
+  border-radius: 99px;
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-dim);
+}
+.ld-pill.ld-tone-warn { color: var(--medium); background: rgba(252, 211, 77, 0.16); }
+.ld-pill.ld-tone-over { color: var(--hard);   background: rgba(251, 113, 133, 0.16); }
+.ld-pill.ld-tone-done { color: var(--easy);   background: rgba(110, 231, 183, 0.16); }
+
+/* ── plan menu ── */
+.ld-menu-wrap { position: relative; flex-shrink: 0; }
+.ld-menu-btn {
+  position: relative;
+  width: 32px; height: 32px;
+  display: grid; place-items: center;
+  border-radius: 8px;
+  /* --text-dim, not --text-mute: this icon sits in the brightest corner of the
+     gradient, where mute lands at 2.7:1 — under the 3:1 that a control's own
+     glyph needs. Everything else in the card sits on darker ground. */
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid transparent;
+  transition: background .12s ease, color .12s ease;
+}
+/* 32px is the visual size; the hit area is padded out to 44 for touch. */
+.ld-menu-btn::before { content: ''; position: absolute; inset: -6px; }
+.ld-menu-btn:hover,
+.ld-menu-btn[aria-expanded="true"] { color: var(--text); background: rgba(255, 255, 255, 0.07); }
+.ld-menu-btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+.ld-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 188px;
+  z-index: var(--z-dropdown);
+  padding: 5px;
+  border-radius: var(--radius);
+  background: var(--bg-4);
+  box-shadow: 0 20px 40px -16px rgba(0, 0, 0, 0.95);
+  transform-origin: top right;
+  animation: ld-menu-in .14s cubic-bezier(.2, .8, .2, 1);
+}
+@keyframes ld-menu-in {
+  from { opacity: 0; transform: scale(0.96) translateY(-4px); }
+  to   { opacity: 1; transform: none; }
+}
+.ld-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: 7px;
+  font-size: 13px;
+  text-align: left;
+  color: var(--text-dim);
+  background: none;
+  border: none;
+  transition: background .12s ease, color .12s ease;
+}
+/* Lighter than the menu, not --bg-3: the panel is --bg-4 now, so the old hover
+   token sits below it and the highlight would have run backwards. */
+.ld-menu-item:hover { background: rgba(255, 255, 255, 0.07); color: var(--text); }
+.ld-menu-item:focus-visible { outline: 2px solid var(--cyan); outline-offset: -2px; }
+.ld-menu-item-danger { color: var(--hard); }
+.ld-menu-item-danger:hover { background: rgba(251, 113, 133, 0.12); color: var(--hard); }
 
 @keyframes ld-rise {
   from { opacity: 0; transform: translateY(8px); }
@@ -528,24 +613,18 @@
 /* ── responsive ── */
 @media (max-width: 900px) {
   .ld-layout { grid-template-columns: minmax(0, 1fr); gap: 20px; }
-  .ld-rail { gap: 16px; }
-}
+  .ld-rail { gap: 24px; }
 
-/* Stacked, the rail is everything standing between a phone user and the track
-   they opened the page for. The progress card turns side-on here: ring beside
-   its own numbers rather than above them, which halves its height. */
-@media (max-width: 760px) {
-  .ld-pcard-main {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-    column-gap: 20px;
+  /* Stacked, the card spans the page so it lines up with the panel above it,
+     but its contents don't stretch with it — an 840px bar carrying one figure
+     is a long walk for the eye, and the headline loses its centre. The card
+     stays full width; the block inside it stays card-sized. */
+  .ld-pcard-top,
+  .ld-pcard-foot {
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
   }
-  .ld-pring { grid-row: span 2; margin: 4px 0; }
-  .ld-pcard-solved { text-align: left; margin: 0; }
-  .ld-pcard-stats { margin-top: 8px; }
-  .ld-pcard-row { padding: 7px 0; }
-  .ld-pcard-row:first-child { border-top: none; }
 }
 
 @media (max-width: 560px) {
@@ -557,7 +636,6 @@
   .ld-track.is-plan > li::before { left: 28px; }
   .ld-track.is-plan > li:first-child::before { top: 26px; }
   .ld-track.is-plan > li:last-child::before { bottom: calc(100% - 26px); }
-  .ld-panel { padding: 20px; }
 }
 
 /* solved stations — the node becomes a green check.
@@ -565,7 +643,6 @@
 .ld-node-done,
 .ld-item:hover .ld-node-done {
   background: var(--easy);
-  border-color: var(--easy);
   color: #06251A;
 }
 .ld-item:hover .ld-node-done { box-shadow: 0 0 12px rgba(110, 231, 183, 0.45); }
