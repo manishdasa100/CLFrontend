@@ -45,7 +45,7 @@
 .ld-layout {
   display: grid;
   grid-template-columns: 320px minmax(0, 1fr);
-  gap: 28px;
+  gap: 30px;
   align-items: start;
   animation: ld-rise .4s cubic-bezier(.2, .8, .2, 1) both;
 }
@@ -129,7 +129,7 @@
   font-weight: 600;
   line-height: 1.12;
   letter-spacing: -0.02em;
-  margin-top: 16px;
+  margin-top: 18px;
   color: var(--text);
   text-wrap: balance;
 }
@@ -138,7 +138,7 @@
   font-size: 13px;
   line-height: 1.6;
   color: var(--text-dim);
-  margin-top: 8px;
+  margin-top: 10px;
   /* Only bites once the rail unstacks to full width below 900px — a 700px-wide
      line of 13px prose is about 95 characters, well past comfortable. */
   max-width: 68ch;
@@ -153,7 +153,7 @@
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  margin: 12px 0 0;
+  margin: 16px 0 0;
   font-size: 13px;
   color: var(--text-dim);
 }

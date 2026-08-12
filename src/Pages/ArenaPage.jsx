@@ -29,9 +29,13 @@ const ArenaPage = () => {
             {/* "Your Arena" over the greeting was a third label for a page the
                 nav and the tab row already name. */}
             <div style={{ display: "flex", flexDirection: "column", marginBottom: 18}}>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 30, fontWeight: 600, letterSpacing: "-0.02em" }}>
+              {/* An <h1>, not a styled div. The arena had no h1–h6 anywhere, so
+                  a screen-reader user landing here got a flat run of text and
+                  the card titles below had no level to hang off. This greeting
+                  was already the page's heading in every way but markup. */}
+              <h1 style={{ fontFamily: "var(--font-display)", fontSize: 30, fontWeight: 600, letterSpacing: "-0.02em", margin: 0 }}>
                 Good to see you, <span style={{ color: "var(--cyan)" }}>{user?.firstName ?? "..."}</span>.
-              </div>
+              </h1>
             </div>
 
             {/* Navigation tabs — above the cards */}

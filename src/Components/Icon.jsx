@@ -50,10 +50,16 @@ const PATHS = {
   target:    <><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" /></>,
   list:      <><path d="M8 6h12M8 12h12M8 18h12M3.5 6h.01M3.5 12h.01M3.5 18h.01" /></>,
   medal:     <><circle cx="12" cy="15" r="6" /><path d="M9 9 6.5 3M15 9 17.5 3M9.5 3h5" /></>,
+  trophy:    <><path d="M7 4h10v4a5 5 0 0 1-10 0z" /><path d="M7 5H4.5a2 2 0 0 0 0 4H7M17 5h2.5a2 2 0 0 1 0 4H17" /><path d="M12 13v3.5M9.5 16.5h5l1 3.5H8.5l1-3.5z" /></>,
   camera:    <><path d="M4 8a2 2 0 0 1 2-2h1.5l1-2h7l1 2H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8z" /><circle cx="12" cy="12.5" r="3.2" /></>,
   globe:     <><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" /></>,
   save:      <><path d="M5 4h11l3 3v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" /><path d="M8 4v5h7M8 21v-7h8v7" /></>,
   warn:      <><path d="M12 3 2 20h20L12 3z" /><path d="M12 10v4M12 17h.01" /></>,
+  /* Two half-links pulled apart. Rotated 45° rather than drawn on the diagonal:
+     axis-aligned arcs stay circular under rotation, and horizontally the same
+     two shapes just read as brackets, "⊂ ⊃", not as a chain. Checked at 11px —
+     adding break ticks between the halves was legible at 24 and a smudge at 12. */
+  linkBroken: <g transform="rotate(-45 12 12)"><path d="M9 17H7A5 5 0 0 1 7 7h2" /><path d="M15 7h2a5 5 0 1 1 0 10h-2" /></g>,
   github:    <path d="M12 1.5A10.5 10.5 0 0 0 1.5 12c0 4.65 3.02 8.59 7.2 9.99.53.1.72-.23.72-.5v-1.8c-2.93.64-3.55-1.41-3.55-1.41-.48-1.22-1.17-1.55-1.17-1.55-.96-.66.07-.64.07-.64 1.06.07 1.62 1.09 1.62 1.09.94 1.62 2.47 1.15 3.07.88.1-.68.37-1.15.67-1.41-2.34-.27-4.8-1.17-4.8-5.21 0-1.15.41-2.09 1.08-2.83-.11-.27-.47-1.34.1-2.8 0 0 .88-.28 2.88 1.08a9.97 9.97 0 0 1 5.24 0c2-1.36 2.88-1.08 2.88-1.08.57 1.46.21 2.53.1 2.8.67.74 1.08 1.68 1.08 2.83 0 4.05-2.46 4.94-4.81 5.2.38.33.71.97.71 1.95v2.9c0 .28.19.61.72.5A10.51 10.51 0 0 0 22.5 12 10.5 10.5 0 0 0 12 1.5z" fill="currentColor" stroke="none" />,
   linkedin:  <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.36V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z" fill="currentColor" stroke="none" />,
   twitter:   <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.66l-5.214-6.817-5.967 6.817H1.677l7.73-8.835L1.25 2.25h6.83l4.713 6.231 5.451-6.231zm-1.161 17.52h1.833L7.084 4.126H5.117l11.966 15.644z" fill="currentColor" stroke="none" />,

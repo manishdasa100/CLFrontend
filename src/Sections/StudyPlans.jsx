@@ -26,16 +26,15 @@ function StudyPlanCard({ plan, onOpen }) {
       <p className="sp-desc">{plan.description || "—"}</p>
       <div className="sp-foot">
         <span className="sp-meta">
-          <Icon name="list" size={12} />
+          <Icon name="check" size={14} />
           <span className="cl-mono">{plan.totalProblems}</span> {plan.totalProblems === 1 ? "problem" : "problems"}
         </span>
-        <span className="sp-dot">·</span>
         <span className="sp-meta">
-          <Icon name="fire" size={12} />
-          <span className="cl-mono">{plan.timelineDays}</span> {plan.timelineDays === 1 ? "day" : "days"}
+          <Icon name="check" size={14} />
+          <span className="cl-mono">{plan.timelineDays}</span> {plan.timelineDays === 1 ? "day" : "days"} timeline
         </span>
         <button className="cl-btn cl-btn-cyan cl-btn-sm sp-cta" type="button" onClick={onOpen}>
-          Start plan <Icon name="arrowRight" size={12} />
+          Visit plan <Icon name="arrowRight" size={12} />
         </button>
       </div>
     </div>
@@ -55,7 +54,7 @@ function ProblemListCard({ list, onOpen }) {
       <p className="sp-desc">{list.description || "—"}</p>
       <div className="sp-foot">
         <span className="sp-meta">
-          <Icon name="list" size={12} />
+          <Icon name="check" size={14} />
           <span className="cl-mono">{list.totalProblems}</span> {list.totalProblems === 1 ? "problem" : "problems"}
         </span>
         <button className="cl-btn cl-btn-ghost cl-btn-sm sp-cta" type="button" onClick={onOpen}>

@@ -58,7 +58,7 @@ export default function AppNavbar() {
         <div className="cl-nav-actions">
           {loggedIn ? (
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: 6 }}>
-              <span className="cl-chip cl-chip-cyan"><Icon name="fire" size={12} /> 12d</span>
+              <span className="cl-chip cl-chip-cyan"><Icon name="trophy" size={13} /> 12d</span>
               <div ref={dropdownRef} style={{ position: "relative" }}>
                 <div onClick={() => setDropdownOpen((o) => !o)} style={{ cursor: "pointer" }}>
                   {user?.profilePictureUrl && !isDefaultDp(user.profilePictureUrl) && !avatarError ? (

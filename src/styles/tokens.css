@@ -64,6 +64,16 @@
      sit on, and with the card underneath them now opaque nothing bleeds. */
   --surface-solid: #121317;
   --surface-solid-hi: #1A1B1E;
+  /* The arena's lead card (problem of the day) sits in a row with two cards of
+     the same shape, and it is the only one you can act on. Same construction as
+     --surface-solid — opaque, so .cl-page's fixed grid and glows don't show
+     through — but one step up the ramp and tilted warm, so it reads as raised
+     beside its neighbours rather than tinted. This is where that card's deleted
+     lemon orb and wash went: elevation instead of decoration.
+     Warm, not lemon: at 4.6:1 for --text-mute this ground is already at the AA
+     floor, and any more chroma costs contrast the card can't spare. */
+  --surface-lead: #1A1813;
+  --surface-lead-hi: #221F16;
 
   /* Elevation, not emission. This used to spread 32–40px of coloured light
      behind every primary button; on a near-black page that reads as neon
@@ -80,6 +90,12 @@
      bevel on the object's own fill, not an outline drawn around it. On a
      borderless card it's what keeps the top edge crisp. */
   --shadow-panel: 0 16px 32px -26px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.05) inset;
+  /* Same two layers as --shadow-panel, further off the page. Only the arena's
+     lead card wears it; on a row of three identical .cl-card shapes the drop is
+     half the argument that one of them is raised, and the brighter inset
+     hairline is the other half. */
+  --shadow-lead: 0 22px 40px -20px rgba(0,0,0,0.78), 0 1px 0 rgba(255,255,255,0.08) inset;
+  --shadow-lead-hi: 0 30px 52px -20px rgba(0,0,0,0.85), 0 1px 0 rgba(255,255,255,0.11) inset;
 
   /* Layering — one ordered scale, so "what sits above what" is a design decision
      recorded here rather than a number invented at each call site. Was 19 ad-hoc
@@ -247,8 +263,16 @@ a { color: inherit; text-decoration: none; }
    dissolved. A flat translucent fill sits above the page at every edge. */
 .cl-card { background: var(--surface-solid); border-radius: var(--radius-lg); box-shadow: var(--shadow-panel); }
 .cl-card-header { padding: 18px 22px; border-bottom: 1px solid var(--stroke); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.cl-card-title { font-family: var(--font-display); font-weight: 600; font-size: 16px; letter-spacing: -0.01em; }
+.cl-card-title { font-family: var(--font-display); font-weight: 600; font-size: 16px; letter-spacing: -0.01em; margin: 0; }
 .cl-card-sub { font-size: 12.5px; color: var(--text-mute); margin-top: 4px; }
+/* One step below .cl-card-title, for a card small enough that a 16px display
+   title would dominate it. This was a real role in the system with no class:
+   the three arena header cards each titled themselves with .cl-eyebrow plus
+   inline overrides of the exact two properties .cl-eyebrow exists to set
+   (12px, --text-mute) — and all three overrode it differently, one of them
+   also resetting the weight. What survived the overrides was font-weight 500,
+   so that is what this class is. `margin: 0` because these are headings now. */
+.cl-card-title-sm { font-size: 13px; font-weight: 500; color: var(--text); margin: 0; }
 
 /* Chips */
 /* Chips are a solid tint and nothing else — no outline. The old recipe was a
@@ -630,7 +654,14 @@ a { color: inherit; text-decoration: none; }
 /* ── Arena header cards ──
    Problem-of-the-day is the lead card, so on tablet it takes the full row and
    the two stat cards share the one below, rather than all three shrinking. */
-.cl-arena-cards { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 14px; width: 100%; }
+/* 1.1, down from 1.2. The streak card is the content-bound one in this row —
+   at 1.2 its worst case (a 3-digit streak whose best run was a prior year) fit
+   its two columns with 2.1px and 1.4px to spare, i.e. no margin at all. Moving
+   11px from the lead card takes that to ~5px each and costs POTD nothing: its
+   title is capped at 70% and no real title changes line count between the two.
+   Not 1fr — equal thirds wraps a long title to a third line and takes the whole
+   arena row from 224px to 250px. */
+.cl-arena-cards { display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 14px; width: 100%; }
 
 /* ── Problem details ── */
 .cl-pd-shell { display: flex; flex-direction: column; height: calc(100vh - 72px); height: calc(100dvh - 72px); }

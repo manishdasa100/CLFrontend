@@ -120,10 +120,10 @@
   font-size: 21px;
   font-weight: 600;
   letter-spacing: -0.015em;
-  margin: 6px 0 6px;
+  margin: 15px 0 6px;
   color: var(--text);
 }
-.sp-title-list { font-size: 19px; color: var(--text-dim); }
+.sp-title-list { font-size: 19px; color: var(--text); }
 
 .sp-desc {
   font-size: 13px;
@@ -135,7 +135,7 @@
 .sp-foot {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 15px;
   font-size: 12px;
   color: var(--text-mute);
   flex-wrap: wrap;
@@ -147,7 +147,6 @@
   color: var(--text-mute);
 }
 .sp-meta .cl-mono { color: var(--text); }
-.sp-dot { opacity: 0.4; }
 
 .sp-cta { margin-left: auto; }
 

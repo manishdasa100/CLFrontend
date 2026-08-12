@@ -4,9 +4,9 @@ import Icon from "../Components/Icon";
 import Spinner from "../Components/Spinner";
 import MultiSelect from "../Components/MultiSelect";
 import ProblemOfTheDayCard from "../Components/ProblemOfTheDayCard";
-import Badge from "../Components/Badge";
 import { useARandomProblemId, useProblemsData, useAllTopics, useAllCompanies, useUserStreak, useUserSubmissionStatus, useProblemCounts } from "../services/queries";
 import { formatFieldName } from "../lib/utils";
+import "../styles/arena.css";
 
 const ProblemsTab = () => {
   const navigate = useNavigate();
@@ -56,7 +56,7 @@ const ProblemsTab = () => {
         <div className="cl-card-header">
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div className="cl-card-title">Problems</div>
+              <h2 className="cl-card-title">Problems</h2>
               <span className="cl-chip cl-chip-cyan">{problemsList?.total ?? 0} total</span>
             </div>
             <div className="cl-card-sub">Filter, pick, solve. Or try a random one.</div>
@@ -194,94 +194,171 @@ const ArenaHeader = () => (
   </div>
 );
 
+/* The API sends plain calendar days ("2026-07-27") with no timezone, and
+   `new Date()` reads a bare date string as UTC midnight — which renders as the
+   26th for every user west of Greenwich. Build it in local time instead. */
+const parseApiDay = (s) => {
+  if (!s) return null;
+  const [y, m, d] = s.split("-").map(Number);
+  return new Date(y, m - 1, d);
+};
+const startOfToday = () => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+};
+/* "Jul 1 '25", not "Jul 1, 2025". The long form pushed the Best-run value past
+   its column on a 3-digit streak and truncated to "Jul 1,…" — a date cut before
+   the part that disambiguates it is worse than no date. */
+const fmtDay = (d) => {
+  const s = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return d.getFullYear() === new Date().getFullYear()
+    ? s
+    : `${s} '${String(d.getFullYear()).slice(-2)}`;
+};
+const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
+
 const StreakCard = () => {
-  const { data, isLoading } = useUserStreak();
+  const { data, isLoading, isError, error, refetch } = useUserStreak();
   const streak = data?.streakDays ?? 0;
   const best = data?.highestStreakDays ?? 0;
-  const bestStreakdate = data?.highestStreakDate ? new Date(data.highestStreakDate) : null;
+  const bestDay = parseApiDay(data?.highestStreakDate);
+  const lastDay = parseApiDay(data?.lastSubmissionDate);
   const badge = data?.highestStreakBadge;
-  const lastDate = data?.lastSubmissionDate;
+  const nextAt = data?.nextBadgeThreshold ?? null;
 
-  const lastSubmittedLabel = (() => {
-    if (!lastDate) return "No submissions yet";
-    const days = Math.floor((Date.now() - new Date(lastDate).getTime()) / 86400000);
-    if (days === 0) return "Last submission: today";
-    if (days === 1) return "Last submission: yesterday";
-    return `Last submission: ${days} days ago`;
-  })();
+  const daysSince = lastDay ? Math.round((startOfToday() - lastDay.getTime()) / 86400000) : null;
 
-  const streakColor = streak <= 10 ? "var(--easy)" : streak <= 45 ? "var(--medium)" : "var(--hard)";
-  const radius = 26;
-  const circ = 2 * Math.PI * radius;
-  const progress = Math.min(streak / 100, 1);
-  const dash = progress * circ;
+  /* Solved yesterday but not today is the only state this card wants you to act
+     on, so it's the only one that gets a pill colour and a pulse.
+     `broken` is deliberately not the same as "streak is 0": someone who has never
+     solved anything hasn't broken anything, and colouring their first visit's
+     zero in --hard would greet a new user with a failure. */
+  const state =
+    streak > 0 && daysSince === 1 ? { label: "Solve today", tone: "risk", broken: false }
+      : streak > 0 ? { label: "Active", tone: "on", broken: false }
+        : lastDay ? { label: "Streak broken", tone: "off", broken: true }
+          : { label: "Not started", tone: "off", broken: false };
+
+  const lastValue =
+    !lastDay ? "—"
+      : daysSince === 0 ? "Today"
+        : daysSince === 1 ? "Yesterday"
+          : fmtDay(lastDay);
+
+  const bestValue = best > 0
+    ? `${plural(best, "day")}${bestDay ? ` · ${fmtDay(bestDay)}` : ""}`
+    : "—";
+
+  const toGo = nextAt == null ? null : Math.max(nextAt - streak, 0);
+
+  /* No `error.response` means axios never heard back at all — offline, DNS,
+     timeout. That's a different instruction from a server that answered badly:
+     one says check your connection, the other says try again in a moment.
+     401 never reaches here; the axios interceptor redirects to login. */
+  const offline = isError && !error?.response;
 
   return (
-    <div className="cl-card" style={{ padding: "18px 20px", display: "flex", flexDirection: "column", gap: 16 }}>
-      {/* Named, unlike the Progress card's — that one has a heading sitting above
-          it, whereas this card renders its title only in the loaded branch, so a
-          bare "Loading…" appeared in an otherwise unlabelled box. */}
+    <div className="cl-card sk">
+      {/* The heading renders in every branch — it used to live inside the
+          loaded branch only, so a bare "Loading…" appeared in an unlabelled box.
+          It used to sit in a .sk-head flex row opposite the state pill; the
+          state has moved down to the count it describes, so there is nothing
+          left to lay out beside it. */}
+      <h2 className="cl-card-title-sm">Your streak</h2>
+
       {isLoading ? (
-        <div style={{ flex: 1, display: "flex", alignItems: "center", color: "var(--text-mute)", fontSize: 13 }}>Loading your streak…</div>
+        <div className="sk-loading">Loading your streak…</div>
+      ) : isError ? (
+        /* role="status" rather than "alert": it announces politely on arrival
+           without interrupting whatever a screen-reader user is already reading.
+           Nothing here was their fault and nothing is urgent. */
+        <div className="sk-error" role="status">
+          <Icon name="warn" size={16} className="sk-error-icon" />
+          <div className="sk-error-title">
+            {offline ? "You’re offline" : "Couldn’t load your streak"}
+          </div>
+          {/* The reassurance is the point. The old zero state made people think
+              they'd lost the streak; say plainly that they haven't. */}
+          <div className="sk-error-sub">
+            {offline
+              ? "Your streak is safe — we just can’t reach it."
+              : "Your streak is safe. Try again in a moment."}
+          </div>
+          {/* No disabled-while-fetching guard, deliberately: react-query flips
+              status back to `loading` on refetch when there's no cached data, so
+              this whole branch unmounts on click and "Loading your streak…"
+              takes over. The button can't be double-fired because it's gone —
+              verified at 1 request per click. */}
+          <button className="cl-btn cl-btn-subtle cl-btn-sm" type="button" onClick={() => refetch()}>
+            <Icon name="reset" size={12} /> Try again
+          </button>
+        </div>
       ) : (
         <>
-          {/* Top — circle + title + last submission */}
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <div style={{ position: "relative", width: 64, height: 64, flexShrink: 0 }}>
-              <svg width="64" height="64" viewBox="0 0 64 64" style={{ transform: "rotate(-90deg)" }}>
-                {/* Translucent, like every other track — the card fill it sits on
-                    has risen to meet --bg-3, so an opaque track vanished into it. */}
-                <circle cx="32" cy="32" r={radius} fill="none" stroke="rgba(255,255,255,0.09)" strokeWidth="5" />
-                <circle cx="32" cy="32" r={radius} fill="none" stroke={streakColor} strokeWidth="5"
-                  strokeLinecap="round" strokeDasharray={`${dash} ${circ}`} />
-              </svg>
-              <span style={{
-                position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
-                fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18, color: streakColor,
-              }}>{streak}</span>
+          <div className="sk-marquee">
+            {/* The count and its condition are one object, so they share one
+                element. The state used to live in the card's top-right corner,
+                diagonally opposite the number it qualifies — a reader had to
+                carry "Solve today" across the card to apply it to a "7".
+                No digit-count shrink: the column is `auto`, so a 3-digit streak
+                takes the width it needs instead of stealing it from the facts,
+                which are anchored to the opposite edge and don't move. */}
+            <div className="sk-count">
+              <span className={`sk-num${streak === 0 ? " is-zero" : ""}`}>{streak}</span>
+              <span className="sk-unit">{streak === 1 ? "day" : "days"}</span>
+              {/* The broken state swaps the dot for a snapped chain. It's the one
+                  state whose meaning the dot couldn't carry: "Streak broken" and
+                  "Not started" share the `off` tone, so they rendered identically
+                  even though one is a loss and the other is a blank slate.
+                  This is also what `state.broken` is for — it had gone unread. */}
+              <span className={`sk-state sk-state-${state.tone}`}>
+                {state.broken
+                  ? <Icon name="linkBroken" size={12} className="sk-state-icon" />
+                  : <i className="sk-dot" aria-hidden="true" />}
+                {state.label}
+              </span>
             </div>
-            <div>
-              <div style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, letterSpacing: "-0.01em" }}>Day streak</div>
-              <div style={{ fontSize: 13, color: "var(--text-mute)", marginTop: 3 }}>{lastSubmittedLabel}</div>
-            </div>
+            {/* "Last solved" is back from the shortened "Solved". It was cut
+                because the label and value shared a line and the longest label
+                set the column; stacked, the label costs the value nothing, so
+                the row can say what it means again. */}
+            {/* Each pair wrapped in a div — HTML5 allows it inside <dl>, and it
+                keeps the label bound to its value now that both stack. */}
+            <dl className="sk-facts">
+              <div><dt>Last solved</dt><dd>{lastValue}</dd></div>
+              <div><dt>Best</dt><dd>{bestValue}</dd></div>
+            </dl>
           </div>
 
-          {/* Divider */}
-          <div style={{ height: 1, background: "var(--stroke)" }} />
-
-          {/* Bottom — best streak stats + badge */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1px 1fr 1px 1fr", gap: 8, alignItems: "center" }}>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-              <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22, letterSpacing: "-0.02em" }}>{best}</span>
-              <span style={{ fontSize: 10, color: "var(--text-mute)", textAlign: "center", lineHeight: 1.3 }}>Longest streak</span>
+          {/* A hairline above, not a filled well around: this row was a recessed
+              panel inside the card, which is the card-in-card shape. The rule
+              groups it just as well and hands the badge artwork back the card's
+              own background. */}
+          <div className="sk-foot">
+            {badge?.imageUrl
+              ? <img className="sk-badge" src={badge.imageUrl} alt="" />
+              : <span className="sk-badge-none" aria-hidden="true"><Icon name="trophy" size={17} /></span>}
+            <div className="sk-next-body">
+              <div className="sk-next-name">{badge?.name || "No badge yet"}</div>
+              {/* "Earned ·" is doing real work. This row shows a badge the user
+                  already has (highestStreakBadge) next to a countdown to one
+                  they don't (nextBadgeThreshold) — two tenses, one row, and
+                  every reader took the name on the left to BE the next badge.
+                  The API returns no name or image for the next badge, only its
+                  threshold, so the row can't be rewritten to be about it; the
+                  fix is to mark the left side as past. The badge's own
+                  description still says what earned it. */}
+              <div className="sk-next-sub">
+                {badge ? `Earned · ${badge.description}` : "Start a streak to earn one"}
+              </div>
             </div>
-            <div style={{ width: 1, height: "100%", background: "var(--stroke)", alignSelf: "stretch" }} />
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-              <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22, letterSpacing: "-0.02em", whiteSpace: "nowrap" }}>
-                {bestStreakdate ? (
-                  <>
-                    {`${bestStreakdate.toLocaleString("en-US", { month: "short" })} ${bestStreakdate.getDate()}`}
-                    {bestStreakdate.getFullYear() !== new Date().getFullYear() && (
-                      <span style={{ fontSize: 13, color: "var(--text-mute)", marginLeft: 3 }}>
-                        '{String(bestStreakdate.getFullYear()).slice(-2)}
-                      </span>
-                    )}
-                  </>
-                ) : "—"}
-              </span>
-              <span style={{ fontSize: 10, color: "var(--text-mute)", textAlign: "center", lineHeight: 1.3 }}>Best date</span>
-            </div>
-            <div style={{ width: 1, height: "100%", background: "var(--stroke)", alignSelf: "stretch" }} />
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-              {badge ? (
-                <Badge imageUrl={badge.imageUrl} name={badge.name} description={badge.description} size={46} />
-              ) : (
-                <>
-                  <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22, color: "var(--text-mute)" }}>—</span>
-                  <span style={{ fontSize: 10, color: "var(--text-mute)", textAlign: "center", lineHeight: 1.3 }}>Top badge</span>
-                </>
-              )}
-            </div>
+            {nextAt != null && (
+              <div className="sk-next-go">
+                <div className="sk-go-label">Next badge</div>
+                <div className="sk-go-val">{toGo === 0 ? "Unlocked" : `in ${plural(toGo, "day")}`}</div>
+              </div>
+            )}
           </div>
         </>
       )}
@@ -290,9 +367,20 @@ const StreakCard = () => {
 };
 
 const ProgressCard = () => {
-  const { data: statusData, isLoading: loadingStatus } = useUserSubmissionStatus();
+  /* Only the submission status is fatal. Without it there is no solved data at
+     all and the card can say nothing; without the catalog counts there are still
+     the user's own numbers, just no denominators to put them over — which is the
+     `countsUsable === false` path this component already degrades into. So a
+     failed `problem/counts` quietly loses the "of 340" and the "/ 120"s, and a
+     failed `user/submission-status` is what raises the error state. */
+  const { data: statusData, isLoading: loadingStatus, isError, error, refetch } = useUserSubmissionStatus();
   const { data: countsData, isLoading: loadingCounts } = useProblemCounts();
   const isLoading = loadingStatus || loadingCounts;
+
+  /* No `error.response` means axios never heard back — offline, DNS, timeout.
+     Different instruction from a server that answered badly. Same split as the
+     two cards beside it. */
+  const offline = isError && !error?.response;
 
   const solved = { easy: statusData?.solvedCountByDifficulty?.EASY ?? 0, medium: statusData?.solvedCountByDifficulty?.MEDIUM ?? 0, hard: statusData?.solvedCountByDifficulty?.HARD ?? 0 };
   const total  = { easy: countsData?.EASY ?? 0, medium: countsData?.MEDIUM ?? 0, hard: countsData?.HARD ?? 0 };
@@ -310,62 +398,86 @@ const ProgressCard = () => {
   const share = (n) => (denom > 0 ? (n / denom) * 100 : 0);
   const pct = Math.round(share(totalSolved));
 
-  const quality = pct >= 90 ? "Excellent" : pct >= 75 ? "Advanced" : pct >= 50 ? "Proficient" : pct >= 25 ? "Intermediate" : "Beginner";
+  /* The quality ladder ("Beginner" → "Excellent") used to lead this card at
+     22px/700, above the percentage it was derived from at 22px/400 — an
+     adjective outranking the number it describes. It's gone rather than
+     demoted: it was a pure function of `pct`, which is still on the card, so it
+     carried nothing new; and a ladder whose bottom rung labels the reader
+     "Beginner" is the intimidating difficulty wall this product exists to
+     lower. */
 
   const segments = [
-    { key: "easy",   color: "var(--easy)",   label: "Easy",   count: solved.easy,   pct: share(solved.easy) },
-    { key: "medium", color: "var(--medium)", label: "Medium", count: solved.medium, pct: share(solved.medium) },
-    { key: "hard",   color: "var(--hard)",   label: "Hard",   count: solved.hard,   pct: share(solved.hard) },
+    { key: "easy",   color: "var(--easy)",   label: "Easy",   count: solved.easy,   total: total.easy,   pct: share(solved.easy) },
+    { key: "medium", color: "var(--medium)", label: "Medium", count: solved.medium, total: total.medium, pct: share(solved.medium) },
+    { key: "hard",   color: "var(--hard)",   label: "Hard",   count: solved.hard,   total: total.hard,   pct: share(solved.hard) },
   ];
+  /* Per-row, not `countsUsable`. That flag only compares the two endpoints in
+     aggregate, so a catalog that has lost three Easy problems can still leave
+     solved.easy above total.easy while the totals agree overall — and "52 / 30"
+     is a worse answer than no denominator at all. */
+  const hasDenom = (seg) => seg.total > 0 && seg.total >= seg.count;
 
   return (
-    <div className="cl-card" style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 14 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span className="cl-eyebrow" style={{ fontSize: 13, fontWeight: 400, color: "var(--text)" }}>Progress Score</span>
-      </div>
+    <div className="cl-card pg">
+      {/* "Your progress", parallel with "Your streak" beside it. It was
+          "Progress score" over a label reading "Solve Quality" over a bare
+          percentage — three names for one idea, and none of them a score. */}
+      <h2 className="cl-card-title-sm">Your progress</h2>
       {isLoading ? (
-        <div style={{ flex: 1, display: "flex", alignItems: "center", color: "var(--text-mute)", fontSize: 13 }}>Loading…</div>
+        <div className="pg-loading">Loading your progress…</div>
+      ) : isError ? (
+        /* The card used to have no error branch at all: a failed fetch left
+           `solved` at its 0/0/0 default and the card rendered a full, confident
+           "you have solved nothing". That is the most harmful thing this card
+           can say, and it said it silently. role="status" announces politely;
+           the sub-line's job is the reassurance, same as the streak card's. */
+        <div className="pg-error" role="status">
+          <Icon name="warn" size={16} className="pg-error-icon" />
+          <div className="pg-error-title">
+            {offline ? "You’re offline" : "Couldn’t load your progress"}
+          </div>
+          <div className="pg-error-sub">
+            {offline
+              ? "Everything you’ve solved is safe — we just can’t reach it."
+              : "Everything you’ve solved is safe. Try again in a moment."}
+          </div>
+          <button className="cl-btn cl-btn-subtle cl-btn-sm" type="button" onClick={() => refetch()}>
+            <Icon name="reset" size={12} /> Try again
+          </button>
+        </div>
       ) : (
         <>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: 6 }}>
-            <div>
-              <div style={{ fontSize: 13, color: "var(--text-mute)", marginBottom: 3 }}>
-                {countsUsable ? "Solve Quality" : "Problems solved"}
-              </div>
-              <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22, letterSpacing: "-0.02em" }}>
-                {countsUsable ? quality : totalSolved}
-              </div>
-            </div>
-            {countsUsable && (
-              <span style={{ fontFamily: "var(--font-display)", fontWeight: 400, fontSize: 22, letterSpacing: "-0.02em" }}>{pct}%</span>
-            )}
+          <div className="pg-lead">
+            <span className="pg-num">{totalSolved}</span>
+            <span className="pg-unit">solved</span>
+            {countsUsable && <span className="pg-share">{pct}% of {totalAll}</span>}
           </div>
 
-          {/* overflow:hidden is a backstop — percentages are already clamped above,
-              but a bar that can never escape its track can never break the page. */}
-          <div style={{ display: "flex", gap: 4, alignItems: "stretch", height: 10, overflow: "hidden" }}>
+          {/* aria-hidden: the ledger under it states every number this encodes,
+              so announcing the bar too would read the card's data out twice.
+              It's also what let the `title` tooltips go — they carried the only
+              per-segment counts the old card had, and no keyboard or touch user
+              could reach them. */}
+          <div className="pg-bar" aria-hidden="true">
             {segments.filter((seg) => seg.pct > 0).map((seg) => (
-              <div
-                key={seg.key}
-                title={`${seg.label}: ${seg.count} solved`}
-                style={{ width: `${seg.pct}%`, background: seg.color, borderRadius: 5, minWidth: 4, transition: "width .4s" }}
-              />
+              <span key={seg.key} className="pg-bar-seg" style={{ width: `${seg.pct}%`, background: seg.color }} />
             ))}
-            {pct < 100 && (
-              <div style={{ flex: 1, background: "rgba(255,255,255,0.09)", borderRadius: 5, minWidth: 4 }} />
-            )}
           </div>
 
-          {/* Counts in text: the bar alone carries meaning by colour only, and its
-              hover tooltip was unreachable by keyboard and touch. */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 14px", marginTop: 2 }}>
+          <dl className="pg-ledger">
             {segments.map((seg) => (
-              <span key={seg.key} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text-dim)" }}>
-                <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: 2, background: seg.color, flexShrink: 0 }} />
-                {seg.label} <span className="cl-mono" style={{ color: "var(--text)" }}>{seg.count}</span>
-              </span>
+              <div key={seg.key}>
+                <dt>
+                  <i className="pg-swatch" style={{ background: seg.color }} aria-hidden="true" />
+                  {seg.label}
+                </dt>
+                <dd>
+                  {seg.count}
+                  {hasDenom(seg) && <span className="pg-of"> / {seg.total}</span>}
+                </dd>
+              </div>
             ))}
-          </div>
+          </dl>
         </>
       )}
     </div>

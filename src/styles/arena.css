@@ -1,0 +1,684 @@
+/* Hallmark · component: stat card (streak) · genre: modern-minimal · theme: project-locked (tokens.css, hex)
+ * fingerprint: marquee numeral — the count is the card's ground plane, flush left
+ *              at 54px (was 44, centred in a half); the state binds to it instead
+ *              of sitting in the header; the facts hang off the opposite edge; a
+ *              hairline replaces the recessed sub-panel.
+ * states: loading · error(offline) · error(server) · active · at-risk · broken · not-started
+ * pre-emit critique: P4 H5 E4 S5 R5 V4
+ */
+
+/* Hallmark · component: problem-of-the-day card · genre: modern-minimal · theme: project-locked
+ * fingerprint: the lead card of a row of three — it leads by elevation, not by
+ *              decoration. Warm ground one step up the ramp on a deeper shadow,
+ *              the accent bracketing the card (lemon label at the top edge,
+ *              filled lemon pill at the bottom) around the row's largest
+ *              non-numeric headline, and it is the only card that lifts.
+ * states: loading · error(offline) · error(server) · loaded · no-id · hover · active · focus-visible
+ * pre-emit critique: P5 H5 E4 S5 R5 V4
+ */
+
+/* Hallmark · component: progress card · genre: modern-minimal · theme: project-locked
+ * fingerprint: the bar is the card — a single full-width track as its spine
+ *              rather than three gapped pills, the figure demoted to the
+ *              track's caption (the streak card next door owns the marquee
+ *              numeral), and the difficulties as a right-aligned ledger with the
+ *              denominators the legend used to compute and throw away.
+ * states: loading · error(offline) · error(server) · loaded · counts-unusable · counts-missing
+ * pre-emit critique: P5 H5 E4 S5 R5 V5
+ */
+
+/* Arena header cards — streak, problem of the day, progress.
+   Named for the surface, like every other stylesheet here. All three now live
+   in this file and pad 18/20, which closes the note that used to sit here: the
+   progress card carried its layout as inline style objects and padded 24/28, so
+   its heading sat 6px below the other two across the row. */
+
+/* ── the failed-fetch state, shared by all three cards ──
+   These were three byte-identical blocks, one per card. The third copy is where
+   that stops being a coincidence and starts being a component: same shape, same
+   copy structure (icon · what failed · what to do · retry), same reason for
+   being centred when the cards are left-aligned everywhere else — centring is
+   the cheapest signal that this is an interruption rather than the normal
+   reading. Grouped selectors rather than a rename, so no component's markup had
+   to change to get here. */
+.sk-error, .potd-error, .pg-error {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+/* --medium, not --hard. Red is this product's Hard-difficulty colour before it
+   is anything else, so a red card reads as a verdict on the problem — or, on
+   the streak and progress cards, on the reader — rather than on the fetch.
+   Amber is already the row's "worth your attention, nothing is wrong with you"
+   tone via .sk-state-risk. */
+.sk-error-icon, .potd-error-icon, .pg-error-icon { color: var(--medium); margin-bottom: 8px; }
+.sk-error-title, .potd-error-title, .pg-error-title { font-size: 13px; font-weight: 500; color: var(--text); }
+.sk-error-sub, .potd-error-sub, .pg-error-sub {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin: 3px 0 13px;
+  max-width: 30ch;
+  line-height: 1.45;
+  text-wrap: balance;
+}
+
+/* ── streak card ──
+   The count is the card, and this layout finally commits to that. It was already
+   the largest thing here at 44px, but it was centred inside one half of a
+   two-equal-column row — which is a stat tile, not a headline. Flush to the left
+   edge at 54px with the facts hung off the right edge, the card has two anchored
+   margins and a void between them, and the number reads as the subject rather
+   than as one of four things competing.
+
+   (Two earlier ideas are gone for the record: a 64px ring whose sweep was
+   streak/100 — a denominator that meant nothing — and a bar drawing
+   streak/nextBadgeThreshold, cut because the countdown already says it in words.) */
+.sk {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 20px;
+  /* The loading and error states fill with `flex: 1`, which only resolves to a
+     real height while the arena grid is three-across and the neighbouring cards
+     supply one. Stacked below 700 there is nothing to fill, so the card
+     collapsed to its content: 89px while loading, then its full height on
+     arrival — a jolt of everything beneath it on a phone, and again on every
+     retry. 203px is the loaded card's own measured height, and it measures the
+     same in all six data states, so the reservation is exact rather than a
+     ceiling — but it is a measurement, so re-measure it whenever a row above
+     changes height. (The ≤360 rule at the bottom re-states it: stacking the
+     columns there makes the card 242.) Up from 192: the bigger numeral costs
+     8px and the stacked facts 3.
+     Only the stacked case reads this — three-across, the grid row is taller
+     than this and set by a sibling card, so the floor never binds there. */
+  min-height: 203px;
+}
+.sk-loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  color: var(--text-mute);
+}
+
+/* The failed-fetch state lives in the shared block at the top of this file.
+   `flex: 1` is the load-bearing part of it here: the card holds its height and
+   the arena row's three cards stay level whatever the network does — a card
+   that collapsed on error would drag the other two up with it. */
+
+/* ── marquee row ──
+   `auto 1fr`, not a fixed ratio. The previous layout gave the count a fixed
+   1 : 1.2 half so a 1- and a 3-digit streak would put the facts in the same
+   place — necessary then, because the facts were left-anchored inside their
+   column and would have slid. They are right-anchored now, so their right edge
+   is fixed no matter what the first column does, and the count can simply take
+   the width it needs. Nothing shifts, and no ratio has to be re-measured when
+   the arena grid changes the card's width.
+   `flex: 1` so this row, not the badge row, absorbs whatever slack a taller
+   sibling card leaves over — the void around the numeral growing is the point
+   of the layout; a floating badge row is not. */
+.sk-marquee {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 18px;
+  align-items: center;
+  flex: 1;
+}
+
+/* "17 days" on one line, the unit beside the number rather than under it, and
+   both left on the inline flow to do it: two inline spans share a baseline for
+   free, which is the alignment this wants. A flex row with `align-items:
+   baseline` reaches the same result through an extra element — against a 54px
+   numeral, optical centring parks a 17px word in the middle of the digits'
+   x-height and it reads as floating, so `center` was never the option. */
+.sk-num {
+  font-family: var(--font-display);
+  /* 54, not the 64 this was first drawn at. The two columns split one 320px
+     content box, so every px the numeral takes is a px the facts lose, and the
+     facts' worst case ("365 days · May 28 '25") needs 149. Measured in Comme at
+     the desktop column: 64px leaves them 138 and truncates the year off the
+     date; 58px leaves exactly 149 and survives on zero margin; 54px leaves 156.
+     Took the one with margin — the string is already the worst case, so a fit
+     that only just holds is a fit that breaks on the next content change. */
+  font-size: 54px;
+  font-weight: 700;
+  /* 0.88, not 1. A line-height of 1 reserves the face's full em box including
+     descender space these digits never use, and the resulting gap under the
+     numeral pushed the state line away from the number it describes. */
+  line-height: 0.88;
+  /* At this size the display face's default tracking opens a three-digit streak
+     into three separate objects. */
+  letter-spacing: -0.04em;
+  /* The streak changes daily and the card is often re-read; proportional figures
+     make yesterday's number and today's sit at different widths. */
+  font-variant-numeric: tabular-nums;
+}
+/* A confident bright zero reads as a real quantity for the half-second before
+   you get to the state line. Recede it — the state line is what carries the
+   meaning in both branches that produce a zero ("Streak broken" / "Not started"). */
+.sk-num.is-zero { color: var(--text-faint); }
+.sk-unit {
+  margin-left: 8px;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--text-mute);
+}
+
+/* State. No pill.
+   The card had no state at all before a pill was added — a "0" with no
+   explanation reads as broken UI rather than as a broken streak, and the one
+   moment that needs a nudge (solved yesterday, nothing today) was invisible.
+   The pill fixed that but put the answer in the top-right corner, diagonally
+   opposite the number it qualifies. As a coloured line directly under the
+   numeral it qualifies the number by position, and the tinted chip that
+   competed with the count for attention is gone. Colour still carries the
+   green / amber / grey ladder; it just lands on the text instead of a fill.
+   `flex`, not `inline-flex`: block-level is what drops it onto its own line
+   under the numeral without a wrapper element in between. */
+.sk-state {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 9px;
+  font-size: 11.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--text-mute);
+}
+.sk-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+/* Stands in for the dot in the broken state. It's the one state whose meaning
+   the dot couldn't carry: "Streak broken" and "Not started" share the `off`
+   tone and rendered identically, though one is a loss and the other a blank
+   slate. Sized to the pill's text rather than to the 6px dot — a glyph has to
+   be read, a dot only has to be seen. */
+.sk-state-icon { flex-shrink: 0; }
+/* --easy, not --lemon. Lemon and --medium are 8° apart in hue; "active" and
+   "at risk" would have been the same colour to anyone not comparing them
+   side by side. Green / amber / grey is a ladder you can read at a glance. */
+.sk-state-on { color: var(--easy); }
+.sk-state-risk { color: var(--medium); }
+
+/* Only the at-risk dot pulses, and only because it's the single state the card
+   wants you to act on today. The global prefers-reduced-motion rule zeroes the
+   duration, which parks it at the 0% frame — a 0-spread ring, i.e. a plain dot. */
+.sk-state-risk .sk-dot { animation: sk-pulse 2s infinite; }
+@keyframes sk-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(252, 211, 77, 0.55); }
+  70% { box-shadow: 0 0 0 6px rgba(252, 211, 77, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(252, 211, 77, 0); }
+}
+
+/* ── facts ──
+   Label above value, both right-aligned to the card's right edge.
+   Side-by-side is what this wanted to be and couldn't afford: the value had
+   ~74px after the label took its width, and "365 days · May 28 '25" needs 118,
+   so every streak with a long best run truncated. Stacking gives the value the
+   whole column. It cost +45px of card height when the count was 44px tall and
+   set the row — at 64px plus a state line the count now stands 81px against the
+   facts' 71, so the row height is unchanged and the stack is free.
+   This is what the taller numeral bought. */
+.sk-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+  margin: 0;
+  text-align: right;
+}
+.sk-facts > div { min-width: 0; }
+.sk-facts dt {
+  font-size: 11px;
+  color: var(--text-mute);
+  white-space: nowrap;
+}
+.sk-facts dd {
+  margin: 1px 0 0;
+  min-width: 0;
+  font-size: 12.5px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── next badge ──
+   A hairline, not a well. This was a recessed panel filled with --bg-1 — the
+   card-in-card shape, and the only reason it needed to be recessed rather than
+   raised was to avoid looking like a second .cl-card. A rule does the same
+   grouping with no surface at all, which is the correct amount of structure for
+   the last row of a card this small. It also returns the badge artwork to the
+   card's own background instead of standing it on a darker patch.
+   `margin-top: auto` is redundant while .sk-marquee holds `flex: 1`, and is here
+   so the row stays pinned if that ever stops being true. */
+.sk-foot {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--stroke);
+}
+.sk-badge {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  object-fit: contain;
+  flex-shrink: 0;
+  display: block;
+}
+.sk-badge-none {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-mute);
+}
+.sk-next-body { min-width: 0; flex: 1; }
+.sk-next-name {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Wraps, unlike .sk-next-name above it. The name is a label and truncates
+   gracefully; this line is a sentence, and in the empty state it is the only
+   instruction the card gives — at 320px, clipping it produced "Start a streak
+   to earn o…", which cuts the word that says what you get. Two lines is the
+   better failure. */
+.sk-next-sub {
+  font-size: 11.5px;
+  color: var(--text-mute);
+  margin-top: 2px;
+}
+.sk-next-go { text-align: right; flex-shrink: 0; }
+.sk-go-val {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cyan);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+/* Sentence case, not uppercase. The card had four capitalization conventions in
+   201px — "Your streak", "Last Solved", "Best", "NEXT BADGE" — and a small
+   tracked all-caps label is the one that stands out hardest. */
+.sk-go-label {
+  font-size: 11px;
+  color: var(--text-mute);
+  margin-top: 2px;
+}
+
+/* Only bites on the narrowest phones. The arena grid gives this card 477px at
+   1024 and 644px at 700 — it's roomier there than at desktop — and at a 375px
+   viewport the two columns still measure 146 + 139 against a worst case of 139,
+   so they hold. 320px is where they stop: 248px of content box cannot seat a
+   numeral and a 149px date beside it at any font-size that leaves the numeral
+   worth having. Shrinking it doesn't rescue the fit either — at 46px the facts
+   still only reach 98.
+   So the columns stack instead, and the facts go back to label-left /
+   value-right on one line: full width is 248px, the pair needs 62 + 149, and
+   the value that couldn't fit beside the count fits easily beneath it. */
+@media (max-width: 360px) {
+  /* Stacking costs 39px, so the loading/error reservation has to grow with it
+     or the jolt this prevents comes back on exactly the device it was written
+     for. 242 is measured and exact for five of the six states; the sixth (no
+     badge yet, whose sub-line wraps to two here) lands at 257 and overshoots by
+     15. Reserving 257 instead would trade a 15px shift that one state can cause
+     for 15px of dead space the other five always carry — the shift is cheaper,
+     and at 15px it is a settle rather than the 106px jolt this rule exists to
+     stop. */
+  .sk { gap: 12px; min-height: 242px; }
+  .sk-marquee { grid-template-columns: 1fr; gap: 10px; }
+  .sk-num { font-size: 46px; }
+  .sk-facts { text-align: left; gap: 7px; }
+  .sk-facts > div { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .sk-facts dt { flex-shrink: 0; }
+  .sk-facts dd { margin: 0; text-align: right; }
+}
+
+
+/* ── problem of the day ──
+   Everything this card used to say about itself, it said with decoration: a 170px
+   blurred lemon orb bleeding off the right edge and a 135° lemon wash over the
+   fill — the only translucent card left in the app, kept alive by a two-layer
+   background hack, with the title capped at 70% width purely to dodge the orb.
+   Both had already been walked back twice (0.60 → 0.22, hard edge → 14px blur),
+   which is the tell that the thing was never carrying meaning. Gone.
+
+   What replaced them, once the brief became "make this the card that stands
+   out": the three things a card can say without being decorated. It sits above
+   the page instead of on it (warm ground one step up the ramp, deeper shadow,
+   and it is the only card in the row that lifts under the cursor). It owns the
+   row's largest non-numeric type. And its accent brackets it — the label at the
+   top edge, a filled pill at the bottom — so the eye enters at the card's name
+   and leaves at its action, with only the title in between. Three structural
+   moves, no ornament, and the JSX is untouched.
+
+   `min-height` no longer matches .sk's — 212 is this card's own two-line-title
+   height, which is what nearly every real title measures. Same reason as .sk's
+   though: three-across the row's height is set by whichever card is tallest,
+   but stacked below 700 each card sets its own, and a card that is 90px shorter
+   while loading throws everything under it down the page on arrival. Known
+   ceiling: a title long enough to hit the 3-line clamp on a phone comes in
+   ~31px over the reservation, so those settle rather than land. Reserving the
+   3-line height instead would hand every ordinary title 60px of dead space to
+   fix a settle a minority of titles cause — the wrong trade. Recompute if the
+   head row, the title size or the pill height change. */
+.potd {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  /* 18/20 to match .sk beside it: at the old 24/28 this card's heading sat 6px
+     below the streak card's, which is visible across a 3-card row. */
+  padding: 18px 20px;
+  min-height: 212px;
+}
+
+/* Compounded with .cl-card, not .potd alone, and that is load-bearing rather
+   than belt-and-braces: these override .cl-card's own fill and shadow, a bare
+   .potd only ties with it at 0,1,0 — and the bundler emits arena.css BEFORE
+   tokens.css (verified in dist: .cl-card.potd at 26092, .cl-card at 49499), so
+   the loser of that tie is us. The rules already here survive only because
+   .cl-card sets no padding and because :has() lifts the hover rule to 0,2,0 by
+   accident. Anything new that fights .cl-card for background, border-radius or
+   box-shadow has to carry both classes.
+   The ground is the argument. Its two neighbours report on the past and sit
+   flat on the page in --surface-solid; this one is the day's single action, so
+   it stands a step above them on a deeper drop. Elevation is also the one
+   "special" signal that survives the card being loading or broken — a decorated
+   card with a spinner in it is just decoration. */
+.cl-card.potd {
+  background: var(--surface-lead);
+  box-shadow: var(--shadow-lead);
+  transition: background .15s ease,
+              box-shadow .25s cubic-bezier(.2,.8,.2,1),
+              transform .25s cubic-bezier(.2,.8,.2,1);
+}
+/* Scoped to the states that actually have a link in them: the loading and error
+   cards aren't clickable, and a card that lights up under the cursor and then
+   does nothing reads as broken. (:has is already load-bearing in tokens.css for
+   the sticky footer, so this isn't a new dependency.) */
+.cl-card.potd:has(.potd-link):hover {
+  background: var(--surface-lead-hi);
+  box-shadow: var(--shadow-lead-hi);
+  transform: translateY(-2px);
+}
+/* Press puts it back on the page. A card that stays lifted while held reads as
+   unresponsive at the one moment it should feel most direct — and it's the only
+   press feedback available, since the visible pill isn't the target (the
+   stretched link is) and can't have an :active of its own. */
+.cl-card.potd:has(.potd-link):active { transform: translateY(0); }
+
+.potd-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+/* Lemon, where the two cards beside it title themselves in --text.
+   This reverses an earlier call here, which was that the label's position in the
+   row already says which card this is so the accent belongs on the action
+   instead. True for someone who knows the row; the reader this product is for is
+   seeing it for the first time. The accent is still spent twice and no more —
+   here and on the pill — so the card is bracketed rather than tinted.
+   0,2,0 beats .cl-card-title-sm's own colour without touching the JSX. */
+.potd-head .cl-card-title-sm { color: var(--lemon); }
+/* Mono because it's a stamp, not a sentence — the same face the app already uses
+   for ids and counts. Weekday deliberately omitted: "Aug 12" is the whole fact,
+   and a weekday costs ~50px in a head row that has 240px at a 320px viewport. */
+.potd-date {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  /* --text-dim, not the --text-mute every other quiet label in the app uses.
+     This card's ground is lighter than theirs, and --text-mute measures 4.60:1
+     on it at rest and 4.27:1 on the hover ground — i.e. it drops under the AA
+     floor exactly while the pointer is on the card. --text-dim is 7.7 / 7.1.
+     (The loading line below keeps --text-mute: it has no link, so it never sees
+     the hover ground, and 4.60 clears the floor.) */
+  color: var(--text-dim);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.potd-name {
+  margin: 14px 0 0;
+  font-family: var(--font-display);
+  /* 26, up from 22. The row's loudest object is the streak card's 54px numeral,
+     and the one card in the row you can act on was carrying its smallest
+     headline — the title is this card's subject AND its link, so it should lead.
+     Not 30: at 30 a worst-case title wraps to a third line in the desktop column
+     and takes the whole arena row from 224px to ~270. 26 keeps three lines
+     inside the phone's worst case and still reads as the largest non-numeric
+     type in the row. */
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  color: var(--text);
+  /* Titles run to ~55 chars ("Minimum Number of Operations to Make Array
+     Continuous"), which is five lines in this column and would set the height of
+     the whole arena row. Three lines is the ceiling; the link still opens the
+     problem, whose page shows the full title. */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.potd-link { color: inherit; }
+/* The stretched link. inset:0 against .potd's own positioning context, so the
+   whole card is the hit area while the accessible name stays the title alone —
+   no wrapper element, no duplicate link, no div-with-onClick. */
+.potd-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-lg);
+}
+/* The ring belongs on the card, because the card is what the link covers — so it
+   is drawn on the overlay rather than around the two lines of title text. */
+.potd-link:focus-visible { outline: none; }
+.potd-link:focus-visible::after { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+/* The 16px bottom is the pill's clearance, and it lives here rather than on the
+   pill because the pill's `margin-top: auto` can't also be a minimum: a title
+   long enough to push the card past its min-height resolves auto to 0, and the
+   chips came to rest on the pill. Same trick tokens.css uses for the footer. */
+.potd-meta { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 16px; }
+/* …and the title carries the same clearance in the branch where a problem
+   arrives with neither a difficulty nor a topic and .potd-meta never renders. */
+.potd:not(:has(.potd-meta)) .potd-name { margin-bottom: 16px; }
+
+/* The row's only filled object. Both cards beside it are text and hairlines
+   throughout, so one solid lemon pill is the loudest thing across all three —
+   and it is on the day's single action, which is the one place this product's
+   accent is supposed to land.
+   Still a <span aria-hidden>, not a button: the whole card is the link
+   (.potd-link::after), and a real control here would be a second target with a
+   second name for one destination. It needs no pointer-events or z-index to
+   stay out of the way either — the overlay is positioned and this is not, so
+   the overlay paints above it and takes the click.
+   `align-self` because a flex column stretches its children: without it the
+   pill would run the full width of the card and stop reading as a control. */
+.potd-go {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 7px;
+  /* Pins the pill to the bottom edge, so short and long titles both end here
+     and the row's three cards finish level. */
+  margin-top: auto;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: var(--radius-sm);
+  background: var(--lemon);
+  color: #1A1400;
+  font-size: 13px;
+  font-weight: 500;
+  /* One line, always. It is a button in every way but semantics, and a wrapped
+     button is the phone-width tell. */
+  white-space: nowrap;
+  box-shadow: var(--shadow-raise);
+}
+/* The arrow is the pill's only motion, and it stays on the card's hover rather
+   than the pill's own: the pill isn't the target, so lighting it up under the
+   cursor would point at the wrong hit area. */
+.potd-go svg { transition: transform .15s ease; }
+.potd:hover .potd-go svg { transform: translateX(3px); }
+
+.potd-loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  margin: 14px 0 0;
+  font-size: 13px;
+  color: var(--text-mute);
+}
+
+/* The failed-fetch state lives in the shared block at the top of this file. */
+
+
+/* ── progress ──
+   The third card in the arena row, and the last one to move out of inline
+   styles. Its subject is neither a number nor a title but a *distribution* —
+   how much of each difficulty, and how much is left — which nothing else in
+   this app shows. So the bar is the card: one track running the card's full
+   width as its spine, with the figure demoted to the track's caption and the
+   three difficulties hung under it as a ledger.
+
+   Three things the old card did that this one doesn't:
+
+   · It led with "Proficient". The word is a pure function of the percentage
+     shown beside it, so it carried no information the card didn't already have
+     — and a ladder whose bottom rung labels the reader "Beginner" is a wall in
+     a product whose first design principle is to lower them. Gone; the number
+     says it without saying it about the person.
+   · It titled itself "Progress score" over a label reading "Solve Quality"
+     over a bare percentage: three names for one idea, in three capitalisation
+     conventions. One heading now, parallel with "Your streak" beside it.
+   · Its legend showed "Easy 12" — a count with no denominator, while the
+     component computed `total.easy` two lines up and threw it away. The ledger
+     spends it.
+
+   min-height 190 is this card's own loaded height. Three-across it never binds
+   (the problem card sets the row at 212 and this one stretches, which is where
+   the void between the bar and the ledger comes from); stacked below 700 it is
+   what keeps the loading and error states from collapsing the card and throwing
+   everything beneath it down the page on arrival. */
+.pg {
+  display: flex;
+  flex-direction: column;
+  /* 18/20, matching .sk and .potd. This card padded 24/28, which put its heading
+     6px below theirs across the row — the misalignment the note at the top of
+     this file used to record as pending. */
+  padding: 18px 20px;
+  min-height: 190px;
+}
+.pg-loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--text-mute);
+}
+
+/* ── the figure ──
+   30px, deliberately not the streak card's 54. Two marquee numerals side by side
+   is the row repeating itself, and this card doesn't need one: its bar is the
+   subject and the figure is the bar's caption. `margin-right: auto` on the unit
+   is what pushes the share to the opposite edge — the alternative is a wrapper
+   div around the first two spans, and a wrapper that exists only to be a flex
+   group is a wrapper worth not having. */
+.pg-lead { display: flex; align-items: baseline; gap: 8px; margin-top: 16px; }
+.pg-num {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  /* The count changes as you solve and the card is re-read; proportional figures
+     put yesterday's number and today's at different widths. */
+  font-variant-numeric: tabular-nums;
+}
+.pg-unit { font-size: 13px; color: var(--text-mute); margin-right: auto; }
+.pg-share {
+  font-size: 13px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ── the bar ──
+   One track, three flush segments. The old bar gave each segment a 4px gap and
+   its own 5px radius, which draws three separate bars — the shape you use for a
+   comparison. This is one quantity split three ways, and flush inside a single
+   rounded track is the shape that says so.
+   The unfilled remainder is this background showing through rather than a fourth
+   flex child sized `flex: 1`: one less element, and the segments can no longer
+   fail to sum to the track. Same wash .cl-bar uses for its own track.
+   aria-hidden in the markup, because the ledger below states every number the
+   bar encodes — and that is also what retired the `title` tooltips, which no
+   keyboard or touch user could reach. */
+.pg-bar {
+  display: flex;
+  height: 8px;
+  margin-top: 14px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.09);
+  overflow: hidden;
+}
+/* A floor, so a difficulty you've barely started is still visible; the ledger
+   carries the exact count, so the distortion costs nothing.
+   No width transition. The old one animated a layout property on every mount to
+   show a change that only happens after a submission — i.e. never while the card
+   is on screen. */
+.pg-bar-seg { min-width: 3px; }
+
+/* ── the ledger ──
+   Label left, count right, one difficulty per line. The old legend was a
+   wrapping flex row of three swatch chips, which sets three uneven items ragged
+   across the card and leaves nowhere to put a denominator. Stacked and
+   right-aligned, the digits line up and each row has room for "52 / 120".
+   `margin-top: auto` pins the block to the bottom edge so the card has two
+   anchored margins and a void between them rather than a column of content
+   floating mid-card. The 16px is padding, not margin, because auto can't also
+   be a minimum — three-across this card stretches to the row's height and auto
+   does the work; stacked, it resolves to 0 and the padding is the whole gap. */
+.pg-ledger {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: auto 0 0;
+  padding-top: 16px;
+}
+.pg-ledger > div { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.pg-ledger dt { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text-dim); }
+.pg-ledger dd {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text);
+  /* Tabular is the whole point of stacking these — three rows of digits that
+     don't align are just a list. Sans rather than the mono the old legend used:
+     .sk-facts dd next door is sans + tabular, and one convention per row beats
+     two. */
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.pg-of { color: var(--text-mute); }
+/* A 3px rule, not the old 8px rounded square: it is the same shape as the bar
+   segment it names, at the same width that segment's floor uses. Colour is never
+   the sole carrier here — the label it sits against says which difficulty. */
+.pg-swatch { width: 3px; height: 12px; border-radius: 2px; flex-shrink: 0; }

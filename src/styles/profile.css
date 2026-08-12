@@ -272,7 +272,7 @@
 .pf-divider { height: 1px; background: var(--stroke); margin: 18px 0; }
 
 /* detail blocks */
-.pf-block { margin-top: 18px; }
+.pf-block { margin-top: 20px; }
 .pf-block:first-child { margin-top: 0; }
 .pf-block-head {
   display: flex; align-items: center; justify-content: space-between;
