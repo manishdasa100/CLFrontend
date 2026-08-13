@@ -120,13 +120,27 @@
   --radius-lg: 14px;
   --radius-xl: 20px;
 
+  /* Motion. The app has been spelling its transitions `.15s ease` inline — the
+     browser default curve, which decelerates lazily and reads as slightly slow
+     at short durations. One named ease-out and two durations, so the next thing
+     that animates picks a value from here rather than inventing one. */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-short: 180ms;
+  --dur-long: 520ms;
+
   --font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Comme', 'Geist', sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
 }
 
 /* Reset-ish */
+/* overflow-x on both html and body, and `clip` rather than `hidden` for the
+   reason spelled out on .cl-page below: `hidden` would turn these into scroll
+   containers and silently kill every position:sticky descendant. Both elements,
+   because overflow set on body alone propagates to the viewport in a way that
+   leaves html's own box unclipped. */
 html, body, #root { margin: 0; min-height: 100vh; background: var(--bg-0); }
+html, body { overflow-x: clip; }
 body { font-family: var(--font-sans); color: var(--text); font-size: 14px; -webkit-font-smoothing: antialiased; }
 button { font-family: inherit; cursor: pointer; }
 a { color: inherit; text-decoration: none; }
@@ -218,7 +232,11 @@ a { color: inherit; text-decoration: none; }
    The `1px solid transparent` stays: it isn't drawn, it holds the 38px metric
    the whole app's rows are built on. Delete it and every button in the product
    loses 2px of height. */
-.cl-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: var(--radius-sm); font-weight: 500; font-size: 13px; border: 1px solid transparent; transition: all .15s ease; white-space: nowrap; background: none; color: inherit; }
+/* Named properties, not `all`. `transition: all` swept up `outline` too, which
+   meant the focus ring faded in over 150ms — a keyboard user tabbing through had
+   no indicator for the first half of it. A focus ring is the one thing that must
+   never animate. */
+.cl-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: var(--radius-sm); font-weight: 500; font-size: 13px; border: 1px solid transparent; transition: background-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out), transform var(--dur-short) var(--ease-out); white-space: nowrap; background: none; color: inherit; }
 .cl-btn-sm { height: 30px; padding: 0 11px; font-size: 12px; }
 .cl-btn-lg { height: 44px; padding: 0 20px; font-size: 14px; border-radius: 8px; }
 .cl-btn-primary { background: var(--lemon); color: #1A1400; box-shadow: var(--shadow-raise); }
@@ -231,6 +249,10 @@ a { color: inherit; text-decoration: none; }
 .cl-btn-subtle:hover { background: rgba(255,255,255,0.085); color: var(--text); }
 .cl-btn-icon { width: 32px; height: 32px; padding: 0; border-radius: 8px; background: transparent; color: var(--text-dim); border: 1px solid transparent; }
 .cl-btn-icon:hover { background: var(--surface-hi); color: var(--text); }
+/* Pressed. The primary lifts 1px on hover and had nothing to return to, so a
+   click read as no feedback at all — the pointer went down and the button stayed
+   exactly where the hover had put it. */
+.cl-btn:active { transform: translateY(0); }
 /* Disabled — several call sites already pass `disabled` but nothing rendered it. */
 .cl-btn:disabled { opacity: .45; cursor: not-allowed; }
 .cl-btn:disabled:hover { transform: none; }
@@ -567,9 +589,6 @@ a { color: inherit; text-decoration: none; }
 .cl-container { width: 100%; box-sizing: border-box; max-width: 1200px; margin: 0 auto; padding: 0 28px; }
 .cl-container-narrow { width: 100%; box-sizing: border-box; max-width: 860px; margin: 0 auto; padding: 0 28px; }
 
-@keyframes cl-blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
-.cl-blink { animation: cl-blink 1s infinite; }
-
 /* Spinner — the one loading indicator. The app previously mixed NextUI's Spinner,
    react-spinners' ScaleLoader and bare "Loading…" text, which meant three different
    answers to the same question depending on which screen you were on. */
@@ -591,22 +610,21 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* ────────────────────────────────────────────────────────────
-   Responsive — landing layout + shared nav.
-   The page is built with React inline-style grids; media queries
+   Responsive — shared layout + nav.
+   The app is built with React inline-style grids; media queries
    can't touch inline style props, so the multi-column grids live
    here as classes and collapse at these breakpoints. Desktop-first
    overrides layered on top of the existing desktop design.
+   The landing page's own grids moved to landing.css when it was
+   rebuilt — they were only ever used by that one page.
    ──────────────────────────────────────────────────────────── */
 
-.cl-hero-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 60px; align-items: center; }
-.cl-features-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 20px; }
 .cl-footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 40px; }
 
 /* Grid and flex items default to min-width:auto, so a long word or a wide child
    can push a track past its container instead of shrinking. Every multi-column
    layout here opts out of that. */
-.cl-hero-grid > *, .cl-features-grid > *, .cl-footer-grid > *,
-.cl-arena-cards > *, .cl-auth-namerow > * { min-width: 0; }
+.cl-footer-grid > *, .cl-arena-cards > *, .cl-auth-namerow > * { min-width: 0; }
 
 /* Mobile nav — hamburger toggle + drop panel, both hidden on desktop.
    Display lives on the class (not inline) so the media query below can
@@ -717,11 +735,6 @@ a { color: inherit; text-decoration: none; }
   .cl-arena-cards { grid-template-columns: 1fr; }
 }
 
-@media (max-width: 900px) {
-  .cl-hero-grid { grid-template-columns: 1fr; gap: 40px; }
-  .cl-features-grid { grid-template-columns: 1fr 1fr; }
-}
-
 /* Problem page collapses to one panel at a time; JS picks which (see useMediaQuery). */
 @media (max-width: 1023px) {
   .cl-pd-cols { padding: 0; flex-direction: column; }
@@ -772,7 +785,6 @@ a { color: inherit; text-decoration: none; }
 }
 
 @media (max-width: 640px) {
-  .cl-features-grid { grid-template-columns: 1fr; }
   .cl-footer-grid { grid-template-columns: repeat(2, 1fr); gap: 24px 16px; }
   .cl-footer-brand { grid-column: 1 / -1; }
   .cl-container, .cl-container-narrow { padding: 0 20px; }

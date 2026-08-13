@@ -1,0 +1,315 @@
+/* Hallmark · genre: editorial · macrostructure: Split Studio
+ * H2 Split Diptych knobs: ratio=6/6 · right=proof column · divider=negative space
+ * theme: project-locked (tokens.css — dark cyber-editorial, lemon + cyan)
+ * enrichment: none — typography + the app's own real data
+ * nav: preserved (AppNavbar, app-wide) · footer: preserved (Footer, app-wide)
+ * tone: calm · anchor hue: lemon 52° + cyan 195°
+ * pre-emit critique: P5 H5 E5 S5 R5 V4
+ * contrast: pass (40–41) · honest: pass (46) · chrome: pass (47)
+ * tokens: pass (48) · responsive: pass (49) · icons: pass (30)
+ * mobile: pass (34, 49, 50–57)
+ *
+ * The shape: every major block divides the screen, and the pairing flips
+ * direction down the page — claim on one side, the real thing on the other.
+ * The languages band and the closing band deliberately break out of the split
+ * so the alternation reads as rhythm rather than as a template.
+ *
+ * Layout lives here, not inline, for the reason the rest of this project already
+ * knows: the page is built from React inline styles and a media query cannot
+ * reach an inline `style` prop. Anything that has to change with the viewport is
+ * a class.
+ *
+ * Spacing is on a 4-pt grid throughout. The project has no named --space-* scale
+ * yet, and inventing one for a single page would leave the app running two
+ * systems; the grid is the part of the discipline that costs nothing to adopt
+ * early.
+ */
+
+/* Two local colour tokens. They paint an illustration — a code specimen and a
+   sample track list — not product UI, so they don't belong in the app-wide set.
+   Named rather than inline so nothing downstream invents a third. */
+.lp-body {
+  --lp-kw: #C792EA;      /* keywords in the specimen */
+  --lp-call: #82AAFF;    /* built-in calls */
+  --lp-active: rgba(34, 211, 238, 0.14);
+}
+
+/* A long single word in a display heading breaks rather than pushing the page
+   wide. min-width:0 is the other half of it — without it the heading's grid
+   track sizes to the unbroken word and the wrap never gets a chance to help. */
+.lp-body h1,
+.lp-body h2 {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+/* ── The diptych ──
+   One grid, used four times. `-flip` reverses it visually while leaving the DOM
+   in reading order — the text half is always first in source, so a screen reader
+   and a keyboard get the claim before the evidence regardless of which side the
+   evidence is drawn on. The order reset in the mobile block below matters: at one
+   column, `order: 2` would push the heading underneath its own proof. */
+.lp-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 72px;
+  align-items: center;
+}
+.lp-split > * { min-width: 0; }
+.lp-split-flip > :first-child { order: 2; }
+
+/* Section rhythm — deliberately unequal. The hero exhales below itself, the
+   editor row sits tight under it, the languages band is a thin rule between two
+   held breaths, and the close is the only thing with a rule above it. */
+.lp-hero   { padding: 76px 0 100px; }
+.lp-editor { padding: 4px 0 104px; }
+.lp-langs  { padding: 28px 0; border-top: 1px solid var(--stroke); border-bottom: 1px solid var(--stroke); }
+.lp-map    { padding: 100px 0; }
+.lp-close  { padding: 72px 0 32px; border-top: 1px solid var(--stroke); }
+
+/* ── Hero ──
+   One entrance, on load, and that is the whole motion budget for this page.
+   Nothing fades in on scroll. `both` fill is what keeps this honest under
+   prefers-reduced-motion: tokens.css zeroes every animation-duration globally,
+   and a zero-duration animation with fill `both` lands on its end frame
+   immediately rather than freezing at opacity 0. */
+@keyframes lp-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+.lp-hero .lp-split > * { animation: lp-rise var(--dur-long) var(--ease-out) both; }
+.lp-hero .lp-split > :last-child { animation-delay: 90ms; }
+
+.lp-hero-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  margin-top: 36px;
+}
+.lp-hero-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-mute);
+}
+
+/* ── Hero proof column: the real problem list ──
+   The whole row is the link. A title-only target inside a 44px row means the
+   other 80% of the row looks clickable and isn't. */
+.lp-plist { overflow: hidden; }
+.lp-plist-head {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--stroke);
+}
+.lp-prow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  min-height: 44px;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--stroke);
+  color: var(--text-dim);
+  transition: background-color var(--dur-short) var(--ease-out);
+}
+.lp-prow:hover { background: var(--surface-hi); }
+.lp-prow:active { background: var(--surface); }
+.lp-prow:focus-visible { outline: 2px solid var(--cyan); outline-offset: -2px; }
+/* --text-mute, not --text-faint: the id is text, and text-faint is the tier
+   tokens.css reserves for non-text (rules, icons, line numbers) because it only
+   clears 3:1. */
+.lp-prow-id {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-mute);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+/* Truncation, not wrapping: "Merge Two Sorted Lists" on two lines inside a 44px
+   row breaks the row's rhythm and reads as a styling fault. */
+.lp-prow-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lp-plist-foot {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 16px;
+}
+
+/* ── Code specimen ──
+   A typographic frame — label rule above, result rule below — and no window
+   chrome. The reader already owns a real editor; drawing a fake one with
+   traffic-light dots and an invented filename bar is a picture of a picture
+   frame, and it is the single most recognisable generated-UI tell. */
+.lp-code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.75;
+}
+.lp-code-head,
+.lp-code-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px 16px;
+  flex-wrap: wrap;
+  padding: 12px 0;
+  font-size: 11px;
+  color: var(--text-mute);
+}
+.lp-code-head { border-bottom: 1px solid var(--stroke-1); }
+.lp-code-foot { border-top: 1px solid var(--stroke-1); }
+/* A long line scrolls inside the specimen rather than widening the page. */
+.lp-code pre {
+  margin: 0;
+  padding: 20px 0;
+  overflow-x: auto;
+  color: var(--text-dim);
+}
+/* <span>, not <div>: pre's content model is phrasing content, and the block
+   display is all the line needs. */
+.lp-code-line { display: block; }
+.lp-code-n {
+  display: inline-block;
+  width: 2ch;
+  margin-right: 16px;
+  text-align: right;
+  color: var(--text-faint);
+  user-select: none;
+}
+.lp-code-kw   { color: var(--lp-kw); }
+.lp-code-fn   { color: var(--cyan); }
+.lp-code-call { color: var(--lp-call); }
+
+/* ── Languages band ──
+   The diptych compressed to a single line: the sentence on the left, the answer
+   on the right. Mono because these are language names, not marketing. Baseline
+   alignment rather than centre — two runs of text sharing a line should sit on
+   the same baseline. */
+.lp-langs-inner {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 32px;
+}
+.lp-langs-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+.lp-langs-list li { display: flex; gap: 16px; }
+.lp-langs-list li + li::before { content: '·'; color: var(--text-faint); }
+
+/* ── Track list ──
+   A soft object fill rather than a card: this is a sample of a surface inside
+   the app, and stacking a second card inside the page's own card language is
+   nesting for no reason. */
+.lp-track {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+}
+.lp-track-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+.lp-track-row.is-active { background: var(--lp-active); }
+.lp-track-mark {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  color: var(--bg-0);
+}
+.lp-track-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lp-track-pct {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-mute);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.lp-caption {
+  margin: 12px 4px 0;
+  font-size: 11.5px;
+  color: var(--text-mute);
+}
+
+/* ── Closing band ──
+   Left-biased, not centred, and not a diptych: the page stops splitting at the
+   moment it asks you to act. */
+.lp-close-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 48px;
+}
+.lp-close-copy { max-width: 46ch; }
+.lp-close-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 32px;
+}
+.lp-close-mark { flex-shrink: 0; }
+
+/* ── Responsive ──
+   Verified at 320 / 375 / 414 / 768. */
+
+@media (max-width: 900px) {
+  .lp-split { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  /* Reading order again: at one column the text half must lead. */
+  .lp-split-flip > :first-child { order: 0; }
+  .lp-hero   { padding: 48px 0 72px; }
+  .lp-editor { padding: 0 0 72px; }
+  .lp-map    { padding: 72px 0; }
+  /* column-reverse, so the lemon heads the closing statement rather than
+     hanging off the end of it. */
+  .lp-close-inner { flex-direction: column-reverse; align-items: flex-start; gap: 32px; }
+  .lp-close-copy { max-width: none; }
+}
+
+/* .cl-h2, not every h2 on the page: the problem card's own <h2> is a
+   .cl-card-title at 16px, and stepping "all h2" down to 28 blew it up to nearly
+   twice its desktop size. Section headings step down; card titles don't. */
+@media (max-width: 640px) {
+  .lp-body .cl-h2 { font-size: 28px; }
+  .lp-code { font-size: 12px; }
+}
+
+/* The id is the first thing worth losing when the row runs out of width — same
+   call the app's own problems table makes at this breakpoint. */
+@media (max-width: 560px) {
+  .lp-prow-id { display: none; }
+}

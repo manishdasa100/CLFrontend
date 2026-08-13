@@ -3,249 +3,250 @@ import AppNavbar from "../Components/AppNavbar";
 import Footer from "../Components/Footer";
 import BackgroundWrapper from "../Components/BackgroundWrapper";
 import Icon from "../Components/Icon";
+import "../styles/landing.css";
 import { useState } from "react";
 
+/* Split Studio: every major block divides the screen — the claim on one side,
+   the real thing on the other — and the pairing flips direction down the page.
+   Two bands deliberately break out of the split (languages, close) so the
+   alternation reads as rhythm rather than as a template.
+
+   <main> is here for the landmark, and because .cl-page's sticky-footer rule
+   hangs its 80px gap on :nth-last-child(2): one wrapper means one gap, rather
+   than the last section quietly owning it. */
 export default function LandingPage() {
   const [user] = useState({ isLoggedIn: false });
 
   return (
     <BackgroundWrapper>
       <AppNavbar />
-      <Hero user={user} />
-      <Features />
-      <LangsStrip />
-      <ProblemShowcase />
-      <CTA user={user} />
+      <main className="lp-body">
+        <Hero user={user} />
+        <Editor />
+        <Languages />
+        <Map />
+        <Close user={user} />
+      </main>
       <Footer />
     </BackgroundWrapper>
   );
 }
 
+/* Titles, ids and difficulties only. The old table also carried acceptance rates
+   — 52%, 41%, 64% — which were hardcoded fixtures, not anything the app knows.
+   A made-up percentage sitting in the fold as a reason to sign up is the kind of
+   number a reader checks you on. The problems themselves are real and the routes
+   resolve, so that is what the column claims. */
+const startHere = [
+  { id: 1, title: "Two Sum", difficulty: "easy" },
+  { id: 20, title: "Valid Parentheses", difficulty: "easy" },
+  { id: 21, title: "Merge Two Sorted Lists", difficulty: "easy" },
+  { id: 53, title: "Maximum Subarray", difficulty: "medium" },
+];
+
+/* Hero — text left, proof right. The proof half is the actual problem list,
+   linking to the actual routes, rather than a drawing of one: a beginner
+   deciding whether this place is for them is best served by seeing that the
+   first problem is called Two Sum, is marked Easy, and that half the people who
+   try it get it. That is the whole wall-lowering argument, and it belongs above
+   the fold instead of in a table two screens down. */
 const Hero = ({ user }) => (
-  <section style={{ padding: "80px 0 60px" }}>
-    <div className="cl-container cl-hero-grid">
+  <section className="lp-hero">
+    <div className="cl-container lp-split">
       <div>
-        {/* The one deliberate kicker on the site, and not interchangeable with the
-            five section eyebrows that came out around it: this is the setup and
-            the h1 is the punchline — "make lemonade" doesn't land without it.
-            It gets its own class rather than .cl-eyebrow so nothing can
-            accidentally reuse it as section furniture. */}
+        {/* The one deliberate kicker on the site: this is the setup and the h1
+            is the punchline — "make lemonade" doesn't land without it. */}
         <div className="cl-hero-kicker">// when life gives you lemons</div>
         <h1 className="cl-h1">
           make lemonade<br />
-          and <span style={{ color: "var(--cyan)", fontStyle: "italic" }}>code</span>
+          and <span style={{ color: "var(--cyan)" }}>code</span>
         </h1>
         <p className="cl-lede" style={{ marginTop: 28 }}>
-          A calmer way to learn data structures and algorithms. Hand-picked problems across
-          7 languages, a clear path to follow, and progress you can actually see — in an
-          editor that stays out of your way.
+          A calmer way to learn data structures and algorithms. Hand-picked problems in
+          seven languages, a clear order to follow, and progress you can actually see —
+          in an editor that stays out of your way.
         </p>
-        <div style={{ display: "flex", gap: 12, marginTop: 36, alignItems: "center", flexWrap: "wrap" }}>
+        <div className="lp-hero-actions">
           <Link to={user.isLoggedIn ? "/arena/problemset" : "/signup"} className="cl-btn cl-btn-primary cl-btn-lg">
             {user.isLoggedIn ? "Continue learning" : "Start free"} <Icon name="arrowRight" size={14} />
           </Link>
           <Link to="/arena/problemset" className="cl-btn cl-btn-ghost cl-btn-lg">Browse problems</Link>
-          <div style={{ marginLeft: 12, display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--text-mute)" }}>
+          <span className="lp-hero-note">
             <Icon name="check" size={14} style={{ color: "var(--easy)" }} /> No credit card
-          </div>
+          </span>
         </div>
       </div>
-      {/* The cyan bloom that used to sit behind this card was the third glow in
-          the fold, on top of the page backdrop and the card's own shadow. The
-          card reads fine on its own. */}
-      <EditorCard />
+
+      <div className="cl-card lp-plist">
+        <div className="lp-plist-head">
+          <h2 className="cl-card-title">Start here.</h2>
+          <p className="cl-card-sub">New to this? These four are a friendly place to begin.</p>
+        </div>
+        {startHere.map((p) => (
+          <Link key={p.id} to={`/arena/problemset/${p.id}`} className="lp-prow">
+            <span className="lp-prow-id">{String(p.id).padStart(4, "0")}</span>
+            <span className="lp-prow-title">{p.title}</span>
+            <span className={`cl-chip cl-chip-${p.difficulty} cl-chip-dot`}>
+              {p.difficulty[0].toUpperCase() + p.difficulty.slice(1)}
+            </span>
+          </Link>
+        ))}
+        <div className="lp-plist-foot">
+          <Link to="/arena/problemset" className="cl-btn cl-btn-subtle cl-btn-sm">
+            See all problems <Icon name="arrowRight" size={12} />
+          </Link>
+        </div>
+      </div>
     </div>
   </section>
 );
 
-const CodeLine = ({ n, children, caret }) => (
-  <div style={{ display: "flex", gap: 14, color: "var(--text)" }}>
-    <span style={{ color: "var(--text-faint)", width: 14, textAlign: "right" }}>{n}</span>
-    <span>{children}{caret && <span className="cl-blink" style={{ display: "inline-block", width: 7, height: 14, background: "var(--cyan)", verticalAlign: "middle", marginLeft: 4 }} />}</span>
-  </div>
-);
-
-const EditorCard = () => (
-  <div aria-hidden="true" style={{ position: "relative", background: "var(--surface-solid)", borderRadius: 14, boxShadow: "var(--shadow-panel)", overflow: "hidden" }}>
-    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", background: "rgba(255,255,255,0.04)", borderBottom: "1px solid var(--stroke)" }}>
-      <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#FB7185" }} />
-      <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#FCD34D" }} />
-      <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#6EE7B7" }} />
-      <span className="cl-mono" style={{ marginLeft: 10, fontSize: 11, color: "var(--text-mute)" }}>two-sum.py</span>
-      <span style={{ marginLeft: "auto" }} className="cl-chip cl-chip-easy">Easy</span>
-    </div>
-    <div style={{ padding: "18px 20px", fontFamily: "var(--font-mono)", fontSize: 13, lineHeight: 1.7 }}>
-      <CodeLine n={1}><span style={{ color: "#c792ea" }}>def</span> <span style={{ color: "#22D3EE" }}>twoSum</span>(nums, target):</CodeLine>
-      <CodeLine n={2}>    seen = {'{}'}</CodeLine>
-      <CodeLine n={3}>    <span style={{ color: "#c792ea" }}>for</span> i, x <span style={{ color: "#c792ea" }}>in</span> <span style={{ color: "#82aaff" }}>enumerate</span>(nums):</CodeLine>
-      <CodeLine n={4}>        <span style={{ color: "#c792ea" }}>if</span> (target - x) <span style={{ color: "#c792ea" }}>in</span> seen:</CodeLine>
-      <CodeLine n={5}>            <span style={{ color: "#c792ea" }}>return</span> [seen[target - x], i]</CodeLine>
-      <CodeLine n={6}>        seen[x] = i</CodeLine>
-      <CodeLine n={7} caret>    <span style={{ color: "var(--text-mute)" }}># O(n) · single pass</span></CodeLine>
-    </div>
-    <div style={{ display: "flex", gap: 10, padding: "12px 16px", borderTop: "1px solid var(--stroke)", alignItems: "center", flexWrap: "wrap" }}>
-      <span className="cl-btn cl-btn-subtle cl-btn-sm">Run</span>
-      <span className="cl-btn cl-btn-primary cl-btn-sm">Submit <Icon name="play" size={10} /></span>
-      <div style={{ marginLeft: "auto", display: "flex", gap: 10, fontSize: 11, color: "var(--text-mute)", alignItems: "center", flexWrap: "wrap", minWidth: 0 }}>
-        <span className="cl-mono">✓ 58/58 tests passed</span>
-        <span className="cl-chip cl-chip-cyan"><Icon name="sparkle" size={11} /> 12ms · nice and fast</span>
-      </div>
-    </div>
-  </div>
-);
-
-/* Was `01 · editor / 02 · progress / 03 · paths`. These three aren't a sequence —
-   you don't do the editor before the progress — so the numbers were pure
-   scaffolding, and each label just restated its own heading a size smaller. */
-const Feature = ({ title, body, visual }) => (
-  <div className="cl-card" style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
-    <div style={{ padding: "28px 26px 22px" }}>
-      <h3 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 600, letterSpacing: "-0.015em", margin: 0 }}>{title}</h3>
-      <p className="cl-text-dim" style={{ fontSize: 13.5, lineHeight: 1.55, marginTop: 10 }}>{body}</p>
-    </div>
-    {/* Illustrations, not content: the sample code and the numbers in them are
-        invented. aria-hidden keeps them out of the accessibility tree so no one
-        is read a fabricated "248 solved" — same treatment as the hero mock. */}
-    <div aria-hidden="true" style={{ marginTop: "auto", height: 220, borderTop: "1px solid var(--stroke)", background: "var(--bg-0)" }}>{visual}</div>
-  </div>
-);
-
-const Features = () => (
-  <section style={{ padding: "100px 0" }}>
-    <div className="cl-container">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 48, flexWrap: "wrap", gap: 24 }}>
-        <h2 className="cl-h2">Everything here helps you learn.</h2>
-        <p className="cl-lede" style={{ fontSize: 15, maxWidth: 420 }}>
-          We sweat the small stuff — smooth keyboard flow, clear error messages, honest
-          feedback — so you can focus on understanding, not fighting the tools.
+/* Editor — flipped: proof left, text right. The specimen is framed
+   typographically (label rule above, result rule below) rather than wrapped in a
+   drawn window with traffic-light dots. The reader already owns a real editor;
+   re-drawing one in the page is a picture of a picture frame, and the invented
+   filename bar was the loudest generated-UI tell on the old page.
+   aria-hidden because the code and the timings in it are an illustration — no
+   one should be read a fabricated "12ms" as if it were a claim. */
+const Editor = () => (
+  <section className="lp-editor">
+    <div className="cl-container lp-split lp-split-flip">
+      <div>
+        <h2 className="cl-h2">An editor you&rsquo;d actually pick.</h2>
+        <p className="cl-lede" style={{ fontSize: 15, marginTop: 16 }}>
+          Monaco-powered, with clear error messages, one-click test runs, and a focus mode
+          that keeps things calm. We sweat the small stuff — smooth keyboard flow, honest
+          feedback — so you can focus on understanding rather than fighting the tools.
         </p>
       </div>
-      <div className="cl-features-grid">
-        <Feature title="An editor you'd actually pick." body="Monaco-powered, with clear error messages, one-click test runs, and a focus mode that keeps things calm — so the tool never gets in your way." visual={<EditorVis />} />
-        <Feature title="Watch yourself improve." body="Topic heatmaps, progress over time, and your full history — so you can see what's clicking and what to practice next." visual={<DonutVis />} />
-        <Feature title="Never wonder what to solve next." body="Guided routes through arrays, recursion, graphs, dynamic programming and more — a sensible order, one small step at a time." visual={<PathVis />} />
-      </div>
-    </div>
-  </section>
-);
 
-const EditorVis = () => (
-  <div style={{ padding: 20, fontFamily: "var(--font-mono)", fontSize: 11.5, lineHeight: 1.9, color: "var(--text-dim)" }}>
-    <div><span style={{ color: "var(--text-faint)" }}>1</span>  <span style={{ color: "#c792ea" }}>function</span> <span style={{ color: "#22D3EE" }}>merge</span>(l, r) {'{'}</div>
-    <div><span style={{ color: "var(--text-faint)" }}>2</span>    <span style={{ color: "#c792ea" }}>const</span> out = [];</div>
-    <div><span style={{ color: "var(--text-faint)" }}>3</span>    <span style={{ color: "#c792ea" }}>while</span> (l.length && r.length)</div>
-    <div><span style={{ color: "var(--text-faint)" }}>4</span>      out.push(l[0] &lt; r[0] ? l.shift() : r.shift());</div>
-    <div><span style={{ color: "var(--text-faint)" }}>5</span>    <span style={{ color: "#c792ea" }}>return</span> [...out, ...l, ...r];</div>
-    <div><span style={{ color: "var(--text-faint)" }}>6</span>  {'}'}</div>
-    <div style={{ marginTop: 12, display: "flex", gap: 6 }}>
-      <span className="cl-chip cl-chip-easy"><Icon name="check" size={11} /> 58/58 pass</span>
-      <span className="cl-chip cl-chip-cyan">O(n+m)</span>
-    </div>
-  </div>
-);
-
-const DonutVis = () => (
-  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%" }}>
-    <svg width="160" height="160" viewBox="0 0 160 160">
-      <circle cx="80" cy="80" r="60" fill="none" stroke="rgba(255,255,255,.05)" strokeWidth="14" />
-      <circle cx="80" cy="80" r="60" fill="none" stroke="var(--cyan)" strokeWidth="14" strokeLinecap="round" strokeDasharray="240 377" transform="rotate(-90 80 80)" />
-      <circle cx="80" cy="80" r="60" fill="none" stroke="var(--lemon)" strokeWidth="14" strokeLinecap="round" strokeDasharray="90 377" strokeDashoffset="-240" transform="rotate(-90 80 80)" />
-      <text x="80" y="76" textAnchor="middle" fill="var(--text)" fontFamily="Comme" fontSize="28" fontWeight="600">248</text>
-      <text x="80" y="94" textAnchor="middle" fill="var(--text-mute)" fontFamily="Geist" fontSize="10.5">solved</text>
-    </svg>
-  </div>
-);
-
-const PathVis = () => (
-  <div style={{ padding: 18, display: "flex", flexDirection: "column", gap: 8 }}>
-    {[
-      { label: "Arrays 101", val: 100, done: true },
-      { label: "Two Pointers", val: 100, done: true },
-      { label: "Binary Search", val: 66, active: true },
-      { label: "Dynamic Programming", val: 0, locked: true },
-    ].map((p, i) => (
-      <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", borderRadius: 8, background: p.active ? "rgba(34,211,238,.16)" : "transparent" }}>
-        <div style={{ width: 18, height: 18, borderRadius: "50%", background: p.done ? "var(--cyan)" : p.locked ? "var(--bg-3)" : "transparent", border: p.done ? "none" : "1.5px solid " + (p.active ? "var(--cyan)" : "var(--stroke-2)"), display: "grid", placeItems: "center", color: "#0A0B10" }}>
-          {p.done && <Icon name="check" size={10} />}
-          {p.locked && <Icon name="lock" size={9} style={{ color: "var(--text-mute)" }} />}
+      <figure className="lp-code" aria-hidden="true" style={{ margin: 0 }}>
+        <figcaption className="lp-code-head">
+          <span>two-sum.py</span>
+          <span style={{ marginLeft: "auto" }} className="cl-chip cl-chip-easy cl-chip-dot">Easy</span>
+        </figcaption>
+        <pre>
+          <span className="lp-code-line"><span className="lp-code-n">1</span><span className="lp-code-kw">def</span> <span className="lp-code-fn">twoSum</span>(nums, target):</span>
+          <span className="lp-code-line"><span className="lp-code-n">2</span>    seen = {"{}"}</span>
+          <span className="lp-code-line"><span className="lp-code-n">3</span>    <span className="lp-code-kw">for</span> i, x <span className="lp-code-kw">in</span> <span className="lp-code-call">enumerate</span>(nums):</span>
+          <span className="lp-code-line"><span className="lp-code-n">4</span>        <span className="lp-code-kw">if</span> (target - x) <span className="lp-code-kw">in</span> seen:</span>
+          <span className="lp-code-line"><span className="lp-code-n">5</span>            <span className="lp-code-kw">return</span> [seen[target - x], i]</span>
+          <span className="lp-code-line"><span className="lp-code-n">6</span>        seen[x] = i</span>
+        </pre>
+        <div className="lp-code-foot">
+          <span style={{ color: "var(--easy)" }}>58/58 tests passed</span>
+          <span>12ms</span>
+          <span style={{ marginLeft: "auto" }}>O(n) · single pass</span>
         </div>
-        <span style={{ flex: 1, fontSize: 12.5, color: p.locked ? "var(--text-mute)" : "var(--text)" }}>{p.label}</span>
-        <span className="cl-mono" style={{ fontSize: 10, color: "var(--text-mute)" }}>{p.val}%</span>
-      </div>
-    ))}
-  </div>
-);
-
-const LangsStrip = () => (
-  <section style={{ padding: "60px 0", borderTop: "1px solid var(--stroke)" }}>
-    <div className="cl-container" style={{ textAlign: "center" }}>
-      {/* This strip has no heading of its own, so the line has to carry it —
-          as a sentence, not a tracked kicker. */}
-      <p style={{ margin: 0, fontSize: 14, color: "var(--text-dim)" }}>Write in whichever language you're learning.</p>
-      <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap", marginTop: 20 }}>
-        {["Python", "JavaScript", "Java", "C++", "C", "Go", "Rust"].map((l) => (
-          <span key={l} className="cl-chip cl-chip-mono" style={{ padding: "8px 14px", fontSize: 12 }}>{l}</span>
-        ))}
-      </div>
+      </figure>
     </div>
   </section>
 );
 
-const ProblemShowcase = () => (
-  <section style={{ padding: "80px 0", borderTop: "1px solid var(--stroke)" }}>
-    <div className="cl-container">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
-        <div>
-          <h2 className="cl-h2">Start with a problem.</h2>
-          <p className="cl-text-dim" style={{ marginTop: 10, fontSize: 14 }}>New here? These are a friendly place to begin.</p>
-        </div>
-        <Link to="/arena/problemset" className="cl-btn cl-btn-ghost cl-btn-sm">See all problems <Icon name="arrowRight" size={12} /></Link>
-      </div>
-      <div className="cl-card" style={{ overflowX: "auto" }}>
-        <table className="cl-tbl" style={{ minWidth: 520 }}>
-          <thead><tr><th style={{ width: 60 }}>#</th><th>Title</th><th style={{ width: 180 }}>Acceptance</th><th style={{ width: 100 }}>Difficulty</th><th style={{ width: 100 }}>Topics</th></tr></thead>
-          <tbody>
-            {[
-              { id: 1, t: "Two Sum", a: 52, d: "easy", k: "Array" },
-              { id: 20, t: "Valid Parentheses", a: 41, d: "easy", k: "Stack" },
-              { id: 21, t: "Merge Two Sorted Lists", a: 64, d: "easy", k: "Linked List" },
-              { id: 121, t: "Best Time to Buy and Sell Stock", a: 54, d: "easy", k: "Array" },
-              { id: 53, t: "Maximum Subarray", a: 51, d: "medium", k: "Array" },
-            ].map((p) => (
-              <tr key={p.id}>
-                <td className="cl-mono cl-text-mute">{String(p.id).padStart(4, "0")}</td>
-                <td style={{ color: "var(--text)", fontWeight: 500 }}>
-                  <Link to={`/arena/problemset/${p.id}`} className="cl-tbl-link">{p.t}</Link>
-                </td>
-                <td><div style={{ display: "flex", gap: 8, alignItems: "center" }}><div className="cl-bar"><div className="cl-bar-fill" style={{ width: `${p.a}%` }} /></div><span className="cl-mono" style={{ fontSize: 11, color: "var(--text-mute)" }}>{p.a}%</span></div></td>
-                <td><span className={`cl-chip cl-chip-${p.d} cl-chip-dot`}>{p.d[0].toUpperCase() + p.d.slice(1)}</span></td>
-                <td><span className="cl-chip">{p.k}</span></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-);
-
-const CTA = ({ user }) => (
-  <section style={{ padding: "100px 0 40px" }}>
-    <div className="cl-container-narrow" style={{ textAlign: "center" }}>
-      <div style={{ display: "flex", justifyContent: "center", marginBottom: 32 }}>
-        <div className="cl-lemon-hero"><div className="cl-lemon-leaf" /></div>
-      </div>
-      {/* Cyan stays, italic doesn't — the hero already spends the one italic
-          accent this page gets, and twice reads as a tic rather than a choice. */}
-      <h2 className="cl-h2">Ready to squeeze<br />some <span style={{ color: "var(--cyan)" }}>better code</span>?</h2>
-      <p className="cl-lede" style={{ margin: "20px auto 32px" }}>
-        A lightweight daily habit. 15 minutes · 1 problem · compounding returns.
+/* Languages — the diptych compressed to one line between two hairlines. It used
+   to be a centred row of seven chips, which made a supporting fact look like a
+   feature announcement. */
+const Languages = () => (
+  <section className="lp-langs">
+    <div className="cl-container lp-langs-inner">
+      <p style={{ margin: 0, fontSize: 14, color: "var(--text-dim)" }}>
+        Write in whichever language you&rsquo;re learning.
       </p>
-      <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-        <Link to={user.isLoggedIn ? "/arena/problemset" : "/signup"} className="cl-btn cl-btn-primary cl-btn-lg">
-          {user.isLoggedIn ? "Continue learning" : "Start free"} <Icon name="arrowRight" size={14} />
-        </Link>
-        <a href="https://github.com/manishdasa100/CLFrontend" target="_blank" rel="noreferrer noopener" className="cl-btn cl-btn-ghost cl-btn-lg"><Icon name="code" size={14} /> View source on GitHub</a>
+      <ul className="lp-langs-list">
+        {["Python", "JavaScript", "Java", "C++", "C", "Go", "Rust"].map((l) => (
+          <li key={l}>{l}</li>
+        ))}
+      </ul>
+    </div>
+  </section>
+);
+
+const tracks = [
+  { label: "Arrays 101", pct: 100, state: "done" },
+  { label: "Two Pointers", pct: 100, state: "done" },
+  { label: "Binary Search", pct: 66, state: "active" },
+  { label: "Recursion", pct: 20, state: "active" },
+  { label: "Dynamic Programming", pct: 0, state: "locked" },
+];
+
+/* Map — text left, proof right. This is where the old page's separate "progress"
+   and "paths" cards merge: what to do next and how far you've come are one
+   picture, and splitting them into two feature tiles was the grid asking for
+   three things to put in it.
+   The old donut carried an invented "248 solved" — a fabricated headline number
+   in a proof slot, which is the thing an audience reads fastest. A track list
+   with a caption saying it's an example makes the same argument honestly. */
+const Map = () => (
+  <section className="lp-map">
+    <div className="cl-container lp-split">
+      <div>
+        <h2 className="cl-h2">Never wonder what to solve next.</h2>
+        <p className="cl-lede" style={{ fontSize: 15, marginTop: 16 }}>
+          Guided routes through arrays, recursion, graphs and dynamic programming — a
+          sensible order, one small step at a time. Topic heatmaps and your full history
+          fill in behind you, so you can see what&rsquo;s clicking and what to practice next.
+        </p>
+      </div>
+
+      <div>
+        <div className="lp-track" aria-hidden="true">
+          {tracks.map((t) => (
+            <div key={t.label} className={`lp-track-row ${t.state === "active" ? "is-active" : ""}`}>
+              <span
+                className="lp-track-mark"
+                style={{
+                  background: t.state === "done" ? "var(--cyan)" : t.state === "locked" ? "var(--bg-3)" : "transparent",
+                  border: t.state === "done" ? "none" : `1.5px solid ${t.state === "active" ? "var(--cyan)" : "var(--stroke-2)"}`,
+                }}
+              >
+                {t.state === "done" && <Icon name="check" size={10} />}
+                {t.state === "locked" && <Icon name="lock" size={9} style={{ color: "var(--text-mute)" }} />}
+              </span>
+              <span className="lp-track-label" style={{ color: t.state === "locked" ? "var(--text-mute)" : "var(--text)" }}>
+                {t.label}
+              </span>
+              <div className="cl-bar" style={{ width: 64 }}>
+                <div className="cl-bar-fill" style={{ width: `${t.pct}%` }} />
+              </div>
+              <span className="lp-track-pct">{t.pct}%</span>
+            </div>
+          ))}
+        </div>
+        <p className="lp-caption">An example — your own map, once you get going.</p>
+      </div>
+    </div>
+  </section>
+);
+
+/* Close — the page stops splitting at the moment it asks you to act. Left-biased
+   rather than centred, with the lemon as a mark at the edge instead of a 140px
+   centrepiece: the identity is a wink, not a mascot taking a bow. */
+const Close = ({ user }) => (
+  <section className="lp-close">
+    <div className="cl-container lp-close-inner">
+      <div className="lp-close-copy">
+        <h2 className="cl-h2">
+          Ready to squeeze<br />some <span style={{ color: "var(--cyan)" }}>better code</span>?
+        </h2>
+        <p className="cl-lede" style={{ marginTop: 20 }}>
+          A lightweight daily habit. 15 minutes · 1 problem · compounding returns.
+        </p>
+        <div className="lp-close-actions">
+          <Link to={user.isLoggedIn ? "/arena/problemset" : "/signup"} className="cl-btn cl-btn-primary cl-btn-lg">
+            {user.isLoggedIn ? "Continue learning" : "Start free"} <Icon name="arrowRight" size={14} />
+          </Link>
+          <a
+            href="https://github.com/manishdasa100/CLFrontend"
+            target="_blank"
+            rel="noreferrer noopener"
+            className="cl-btn cl-btn-ghost cl-btn-lg"
+          >
+            <Icon name="code" size={14} /> View source
+          </a>
+        </div>
+      </div>
+      <div className="lp-close-mark" aria-hidden="true">
+        <div className="cl-lemon-hero"><div className="cl-lemon-leaf" /></div>
       </div>
     </div>
   </section>
