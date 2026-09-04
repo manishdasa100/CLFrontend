@@ -31,6 +31,20 @@ const PATHS = {
   lock: <><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></>,
   mail: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></>,
   user: <><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-7 8-7s8 3 8 7" /></>,
+  /* Rocket — the Houston mark, and the one two-tone entry in this set: cyan body,
+     deeper-cyan fins, lemon flame, so it can't ride on currentColor like the rest.
+     Drawn upright then rotated 45° to climb to the upper right; every point stays
+     within 10.8 of the centre, so nothing clips the 24 box under rotation. The
+     porthole is a hole punched in --bg-1, the surface the panel sits on. */
+  rocket: (
+    <g transform="rotate(45 12 12)" stroke="none">
+      <path d="M9.5 13.5 6 17.5v3l4-2.5z" fill="var(--cyan-deep)" />
+      <path d="M14.5 13.5 18 17.5v3l-4-2.5z" fill="var(--cyan-deep)" />
+      <path d="M12 3c2.2 2.4 3.2 5.2 3.2 8s-1 5.6-3.2 8c-2.2-2.4-3.2-5.2-3.2-8s1-5.6 3.2-8z" fill="var(--cyan)" />
+      <circle cx="12" cy="9.5" r="1.8" fill="var(--bg-1)" />
+      <path d="M12 22.8 10.4 20.2h3.2z" fill="var(--lemon)" />
+    </g>
+  ),
   reset: <path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5" />,
   copy: <><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></>,
   dot: <circle cx="12" cy="12" r="3" fill="currentColor" stroke="none" />,

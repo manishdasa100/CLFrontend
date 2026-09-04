@@ -5,3 +5,183 @@
 .pd-sub-row { background: var(--bg-2); cursor: pointer; transition: background .12s ease; }
 .pd-sub-row:hover { background: var(--bg-3); }
 .pd-sub-row:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+/* Hallmark · component: disclosure panel (Houston) · genre: modern-minimal
+ * theme: project-locked (src/styles/tokens.css)
+ * states: default · hover · focus · active — disabled/loading/error/success are
+ *         N/A for a disclosure with no async work and no form control
+ * pre-emit critique: P5 H5 E4 S5 R5 V4
+ *
+ * Anchored to the wrapper's bottom edge, so it grows upward over the editor only
+ * and collapses back to its summary bar. Above Monaco's in-editor widgets
+ * (~z 10) and below dropdowns; the panel is meant to cover the code. */
+.pd-editor-wrap { position: relative; }
+
+/* The panel is the scroll container, deliberately: laying it out as a flex column
+   and scrolling an inner body broke in Chromium 128+, which slots <details>
+   content into ::details-content — the body stops being a flex item and its block
+   box overflows the fixed height, which is how hint text ended up over the
+   testcases. Scrolling the <details> itself needs no flex chain and behaves the
+   same everywhere. overflow-x stays hidden so a code block can't widen it. */
+.pd-editor-panel {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: var(--z-sticky);
+  max-height: 100%; overflow: hidden;
+  background: var(--bg-1); border-top: 1px solid var(--stroke);
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.45);
+}
+/* The full editor, not a fraction of it — a level-3 hint carries headings, prose
+   and a code block, and nothing shorter reads without a fight. */
+.pd-editor-panel[open] { height: 100%; overflow-y: auto; overscroll-behavior: contain; }
+
+/* Sticky, so the bar stays reachable at the bottom of a long hint — it's the only
+   way to shut the panel. Its backgrounds are all opaque for the same reason: a
+   translucent hover would let scrolled text show through it.
+   gap: 0 on purpose — the name and the rotating line have to read as one
+   sentence ("Houston: I have a problem"), so the spacing lives on the mark. */
+.pd-editor-panel > summary {
+  position: sticky; top: 0; z-index: 1; background: var(--bg-1);
+  list-style: none; cursor: pointer; user-select: none;
+  display: flex; align-items: center; gap: 0;
+  padding: 9px 12px 9px 14px;
+  transition: background-color var(--dur-short) var(--ease-out);
+}
+.pd-editor-panel > summary::-webkit-details-marker { display: none; }
+.pd-editor-panel > summary:hover { background: var(--surface-solid); }
+.pd-editor-panel > summary:active { background: var(--surface-solid-hi); }
+.pd-editor-panel > summary:focus-visible { outline: 2px solid var(--cyan); outline-offset: -2px; }
+
+/* Houston sits left in both states — the summary is the bar when closed and the
+   panel's top strip when open. The mark carries its own cyan/lemon fills, so it
+   holds back on opacity rather than colour: full strength once the panel is open
+   or under the pointer, quieter than the lemon Submit button while it's shut. */
+.pd-houston-mark { flex-shrink: 0; margin-right: 9px; opacity: .75; transition: opacity var(--dur-short) var(--ease-out); }
+.pd-editor-panel[open] .pd-houston-mark,
+.pd-editor-panel > summary:hover .pd-houston-mark { opacity: 1; }
+
+.pd-houston-name {
+  flex-shrink: 0;
+  font-family: var(--font-display); font-weight: 600; font-size: 12.5px;
+  letter-spacing: -0.01em; color: var(--text-dim);
+  transition: color var(--dur-short) var(--ease-out);
+}
+.pd-editor-panel > summary:hover .pd-houston-name { color: var(--text); }
+
+/* The rotating line. One keyframe spanning the full 4s interval carries both
+   halves of the swap, so remounting the span on each tick is the entire
+   mechanism — no exit state to hold, no second timer to keep in step. It parks
+   at 0 (`forwards`) so a remount that lands a frame late reads as a beat of
+   silence rather than a flash. Sans, not the display face: the name is a name,
+   this is speech. */
+@keyframes pd-houston-line {
+  0%   { opacity: 0; }
+  8%   { opacity: 1; }
+  92%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+.pd-houston-line {
+  flex: 0 1 auto; min-width: 0; padding-right: 10px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-size: 12.5px; color: var(--text-mute);
+  animation: pd-houston-line 4s var(--ease-out) forwards;
+}
+
+.pd-houston-toggle { margin-left: auto; flex-shrink: 0; color: var(--text-mute); transition: transform var(--dur-short) var(--ease-out); }
+.pd-editor-panel:not([open]) .pd-houston-toggle { transform: rotate(180deg); }
+
+.pd-editor-panel-body { padding: 10px 14px 14px; }
+
+/* Flex-basis rather than a media query: the panel is as wide as the editor pane,
+   not the viewport, so it has to reflow against its own box. Three across, then
+   two, then one — and no breakpoint to keep in sync with the page's. */
+.pd-houston-ops { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+
+.pd-houston-op {
+  flex: 1 1 150px; min-width: 0;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  padding: 9px 12px; text-align: left; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--stroke-1);
+  border-radius: var(--radius-sm); color: var(--text); font-family: inherit;
+  transition: background-color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+.pd-houston-op:hover:not(:disabled) { background: var(--surface-hi); border-color: var(--stroke-2); }
+.pd-houston-op:active:not(:disabled) { background: var(--surface); }
+.pd-houston-op:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.pd-houston-op:disabled { opacity: .5; cursor: default; }
+/* The running one stays lit while its siblings dim, so "which one am I waiting
+   on" doesn't have to be read off the output area. */
+.pd-houston-op.is-busy { opacity: 1; border-color: rgba(34, 211, 238, 0.5); }
+
+.pd-houston-op-title { font-family: var(--font-display); font-weight: 600; font-size: 12.5px; letter-spacing: -0.01em; }
+.pd-houston-op-sub { font-size: 11px; color: var(--text-mute); }
+
+.pd-houston-out { font-size: 12.5px; line-height: 1.65; }
+.pd-houston-idle { display: flex; align-items: center; gap: 8px; color: var(--text-mute); }
+.pd-houston-err { color: var(--hard); }
+/* Verdict · level · when, above each hint. */
+.pd-houston-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; font-size: 11.5px; color: var(--text-mute); }
+.pd-houston-when { margin-left: auto; }
+.pd-houston-more { margin: 12px 0 0; font-size: 11.5px; color: var(--text-mute); }
+
+/* Hint log — one section per verdict the hints were raised against. */
+.pd-houston-group + .pd-houston-group { margin-top: 18px; }
+.pd-houston-group-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 11.5px; color: var(--text-mute); }
+.pd-houston-count { margin-left: auto; font-family: var(--font-mono); }
+
+.pd-houston-entry { border: 1px solid var(--stroke); border-radius: var(--radius-sm); }
+.pd-houston-entry + .pd-houston-entry { margin-top: 6px; }
+.pd-houston-entry > summary {
+  list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px; font-size: 11.5px; color: var(--text-dim);
+  transition: background-color var(--dur-short) var(--ease-out);
+}
+.pd-houston-entry > summary::-webkit-details-marker { display: none; }
+.pd-houston-entry > summary:hover { background: var(--surface); }
+.pd-houston-entry > summary:focus-visible { outline: 2px solid var(--cyan); outline-offset: -2px; }
+/* Points down when shut, up when open — the opposite of the panel's own toggle,
+   because these entries open downward and the panel opens upward. */
+.pd-houston-entry-chevron { flex-shrink: 0; color: var(--text-mute); transition: transform var(--dur-short) var(--ease-out); }
+.pd-houston-entry[open] .pd-houston-entry-chevron { transform: rotate(180deg); }
+.pd-houston-entry .pd-md { padding: 2px 10px 10px; }
+
+/* Rendered hint markdown. Every list and heading rule is restated because
+   Tailwind's preflight strips them, same as the constraints list on this page. */
+.pd-md { color: var(--text-dim); line-height: 1.7; }
+.pd-md > :first-child { margin-top: 0; }
+.pd-md > :last-child { margin-bottom: 0; }
+.pd-md h1, .pd-md h2, .pd-md h3, .pd-md h4 {
+  font-family: var(--font-display); font-weight: 600; color: var(--text);
+  letter-spacing: -0.01em; line-height: 1.3; margin: 18px 0 8px;
+}
+.pd-md h1 { font-size: 16px; }
+.pd-md h2 { font-size: 15px; }
+.pd-md h3 { font-size: 13.5px; }
+.pd-md h4 { font-size: 12.5px; }
+.pd-md p { margin: 0 0 10px; }
+.pd-md strong { color: var(--text); font-weight: 600; }
+.pd-md ul, .pd-md ol { margin: 0 0 10px; padding-left: 20px; }
+.pd-md ul { list-style: disc; }
+.pd-md ol { list-style: decimal; }
+.pd-md li { display: list-item; margin-bottom: 4px; }
+.pd-md hr { border: none; border-top: 1px solid var(--stroke); margin: 16px 0; }
+.pd-md a { color: var(--cyan); text-decoration: underline; }
+.pd-md code { font-family: var(--font-mono); font-size: 11.5px; background: rgba(255, 255, 255, 0.07); border-radius: 4px; padding: 1px 5px; color: var(--text); }
+/* Fenced blocks scroll inside their own box — a Java snippet must never be able
+   to widen the panel and put a horizontal scrollbar on the page. */
+.pd-md pre {
+  margin: 0 0 12px; padding: 10px 12px; overflow-x: auto;
+  background: var(--surface); border: 1px solid var(--stroke); border-radius: var(--radius-sm);
+}
+.pd-md pre code { padding: 0; background: none; border-radius: 0; line-height: 1.6; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pd-editor-panel > summary,
+  .pd-houston-mark,
+  .pd-houston-name,
+  .pd-houston-op,
+  .pd-houston-toggle,
+  .pd-houston-entry > summary,
+  .pd-houston-entry-chevron { transition: none; }
+  /* The interval is already stopped in JS under this query; killing the
+     animation leaves the line legible at full opacity instead of parked at 0. */
+  .pd-houston-line { animation: none; }
+}

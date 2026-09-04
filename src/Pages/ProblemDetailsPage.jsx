@@ -4,9 +4,10 @@ import Spinner from "../Components/Spinner";
 import { useQueryClient } from "react-query";
 import { useProblemByIdData, useUserLists, useAddToListMutation, useCreateListMutation, useSubmissions } from "../services/queries";
 import CodeEditor from "../Components/CodeEditor";
+import HoustonPanel from "../Components/HoustonPanel";
 import Icon from "../Components/Icon";
 import Toast from "../Components/Toast";
-import { formatFieldName, timeAgo, formatSubmittedAt, SUBMISSION_STATUS, decodeBase64Utf8 } from "../lib/utils";
+import { formatFieldName, timeAgo, formatSubmittedAt, SUBMISSION_STATUS, TIER_COLOR, TIER_VARIANT, decodeBase64Utf8 } from "../lib/utils";
 import { useUser } from "../context/UserContext";
 import useMediaQuery from "../hooks/useMediaQuery";
 import "./ProblemDetailsPage.css";
@@ -69,9 +70,8 @@ const SubmitResultView = ({ report }) => {
   );
 };
 
-/* Verdict colors keyed by the shared SUBMISSION_STATUS tier (pass/wrong/error). */
-const TIER_COLOR = { pass: "var(--easy)", wrong: "var(--medium)", error: "var(--hard)" };
-const TIER_VARIANT = { pass: "success", wrong: "warning", error: "danger" };
+/* TIER_COLOR / TIER_VARIANT moved to lib/utils — the Houston hint log keys off
+   the same verdict tiers, and two copies of that map would eventually disagree. */
 const LANG_LABEL = { JAVA: "Java", PYTHON: "Python", CPP: "C++", C: "C", GO: "Go", JAVASCRIPT: "JavaScript", RUST: "Rust" };
 
 const SubmissionRow = ({ sub }) => {
@@ -481,7 +481,7 @@ export default function ProblemDetailsPage() {
         >
           {(!compact || pane === "code") && (
             // Compact: the editor owns the pane. Wide: it's the resizable top half.
-            <div style={compact
+            <div className="pd-editor-wrap" style={compact
               ? { flex: 1, minHeight: 0 }
               : { height: editorHeightPx != null ? `${editorHeightPx}px` : "68%", flexShrink: 0, minHeight: MIN_EDITOR_H }}>
               {/* No toggle when compact — CodeEditor drops the button entirely. */}
@@ -492,6 +492,10 @@ export default function ProblemDetailsPage() {
                 onPending={handlePending}
                 onResult={handleResult}
               />
+
+              {/* Bottom-anchored inside this wrapper, so it collapses to a bar on
+                  the editor's bottom edge and covers nothing but the editor. */}
+              <HoustonPanel />
             </div>
           )}
 

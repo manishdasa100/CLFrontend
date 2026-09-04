@@ -25,6 +25,7 @@
     "react-dom": "^18.3.1",
     "react-easy-crop": "^6.0.2",
     "react-element-to-jsx-string": "^15.0.0",
+    "react-markdown": "^10.1.0",
     "react-query": "^3.39.3",
     "react-router-dom": "^6.26.1",
     "react-simple-code-editor": "^0.14.1",

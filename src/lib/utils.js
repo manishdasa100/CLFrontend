@@ -82,6 +82,11 @@ export const formatSubmittedAt = (raw) => {
 // Single source of truth for judge verdicts, shared across the problem and profile
 // submission views. `tier` drives semantic color (pass=green, wrong=amber, error=red);
 // `ran` mirrors the backend runSuccess flag.
+// Tier → presentation, kept next to the tiers themselves so the problem page and
+// the Houston hint log can't drift on what "wrong" or "error" looks like.
+export const TIER_COLOR = { pass: "var(--easy)", wrong: "var(--medium)", error: "var(--hard)" }
+export const TIER_VARIANT = { pass: "success", wrong: "warning", error: "danger" }
+
 export const SUBMISSION_STATUS = {
     ACC: { label: "Accepted",              tier: "pass",  ran: true },
     WA:  { label: "Wrong Answer",          tier: "wrong", ran: true },

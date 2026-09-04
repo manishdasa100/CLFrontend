@@ -223,3 +223,23 @@ export const resetStudyPlan = async (listId) => {
 export const deactivateStudyPlan = async (listId) => {
     return axiosInstance.post("studyPlan/set", null, { params: { operation: "DEACTIVATE", listId } }).then((res) => res.data);
 };
+
+// AI hints, for the Houston panel on the problem page.
+// These three sit at the server root rather than under /api/v1, so they override
+// baseURL per request instead of getting their own axios instance — that way they
+// keep this instance's auth header and its 401-expiry redirect.
+// generate/ and latest/ return one hint object; history/ returns them grouped by
+// verdict, { WA: [...], TLE: [...] }. Any non-2xx body carries only `message`.
+const ROOT_URL = BASE_URL.replace(/\/api\/v1\/?$/, "");
+
+export const generateHint = async (problemId) => {
+    return axiosInstance.post(`ai/hint/generate/${problemId}`, null, { baseURL: ROOT_URL }).then((res) => res.data);
+};
+
+export const getLastHint = async (problemId) => {
+    return axiosInstance.get(`ai/hint/latest/${problemId}`, { baseURL: ROOT_URL }).then((res) => res.data);
+};
+
+export const getHintHistory = async (problemId) => {
+    return axiosInstance.get(`ai/hint/history/${problemId}`, { baseURL: ROOT_URL }).then((res) => res.data);
+};
