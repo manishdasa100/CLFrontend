@@ -136,7 +136,7 @@ export const submitCode = async ({ code, language, problemId, isRunCode }) => {
         problemId: Number(problemId),
         language,
         userCode,
-        isRunCode,
+        submissionType: isRunCode ? "RUN_CODE" : "SUBMIT_CODE",
         b64Encoded: true,
     }, {
         headers: { "X-Timezone": userTimezone() },
